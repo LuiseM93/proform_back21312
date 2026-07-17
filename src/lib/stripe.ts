@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-11-20.acacia" as unknown as Stripe.LatestApiVersion,
+  apiVersion: "2026-06-24.dahlia" as any,
 });
 
 export const PRICE_IDS = {
