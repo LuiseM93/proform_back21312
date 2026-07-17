@@ -55,33 +55,43 @@ export async function POST(req: Request) {
           break;
         }
 
-        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-        const priceId = subscription.items.data[0]?.price.id;
-        console.log("[Webhook] Retrieved subscription:", subscription.id, "priceId:", priceId);
+        try {
+          console.log("[Webhook] Retrieving subscription:", session.subscription);
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          console.log("[Webhook] Retrieved subscription:", subscription.id);
+          
+          const priceId = subscription.items.data[0]?.price.id;
+          console.log("[Webhook] priceId:", priceId);
 
-        const plan = planFromPriceId(priceId);
-        console.log("[Webhook] Plan determined:", plan);
+          const plan = planFromPriceId(priceId);
+                    console.log("[Webhook] Plan determined:", plan);
 
-        const { error } = await supabase
-          .from("subscriptions")
-          .update({
-            stripe_subscription_id: subscription.id,
-            plan: plan,
-            status: subscription.status,
-            billing_interval: subscription.items.data[0]?.price.recurring?.interval,
-            current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
-            cancel_at_period_end: subscription.cancel_at_period_end,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("user_id", userId);
+                    console.log("[Webhook] Updating Supabase for user:", userId, "plan:", plan);
+                    const { error } = await supabase
+                      .from("subscriptions")
+                      .update({
+                        stripe_subscription_id: subscription.id,
+                        plan: plan,
+                        status: subscription.status,
+                        billing_interval: subscription.items.data[0]?.price.recurring?.interval,
+                        current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
+                        cancel_at_period_end: subscription.cancel_at_period_end,
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq("user_id", userId);
 
-        if (error) {
-          console.error("[Webhook] Supabase update error:", error);
-          throw error;
-        }
+                    if (error) {
+                      console.error("[Webhook] Supabase update error:", error);
+                      throw error;
+                    }
 
-        console.log("[Webhook] Supabase updated successfully for user:", userId, "plan:", plan);
-        break;
+                    console.log("[Webhook] Supabase updated successfully for user:", userId, "plan:", plan);
+                  } catch (err) {
+                    const message = err instanceof Error ? err.message : JSON.stringify(err);
+                    console.error("[Webhook] checkout.session.completed processing failed:", message);
+                    throw err;
+                  }
+                  break;
       }
 
       case "customer.subscription.updated":
@@ -165,8 +175,8 @@ export async function POST(req: Request) {
 
     return new NextResponse("Webhook processed", { status: 200 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("[Webhook] Processing error:", message);
+    const message = err instanceof Error ? err.message : (typeof err === 'string' ? err : JSON.stringify(err));
+    console.error("[Webhook] Processing error:", message, err);
     return new NextResponse(`Webhook Error: ${message}`, { status: 500 });
   }
 }
