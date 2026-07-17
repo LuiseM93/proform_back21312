@@ -26,25 +26,44 @@ export function BillingClient({
   docsPerMonth: number;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const usagePct = docsPerMonth === Infinity ? 0 : Math.min((documentsUsed / docsPerMonth) * 100, 100);
 
   async function handleUpgrade(targetPlan: "professional" | "business", interval: "month" | "year") {
     setLoading(`${targetPlan}-${interval}`);
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: targetPlan, interval }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    setError(null);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: targetPlan, interval }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setError(data.error || "Something went wrong. Try again.");
+    } catch (e) {
+      setError("Connection error. Please try again.");
+    }
     setLoading(null);
   }
 
   async function handleManage() {
     setLoading("portal");
-    const res = await fetch("/api/stripe/portal", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    setError(null);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setError(data.error || "Could not open billing portal.");
+    } catch (e) {
+      setError("Connection error. Please try again.");
+    }
     setLoading(null);
   }
 
@@ -80,6 +99,12 @@ export function BillingClient({
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="bg-error-container border border-error rounded p-4 font-label-md text-sm text-on-error-container">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-7 border-2 border-primary rounded-xl bg-surface overflow-hidden flex flex-col">
