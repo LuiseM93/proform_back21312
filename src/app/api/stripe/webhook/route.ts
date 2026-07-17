@@ -58,40 +58,53 @@ export async function POST(req: Request) {
         try {
           console.log("[Webhook] Retrieving subscription:", session.subscription);
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-          console.log("[Webhook] Retrieved subscription:", subscription.id);
+          console.log("[Webhook] Retrieved subscription:", subscription.id, "status:", subscription.status);
           
           const priceId = subscription.items.data[0]?.price.id;
           console.log("[Webhook] priceId:", priceId);
 
           const plan = planFromPriceId(priceId);
-                    console.log("[Webhook] Plan determined:", plan);
+          console.log("[Webhook] Plan determined:", plan);
 
-                    console.log("[Webhook] Updating Supabase for user:", userId, "plan:", plan);
-                    const { error } = await supabase
-                      .from("subscriptions")
-                      .update({
-                        stripe_subscription_id: subscription.id,
-                        plan: plan,
-                        status: subscription.status,
-                        billing_interval: subscription.items.data[0]?.price.recurring?.interval,
-                        current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
-                        cancel_at_period_end: subscription.cancel_at_period_end,
-                        updated_at: new Date().toISOString(),
-                      })
-                      .eq("user_id", userId);
+          console.log("[Webhook] Checking current subscription in Supabase for user:", userId);
+          const { data: existingSub } = await supabase
+            .from("subscriptions")
+            .select("status, stripe_subscription_id")
+            .eq("user_id", userId)
+            .maybeSingle();
 
-                    if (error) {
-                      console.error("[Webhook] Supabase update error:", error);
-                      throw error;
-                    }
+          // If subscription was already cancelled, don't reactivate
+          if (existingSub?.status === "canceled") {
+            console.log("[Webhook] Subscription already canceled for user:", userId, "- skipping reactivation");
+            break;
+          }
 
-                    console.log("[Webhook] Supabase updated successfully for user:", userId, "plan:", plan);
-                  } catch (err) {
-                    const message = err instanceof Error ? err.message : JSON.stringify(err);
-                    console.error("[Webhook] checkout.session.completed processing failed:", message);
-                    throw err;
-                  }
-                  break;
+          console.log("[Webhook] Updating Supabase for user:", userId, "plan:", plan);
+          const { error } = await supabase
+            .from("subscriptions")
+            .update({
+              stripe_subscription_id: subscription.id,
+              plan: plan,
+              status: subscription.status,
+              billing_interval: subscription.items.data[0]?.price.recurring?.interval,
+              current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
+              cancel_at_period_end: subscription.cancel_at_period_end,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", userId);
+
+          if (error) {
+            console.error("[Webhook] Supabase update error:", error);
+            throw error;
+          }
+
+          console.log("[Webhook] Supabase updated successfully for user:", userId, "plan:", plan);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : JSON.stringify(err);
+          console.error("[Webhook] checkout.session.completed processing failed:", message);
+          throw err;
+        }
+        break;
       }
 
       case "customer.subscription.updated":
