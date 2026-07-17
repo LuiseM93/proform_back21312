@@ -63,7 +63,7 @@ export function PublicFooter() {
             never store your generated documents.
           </p>
           <div className="font-body-md text-on-primary/60 mt-6">
-            © {new Date().getFullYear()} ProformaFlow. All rights reserved.
+            © {new Date().getFullYear()} El Antimetodo. All rights reserved.
           </div>
         </div>
         <div className="flex flex-wrap gap-8 md:gap-16">

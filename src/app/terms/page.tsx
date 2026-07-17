@@ -63,7 +63,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-headline-sm text-primary mt-8 mb-3">Contact</h2>
-            <p>Questions about these terms? Contact us at legal@proformaflow.app.</p>
+            <p>Questions about these terms? Contact us at <a href="mailto:soporte@elantimetodo.com" className="text-primary underline">soporte@elantimetodo.com</a>.</p>
           </section>
         </div>
       </main>
