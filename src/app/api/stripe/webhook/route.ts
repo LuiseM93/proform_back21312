@@ -173,7 +173,8 @@ export async function POST(req: Request) {
         const newPlan = periodEnd < now ? "starter" : currentPlan;
         const newStatus = periodEnd < now ? "canceled" : "active";
 
-        const { error } = await supabase
+        // Try to find by stripe_subscription_id first (since stripe_customer_id might be null)
+        let { error } = await supabase
           .from("subscriptions")
           .update({
             plan: newPlan,
@@ -182,7 +183,26 @@ export async function POST(req: Request) {
             current_period_end: periodEnd.toISOString(),
             updated_at: new Date().toISOString(),
           })
-          .eq("stripe_customer_id", subscription.customer as string);
+          .eq("stripe_subscription_id", subscription.id);
+
+        // Fallback: try by stripe_customer_id
+        if (error && subscription.customer) {
+          console.log("[Webhook] Fallback to stripe_customer_id:", subscription.customer);
+          const { error: fallbackError } = await supabase
+            .from("subscriptions")
+            .update({
+              plan: newPlan,
+              status: newStatus,
+              cancel_at_period_end: false,
+              current_period_end: periodEnd.toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_customer_id", subscription.customer as string);
+          
+          if (!fallbackError) {
+            error = null; // Success on fallback
+          }
+        }
 
         if (error) {
           console.error("[Webhook] Delete update error:", error);
