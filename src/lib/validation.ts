@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// HS Code: 6-10 digits, optionally with dots (e.g. 8471.30, 847130.0000)
+const hsCodeRegex = /^\d{4}(\.\d{2})?(\.\d{2})?(\.\d{2})?$/;
+
 export const partySchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
   address: z.string().min(1, "Address is required"),
@@ -14,21 +17,33 @@ export const shipmentSchema = z.object({
   incoterm: z.enum(["EXW", "FCA", "FOB", "CIF", "CFR", "CPT", "CIP", "DAP", "DPU", "DDP"]),
   portOfLoading: z.string().optional(),
   portOfDischarge: z.string().optional(),
-  countryOfOrigin: z.string().min(1),
-  countryOfDestination: z.string().min(1),
+  countryOfOrigin: z.string().min(1, "Country of origin is required"),
+  countryOfDestination: z.string().min(1, "Country of destination is required"),
   carrier: z.enum(["fedex", "ups", "dhl", "aramex", "other"]).optional(),
   transportMode: z.enum(["ocean", "air", "land"]).optional(),
+  containerNumber: z.string().optional(),
+  sealNumber: z.string().optional(),
+  exportReason: z.enum(["sale", "gift", "sample", "return", "repair", "other"]).optional(),
+  placeOfDelivery: z.string().optional(),
 });
 
 export const lineItemSchema = z.object({
   id: z.string(),
   description: z.string().min(1, "Description is required"),
-  hsCode: z.string().optional(),
+  hsCode: z.string()
+    .regex(hsCodeRegex, "HS Code must be at least 4 digits (e.g. 8471, 8471.30)")
+    .optional()
+    .or(z.literal("")),
   quantity: z.number().positive("Quantity must be greater than 0"),
-  unit: z.string().min(1),
-  unitPrice: z.number().nonnegative(),
+  unit: z.string().min(1, "Unit is required"),
+  unitPrice: z.number().nonnegative("Unit price cannot be negative"),
   weightKg: z.number().nonnegative().optional(),
-  currency: z.string().min(1),
+  currency: z.string().min(1, "Currency is required"),
+  countryOfOrigin: z.string().optional(),
+  weightGrossKg: z.number().nonnegative().optional(),
+  marksAndNumbers: z.string().optional(),
+  packageCount: z.number().int().nonnegative().optional(),
+  packageType: z.enum(["CTN", "PLT", "DRM", "BAG", "CRT", "BND", "PCS", "OTH"]).optional(),
 });
 
 export const bankingSchema = z.object({
@@ -41,12 +56,12 @@ export const bankingSchema = z.object({
 
 export const documentDraftSchema = z.object({
   documentType: z.enum(["proforma", "commercial", "packing", "bundle"]),
-  documentNumber: z.string().min(1),
-  date: z.string().min(1),
+  documentNumber: z.string().min(1, "Document number is required"),
+  date: z.string().min(1, "Date is required"),
   exporter: partySchema,
   importer: partySchema,
   shipment: shipmentSchema,
-  items: z.array(lineItemSchema).min(1, "Add at least one line item"),
+  items: z.array(lineItemSchema).min(1, "Add at least one line item").max(100, "Maximum 100 line items"),
   totals: z.object({
     subtotal: z.number(),
     discount: z.number(),
@@ -55,9 +70,11 @@ export const documentDraftSchema = z.object({
     otherCharges: z.number(),
     total: z.number(),
   }),
+  currency: z.string().min(1, "Currency is required"),
   banking: bankingSchema.optional(),
   legalDeclaration: z.string().optional(),
   logoDataUrl: z.string().optional(),
+  paymentTerms: z.string().optional(),
 });
 
 export const companySchema = z.object({

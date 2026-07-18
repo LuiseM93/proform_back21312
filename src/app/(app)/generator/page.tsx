@@ -14,6 +14,7 @@ export default async function GeneratorPage() {
       planAllTypes={limits.allTypes}
       planCarrierReady={limits.carrierReady}
       remainingDocs={remaining}
+      plan={plan}
       defaultCompany={ctx?.company || undefined}
     />
   );

@@ -4,15 +4,10 @@ import { calculateTotalGrossWeight, calculateTotalNetWeight, calculateTotalPacka
 import { getPageSize, FONT_SIZES, DARK, MID, LIGHT } from "@/lib/pdf-styles";
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 36,
-    fontSize: FONT_SIZES.body,
-    fontFamily: "NotoSans",
-    color: DARK,
-  },
-  // ── HEADER BAR ──
+  page: { padding: 36, fontSize: FONT_SIZES.body, fontFamily: "NotoSans", color: DARK },
+  // ── HEADER ──
   headerBar: {
-    backgroundColor: DARK,
+    backgroundColor: "#D40511", // DHL red
     padding: "8 0",
     marginBottom: 14,
     alignItems: "center" as const,
@@ -26,12 +21,8 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textAlign: "center" as const,
   },
-  // ── PARTY BOXES ──
-  partyRow: {
-    flexDirection: "row" as const,
-    gap: 10,
-    marginBottom: 10,
-  },
+  // ── PARTIES ──
+  partyRow: { flexDirection: "row" as const, gap: 10, marginBottom: 8 },
   partyBox: {
     flex: 1,
     border: "1.5px solid " + DARK,
@@ -41,47 +32,43 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.small,
     fontFamily: "NotoSans",
     fontWeight: 700,
-    marginBottom: 4,
     textTransform: "uppercase" as const,
-    letterSpacing: 1,
+    letterSpacing: 0.5,
+    marginBottom: 3,
   },
-  partyText: {
-    fontSize: FONT_SIZES.body,
-    lineHeight: 1.35,
-  },
-  // ── REFERENCE LINE ──
+  partyText: { fontSize: FONT_SIZES.body, lineHeight: 1.3 },
+  // ── REFERENCE ──
   refRow: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
-    marginBottom: 8,
     fontSize: FONT_SIZES.body,
     borderBottom: "1px solid " + DARK,
     paddingBottom: 6,
+    marginBottom: 6,
   },
-  refLabel: {
-    fontFamily: "NotoSans",
-    fontWeight: 700,
-  },
+  refLabel: { fontFamily: "NotoSans", fontWeight: 700 },
   // ── SHIPMENT INFO ──
   infoRow: {
     flexDirection: "row" as const,
     flexWrap: "wrap" as const,
     gap: 4,
-    marginBottom: 10,
-    fontSize: FONT_SIZES.body,
+    marginBottom: 8,
+    fontSize: FONT_SIZES.small,
     borderBottom: "1px solid " + MID,
     paddingBottom: 6,
   },
-  infoTag: {
-    fontSize: FONT_SIZES.small,
-    border: "1px solid " + LIGHT,
-    padding: "2 6",
+  infoTag: { border: "1px solid " + LIGHT, padding: "2 6" },
+  // ── WEIGHT BOX ──
+  weightBox: {
+    border: "1.5px solid " + DARK,
+    padding: 8,
+    marginBottom: 8,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
   },
+  weightLabel: { fontFamily: "NotoSans", fontWeight: 700 },
   // ── TABLE ──
-  table: {
-    marginTop: 4,
-    marginBottom: 12,
-  },
+  table: { marginTop: 2, marginBottom: 10 },
   tableHeader: {
     flexDirection: "row" as const,
     borderBottom: "2px solid " + DARK,
@@ -97,24 +84,20 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     alignItems: "flex-start" as const,
   },
-  colQty: { width: "8%" as const, paddingRight: 2 },
-  colUom: { width: "8%" as const, paddingRight: 2 },
-  colDesc: { width: "32%" as const, paddingRight: 4 },
-  colHs: { width: "14%" as const, paddingRight: 2 },
-  colOrigin: { width: "12%" as const, paddingRight: 2 },
-  colUnitVal: { width: "12%" as const, paddingRight: 2, textAlign: "right" as const },
-  colTotalVal: { width: "14%" as const, textAlign: "right" as const },
-  // ── TOTALS BOX ──
+  colQty: { width: "8%", paddingRight: 2 },
+  colUom: { width: "8%", paddingRight: 2 },
+  colDesc: { width: "36%", paddingRight: 4 },
+  colHs: { width: "14%", paddingRight: 2 },
+  colOrigin: { width: "12%", paddingRight: 2 },
+  colUnitVal: { width: "10%", paddingRight: 2, textAlign: "right" as const },
+  colTotalVal: { width: "12%", textAlign: "right" as const },
+  // ── TOTALS ──
   totalsSection: {
     flexDirection: "row" as const,
     justifyContent: "flex-end" as const,
-    marginBottom: 14,
+    marginBottom: 12,
   },
-  totalsBox: {
-    width: "45%",
-    border: "1.5px solid " + DARK,
-    padding: 8,
-  },
+  totalsBox: { width: "45%", border: "1.5px solid " + DARK, padding: 8 },
   totalLine: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
@@ -135,49 +118,28 @@ const styles = StyleSheet.create({
   declaration: {
     fontSize: FONT_SIZES.small,
     color: MID,
-    marginBottom: 14,
+    marginBottom: 12,
     lineHeight: 1.5,
-  },
-  // ── WEIGHT / PACKAGES INFO ──
-  weightRow: {
-    flexDirection: "row" as const,
-    gap: 16,
-    marginBottom: 10,
-    fontSize: FONT_SIZES.body,
-  },
-  weightLabel: {
-    fontFamily: "NotoSans",
-    fontWeight: 700,
   },
   // ── SIGNATURE ──
   sigSection: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
-    marginTop: 4,
     borderTop: "1px solid " + DARK,
-    paddingTop: 10,
+    paddingTop: 8,
   },
-  sigBlock: {
-    width: "45%",
-  },
+  sigBlock: { width: "45%" },
   sigLabel: {
     fontSize: FONT_SIZES.small,
     fontFamily: "NotoSans",
     fontWeight: 700,
     marginBottom: 2,
   },
-  sigLine: {
-    borderBottom: "1px solid " + DARK,
-    height: 24,
-    marginBottom: 2,
-  },
-  sigText: {
-    fontSize: FONT_SIZES.small,
-    color: MID,
-  },
+  sigLine: { borderBottom: "1px solid " + DARK, height: 24, marginBottom: 2 },
+  sigText: { fontSize: FONT_SIZES.tiny, color: MID },
 });
 
-export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark?: boolean; carrier?: string }) {
+export function DhlPdf({ draft, watermark }: { draft: DocumentDraft; watermark?: boolean; carrier?: string }) {
   const totalGross = calculateTotalGrossWeight(draft.items);
   const totalNet = calculateTotalNetWeight(draft.items);
   const totalPkgs = calculateTotalPackages(draft.items);
@@ -186,8 +148,7 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
 
   return (
     <Document>
-      <Page size={pageSize} style={styles.page}>
-        {/* Watermark — only for Starter, nearly invisible in print */}
+      <Page size={pageSize} style={styles.page} wrap>
         {watermark && (
           <View style={{ position: "absolute", top: 300, left: 150, opacity: 0.04 }} fixed>
             <Text style={{ fontSize: 72, transform: "rotate(-45deg)", color: "#000" }}>DRAFT</Text>
@@ -196,7 +157,7 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
 
         {/* ─── HEADER ─── */}
         <View style={styles.headerBar} fixed>
-          <Text style={styles.headerTitle}>FEDEX COMMERCIAL INVOICE</Text>
+          <Text style={styles.headerTitle}>DHL COMMERCIAL INVOICE</Text>
         </View>
 
         {/* ─── PARTIES ─── */}
@@ -212,7 +173,7 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
             </Text>
           </View>
           <View style={styles.partyBox}>
-            <Text style={styles.partyTitle}>CONSIGNEE / IMPORTER</Text>
+            <Text style={styles.partyTitle}>CONSIGNEE</Text>
             <Text style={styles.partyText}>
               {draft.importer.companyName}{"\n"}
               {draft.importer.address}{"\n"}
@@ -223,21 +184,12 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
           </View>
         </View>
 
-        {/* ─── REFERENCE LINE — what the counter clerk checks first ─── */}
+        {/* ─── REFERENCE ─── */}
         <View style={styles.refRow}>
-          <Text>
-            <Text style={styles.refLabel}>Invoice: </Text>
-            {draft.documentNumber}
-          </Text>
-          <Text>
-            <Text style={styles.refLabel}>Date: </Text>
-            {draft.date}
-          </Text>
+          <Text><Text style={styles.refLabel}>Invoice: </Text>{draft.documentNumber}</Text>
+          <Text><Text style={styles.refLabel}>Date: </Text>{draft.date}</Text>
           {draft.shipment.trackingNumber && (
-            <Text>
-              <Text style={styles.refLabel}>AWB: </Text>
-              {draft.shipment.trackingNumber}
-            </Text>
+            <Text><Text style={styles.refLabel}>AWB: </Text>{draft.shipment.trackingNumber}</Text>
           )}
         </View>
 
@@ -248,67 +200,23 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
             {draft.shipment.incoterm}
           </Text>
           {draft.shipment.exportReason && (
-            <Text style={styles.infoTag}>
-              <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Reason: </Text>
-              {draft.shipment.exportReason.toUpperCase()}
-            </Text>
+            <Text style={styles.infoTag}>Reason: {draft.shipment.exportReason.toUpperCase()}</Text>
           )}
-          <Text style={styles.infoTag}>
-            <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Currency: </Text>
-            {draft.currency}
-          </Text>
-          {draft.shipment.countryOfOrigin && (
-            <Text style={styles.infoTag}>
-              <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Origin: </Text>
-              {draft.shipment.countryOfOrigin}
-            </Text>
-          )}
-          {draft.shipment.transportMode && (
-            <Text style={styles.infoTag}>
-              <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Mode: </Text>
-              {draft.shipment.transportMode.toUpperCase()}
-            </Text>
-          )}
-          {!hasDapDdp && draft.shipment.portOfLoading && (
-            <Text style={styles.infoTag}>
-              <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>POL: </Text>
-              {draft.shipment.portOfLoading}
-            </Text>
-          )}
-          {!hasDapDdp && draft.shipment.portOfDischarge && (
-            <Text style={styles.infoTag}>
-              <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>POD: </Text>
-              {draft.shipment.portOfDischarge}
-            </Text>
-          )}
-          {hasDapDdp && draft.shipment.placeOfDelivery && (
-            <Text style={styles.infoTag}>
-              <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Delivery: </Text>
-              {draft.shipment.placeOfDelivery}
-            </Text>
-          )}
+          <Text style={styles.infoTag}>Currency: {draft.currency}</Text>
+          {draft.shipment.countryOfOrigin && <Text style={styles.infoTag}>Origin: {draft.shipment.countryOfOrigin}</Text>}
+          {!hasDapDdp && draft.shipment.portOfLoading && <Text style={styles.infoTag}>POL: {draft.shipment.portOfLoading}</Text>}
+          {!hasDapDdp && draft.shipment.portOfDischarge && <Text style={styles.infoTag}>POD: {draft.shipment.portOfDischarge}</Text>}
+          {hasDapDdp && draft.shipment.placeOfDelivery && <Text style={styles.infoTag}>Delivery: {draft.shipment.placeOfDelivery}</Text>}
         </View>
 
-        {/* ─── WEIGHT & PACKAGES ─── */}
-        {(totalGross > 0 || totalPkgs > 0) && (
-          <View style={styles.weightRow}>
-            {totalGross > 0 && (
-              <Text>
-                <Text style={styles.weightLabel}>Gross Weight: </Text>
-                {totalGross.toFixed(2)} kg
-                {totalNet > 0 ? ` (Net: ${totalNet.toFixed(2)} kg)` : ""}
-              </Text>
-            )}
-            {totalPkgs > 0 && (
-              <Text>
-                <Text style={styles.weightLabel}>Total Packages: </Text>
-                {totalPkgs}
-              </Text>
-            )}
-          </View>
-        )}
+        {/* ─── WEIGHT BOX (DHL prominent) ─── */}
+        <View style={styles.weightBox}>
+          <Text><Text style={styles.weightLabel}>Gross Weight:</Text> {totalGross > 0 ? `${totalGross.toFixed(2)} kg` : "—"}</Text>
+          <Text><Text style={styles.weightLabel}>Net Weight:</Text> {totalNet > 0 ? `${totalNet.toFixed(2)} kg` : "—"}</Text>
+          <Text><Text style={styles.weightLabel}>Packages:</Text> {totalPkgs > 0 ? `${totalPkgs}` : "—"}</Text>
+        </View>
 
-        {/* ─── ITEMS TABLE ─── */}
+        {/* ─── TABLE ─── */}
         <View style={styles.table}>
           <View style={styles.tableHeader} fixed>
             <Text style={styles.colQty}>Qty</Text>
@@ -316,8 +224,8 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
             <Text style={styles.colDesc}>Description of Goods</Text>
             <Text style={styles.colHs}>HS Code</Text>
             <Text style={styles.colOrigin}>Origin</Text>
-            <Text style={styles.colUnitVal}>Unit Price</Text>
-            <Text style={styles.colTotalVal}>Total</Text>
+            <Text style={styles.colUnitVal}>Unit $</Text>
+            <Text style={styles.colTotalVal}>Total $</Text>
           </View>
           {draft.items.map((item) => (
             <View key={item.id} style={styles.tableRow} wrap={false}>
@@ -332,26 +240,14 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
           ))}
         </View>
 
-        {/* ─── TOTALS BOX ─── */}
+        {/* ─── TOTALS ─── */}
         <View style={styles.totalsSection}>
           <View style={styles.totalsBox}>
             {draft.totals.freight > 0 && (
-              <View style={styles.totalLine}>
-                <Text>Freight</Text>
-                <Text>{draft.totals.freight.toFixed(2)}</Text>
-              </View>
+              <View style={styles.totalLine}><Text>Freight</Text><Text>{draft.totals.freight.toFixed(2)}</Text></View>
             )}
             {draft.totals.insurance > 0 && (
-              <View style={styles.totalLine}>
-                <Text>Insurance</Text>
-                <Text>{draft.totals.insurance.toFixed(2)}</Text>
-              </View>
-            )}
-            {draft.totals.discount > 0 && (
-              <View style={styles.totalLine}>
-                <Text>Discount</Text>
-                <Text>-{draft.totals.discount.toFixed(2)}</Text>
-              </View>
+              <View style={styles.totalLine}><Text>Insurance</Text><Text>{draft.totals.insurance.toFixed(2)}</Text></View>
             )}
             <View style={styles.totalLineFinal}>
               <Text>TOTAL DECLARED VALUE</Text>
@@ -360,9 +256,9 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
           </View>
         </View>
 
-        {/* ─── LEGAL DECLARATION ─── */}
+        {/* ─── DECLARATION ─── */}
         <Text style={styles.declaration}>
-          {draft.legalDeclaration || "These commodities, technology, or software were exported in accordance with applicable export regulations. Diversion contrary to law is prohibited."}
+          {draft.legalDeclaration || "I hereby declare that the information provided is correct and that the goods are of the stated origin."}
         </Text>
 
         {/* ─── SIGNATURE ─── */}
@@ -370,9 +266,7 @@ export function FedexPdf({ draft, watermark }: { draft: DocumentDraft; watermark
           <View style={styles.sigBlock}>
             <Text style={styles.sigLabel}>SHIPPER'S SIGNATURE</Text>
             <View style={styles.sigLine} />
-            <Text style={styles.sigText}>
-              {draft.signature ? `Signed: ${draft.signature}` : "(wet signature required)"}
-            </Text>
+            <Text style={styles.sigText}>{draft.signature ? `Signed: ${draft.signature}` : ""}</Text>
           </View>
           <View style={styles.sigBlock}>
             <Text style={styles.sigLabel}>DATE</Text>

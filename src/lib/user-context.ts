@@ -37,12 +37,51 @@ export async function getUserContext() {
   };
 }
 
-export function planLimits(plan: string) {
+export interface PlanLimits {
+  docsPerMonth: number;
+  watermark: boolean;
+  allTypes: boolean;
+  carrierReady: boolean;
+  maxCurrencies: number; // 5 for Pro, 24 for Business
+  unlimitedHistory: boolean;
+  unlimitedTemplates: boolean;
+  prioritySupport: boolean;
+}
+
+export function planLimits(plan: string): PlanLimits {
   switch (plan) {
-    case "professional":
     case "business":
-      return { docsPerMonth: Infinity, watermark: false, allTypes: true, carrierReady: true };
+      return {
+        docsPerMonth: Infinity,
+        watermark: false,
+        allTypes: true,
+        carrierReady: true,
+        maxCurrencies: 24,
+        unlimitedHistory: true,
+        unlimitedTemplates: true,
+        prioritySupport: true,
+      };
+    case "professional":
+      return {
+        docsPerMonth: Infinity,
+        watermark: false,
+        allTypes: true,
+        carrierReady: true,
+        maxCurrencies: 5,
+        unlimitedHistory: false, // 50 docs
+        unlimitedTemplates: false,
+        prioritySupport: false,
+      };
     default:
-      return { docsPerMonth: 3, watermark: true, allTypes: false, carrierReady: false };
+      return {
+        docsPerMonth: 3,
+        watermark: true,
+        allTypes: false,
+        carrierReady: false,
+        maxCurrencies: 1, // USD only
+        unlimitedHistory: false,
+        unlimitedTemplates: false,
+        prioritySupport: false,
+      };
   }
 }

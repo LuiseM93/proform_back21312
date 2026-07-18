@@ -132,7 +132,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <p className="text-center font-label-md text-on-surface-variant mb-16">* $4/document for Starter users exceeding the monthly limit.</p>
+        <p className="text-center font-label-md text-on-surface-variant mb-16">&nbsp;</p>
 
         <section className="mb-16 overflow-x-auto">
           <h2 className="font-headline-md mb-8 text-center">Compare Features</h2>
