@@ -162,15 +162,26 @@ export async function POST(req: Request) {
         } else {
           console.warn("[Webhook] No userId in subscription metadata, trying fallback by customer");
           if (subscription.customer) {
+            // Look up user_id from existing subscription row using stripe_customer_id
+            let resolvedUserId = userId;
+            const { data: existingSub } = await supabase
+              .from("subscriptions")
+              .select("user_id")
+              .eq("stripe_customer_id", subscription.customer as string)
+              .maybeSingle();
+            if (existingSub?.user_id) {
+              resolvedUserId = existingSub.user_id;
+            }
+
             const { error } = await supabase
               .from("subscriptions")
-              .upsert({ stripe_customer_id: subscription.customer as string, user_id: userId, ...subscriptionData }, { onConflict: "stripe_customer_id" });
+              .upsert({ stripe_customer_id: subscription.customer as string, user_id: resolvedUserId, ...subscriptionData }, { onConflict: "stripe_customer_id" });
 
             if (error) {
               console.error("[Webhook] Fallback upsert error:", error);
               throw error;
             }
-            console.log("[Webhook] Fallback upserted by stripe_customer_id:", subscription.customer);
+            console.log("[Webhook] Fallback upserted by stripe_customer_id:", subscription.customer, "user_id:", resolvedUserId);
           }
         }
         break;

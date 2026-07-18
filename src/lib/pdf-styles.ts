@@ -1,18 +1,38 @@
 import { Font, StyleSheet } from "@react-pdf/renderer";
 
 // ─── Font Registration ────────────────────────────────────────────────────────
-Font.register({
-  family: "NotoSans",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/notosans/v39/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5aPdu2ui.woff2", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/notosans/v39/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5aPdu2ui.woff2", fontWeight: 700 },
-  ],
-});
+// PRODUCTION: Place NotoSans-Regular.ttf, NotoSans-Bold.ttf, NotoSansSC-Regular.ttf in public/fonts/
+// Font registration tries local first (production), falls back to CDN (dev)
+try {
+  Font.register({
+    family: "NotoSans",
+    fonts: [
+      { src: "/fonts/NotoSans-Regular.ttf", fontWeight: 400 },
+      { src: "/fonts/NotoSans-Bold.ttf", fontWeight: 700 },
+    ],
+  });
+} catch {
+  // Fallback to CDN for development
+  Font.register({
+    family: "NotoSans",
+    fonts: [
+      { src: "https://fonts.gstatic.com/s/notosans/v39/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5aPdu2ui.woff2", fontWeight: 400 },
+      { src: "https://fonts.gstatic.com/s/notosans/v39/o-0bIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjc5aPdu2ui.woff2", fontWeight: 700 },
+    ],
+  });
+}
 
-Font.register({
-  family: "NotoSansSC",
-  src: "https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_EnYxNbPzS5HE.woff2",
-});
+try {
+  Font.register({
+    family: "NotoSansSC",
+    src: "/fonts/NotoSansSC-Regular.ttf",
+  });
+} catch {
+  Font.register({
+    family: "NotoSansSC",
+    src: "https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_EnYxNbPzS5HE.woff2",
+  });
+}
 
 // ─── Color Palette (Monochrome-first for thermal printers) ───────────────────
 export const DARK = "#1b1c1c";
