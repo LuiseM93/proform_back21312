@@ -413,7 +413,7 @@ export function GeneratorForm({
                       <option key={it.value} value={it.value}>{it.label}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-on-surface-variant mt-1">{INCOTERM_RULES[incoterm]?.description}</p>
+                  <p className="text-xs text-on-surface-variant mt-1">{INCOTERM_RULES[incoterm]?.description} — E.g. <strong>FOB</strong> (you pay until loaded on vessel), <strong>CIF</strong> (you pay freight + insurance), <strong>EXW</strong> (buyer picks up at your factory)</p>
                 </Field>
                 <Field label="Carrier">
                   <select
@@ -560,7 +560,7 @@ export function GeneratorForm({
                       />
                       <input
                         className="form-input"
-                        placeholder="HS Code (e.g. 8471.30)"
+                        placeholder="HS Code (e.g. 2208.90 spirits, 6104.42 dresses, 8483.40 gears)"
                         value={item.hsCode}
                         onChange={(e) => updateItem(item.id, { hsCode: e.target.value })}
                       />
@@ -595,7 +595,7 @@ export function GeneratorForm({
                         className="form-input"
                         type="number"
                         step="0.01"
-                        placeholder="Net Weight (kg)"
+                        placeholder="Net weight (kg) — product only, e.g. 12.5"
                         value={item.weightKg}
                         onChange={(e) => updateItem(item.id, { weightKg: Number(e.target.value) })}
                       />
@@ -603,13 +603,13 @@ export function GeneratorForm({
                         className="form-input"
                         type="number"
                         step="0.01"
-                        placeholder="Gross Weight (kg)"
+                        placeholder="Gross weight (kg) — product + box + pallet, e.g. 14.2"
                         value={item.weightGrossKg}
                         onChange={(e) => updateItem(item.id, { weightGrossKg: Number(e.target.value) })}
                       />
                       <input
                         className="form-input"
-                        placeholder="Marks & Nos."
+                        placeholder="Marks & Numbers — what's written on the box, e.g. LOT-2024-001 BOXES 1-50"
                         value={item.marksAndNumbers || ""}
                         onChange={(e) => updateItem(item.id, { marksAndNumbers: e.target.value })}
                       />
@@ -947,8 +947,8 @@ function PartyForm({
           <Field label="Country *">
             <input className="form-input" value={value.country} onChange={(e) => onChange({ ...value, country: e.target.value })} required />
           </Field>
-          <Field label="Tax ID / VAT">
-            <input className="form-input" value={value.taxId} onChange={(e) => onChange({ ...value, taxId: e.target.value })} />
+          <Field label="Tax ID / VAT *">
+            <input className="form-input" value={value.taxId} onChange={(e) => onChange({ ...value, taxId: e.target.value })} placeholder="Mexico: RFC (XAXX010101000) | USA: EIN (12-3456789) | EU: VAT (DE123456789)" required />
           </Field>
         </div>
         <Field label="Contact Name">
