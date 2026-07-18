@@ -136,8 +136,6 @@ export function GeneratorForm({
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [limitError, setLimitError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<IncotermValidationError[]>([]);
-  const [currencyError, setCurrencyError] = useState<string | null>(null);
   const [docNumber] = useState(() => `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 900 + 100)}`);
 
   const totals = calculateTotals(items, discount, freight, insurance, otherCharges);
@@ -202,8 +200,6 @@ export function GeneratorForm({
 
   async function handleDownload() {
     setLimitError(null);
-    setValidationErrors(incotermErrors);
-    setCurrencyError(curError);
 
     // Don't allow download if there are incoterm errors
     const hasErrors = incotermErrors.some((e) => e.severity === "error");

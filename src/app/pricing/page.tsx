@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { PublicNav, PublicFooter } from "@/components/public-nav";
 import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const PLANS = {
   monthly: { pro: 24, biz: 79, proSuffix: "/mo", bizSuffix: "/mo" },
@@ -11,7 +12,7 @@ const PLANS = {
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
   const plan = annual ? PLANS.annual : PLANS.monthly;
 

@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Parse body for document type and carrier validation
-  let body: { documentType?: string; carrier?: string } = {};
+  // Parse body for document type, carrier, and currencies validation
+  let body: { documentType?: string; carrier?: string; currencies?: string[] } = {};
   try {
     body = await request.json();
   } catch {
@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
 
   const documentType = body.documentType || "proforma";
   const carrier = body.carrier || "other";
+  const currencies = body.currencies || [];
 
   // Usar ADMIN CLIENT para bypassear RLS al leer subscriptions
   const admin = await createAdminClient();
@@ -40,7 +41,9 @@ export async function POST(request: NextRequest) {
   const limits = planLimits(effectivePlan);
 
   // SERVER-SIDE VALIDATION: document type
-  if (!limits.allTypes && documentType !== "proforma") {
+  // Block commercial, packing, bundle for Starter (only proforma allowed)
+  const allowedStarterTypes = ["proforma"];
+  if (!limits.allTypes && !allowedStarterTypes.includes(documentType)) {
     return NextResponse.json({
       error: "Starter plan only supports Proforma Invoices. Upgrade to Professional for Commercial Invoices, Packing Lists, and Bundles."
     }, { status: 403 });
@@ -53,18 +56,22 @@ export async function POST(request: NextRequest) {
     }, { status: 403 });
   }
 
+  // SERVER-SIDE VALIDATION: currencies
+  if (currencies.length > limits.maxCurrencies) {
+    return NextResponse.json({
+      error: `Max ${limits.maxCurrencies} currencies allowed on ${effectivePlan} plan.`
+    }, { status: 403 });
+  }
+
   const periodMonth = new Date();
   periodMonth.setDate(1);
   const periodMonthStr = periodMonth.toISOString().slice(0, 10);
 
   // Atomic increment using PostgreSQL function — prevents race conditions
-  // For unlimited plans, use 999999 as the limit (effectively unlimited)
-  const maxLimit = limits.docsPerMonth === Infinity ? 999999 : limits.docsPerMonth;
-
+  // RPC v3 resolves limit internally from subscriptions table, no p_limit needed
   const { data: result, error: rpcError } = await admin.rpc("increment_usage", {
     p_user_id: user.id,
     p_period_month: periodMonthStr,
-    p_limit: maxLimit,
   });
 
   if (rpcError) {

@@ -2,12 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-const PLAN_LABELS: Record<string, string> = {
-  starter: "Starter Free",
-  professional: "Professional",
-  business: "Business",
-};
-
 export function BillingClient({
   plan: initialPlan,
   status: initialStatus,
@@ -42,7 +36,7 @@ export function BillingClient({
             setStatus(data.status);
           }
         }
-      } catch (e) {
+      } catch {
         // Silencioso
       }
     };
@@ -50,8 +44,6 @@ export function BillingClient({
     const interval = setInterval(verifyPlan, 30000);
     return () => clearInterval(interval);
   }, [plan]);
-
-  const usagePct = docsPerMonth === Infinity ? 0 : Math.min((documentsUsed / docsPerMonth) * 100, 100);
 
   async function handleUpgrade(targetPlan: "professional" | "business", interval: "month" | "year") {
     setLoading(`${targetPlan}-${interval}`);
@@ -68,7 +60,7 @@ export function BillingClient({
         return;
       }
       setError(data.error || "Something went wrong. Try again.");
-    } catch (e) {
+    } catch {
       setError("Connection error. Please try again.");
     }
     setLoading(null);
@@ -85,7 +77,7 @@ export function BillingClient({
         return;
       }
       setError(data.error || "Could not open billing portal.");
-    } catch (e) {
+    } catch {
       setError("Connection error. Please try again.");
     }
     setLoading(null);

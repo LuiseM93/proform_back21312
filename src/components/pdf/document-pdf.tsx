@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   sigSection: { flexDirection: "row" as const, justifyContent: "space-between" as const, borderTop: "1px solid " + DARK, paddingTop: 8 },
   sigBlock: { width: "45%" },
   sigLabel: { fontSize: FONT_SIZES.small, fontFamily: "NotoSans", fontWeight: 700, marginBottom: 2 },
-  sigLine: { borderBottom: "1px solid " + DARK, height: 24, marginBottom: 2 },
+  sigLine: { borderBottom: "1px solid " + DARK, height: 144, marginBottom: 2 },
   sigText: { fontSize: FONT_SIZES.tiny, color: MID },
   logo: { marginBottom: 10, maxHeight: 36, maxWidth: 100 },
 });
@@ -254,7 +254,7 @@ export function DocumentPdf({ draft, watermark, carrier }: { draft: DocumentDraf
         {/* Signature */}
         <View style={styles.sigSection}>
           <View style={styles.sigBlock}>
-            <Text style={styles.sigLabel}>SHIPPER'S SIGNATURE</Text>
+            <Text style={styles.sigLabel}>SHIPPER&apos;S SIGNATURE</Text>
             <View style={styles.sigLine} />
             <Text style={styles.sigText}>{draft.signature ? `Signed: ${draft.signature}` : ""}</Text>
           </View>

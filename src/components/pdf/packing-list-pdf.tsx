@@ -1,7 +1,7 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { DocumentDraft } from "@/lib/document-types";
 import { calculateTotalGrossWeight, calculateTotalNetWeight, calculateTotalPackages } from "@/lib/document-types";
-import { baseStyles, COL, t, AWB_SAFE_ZONE } from "@/lib/pdf-styles";
+import { baseStyles, COL, t } from "@/lib/pdf-styles";
 
 const styles = StyleSheet.create({
   ...baseStyles,
@@ -113,7 +113,7 @@ export function PackingListPdf({ draft, watermark }: { draft: DocumentDraft; wat
         {/* Signature - 2 inch line */}
         <View style={styles.sigSection}>
           <View style={styles.sigBlock}>
-            <Text style={styles.sigLabel}>SHIPPER'S SIGNATURE</Text>
+            <Text style={styles.sigLabel}>SHIPPER&apos;S SIGNATURE</Text>
             <View style={styles.sigLine} />
             <Text style={styles.sigText}>{draft.signature ? `Signed: ${t(draft.signature)}` : ""}</Text>
           </View>

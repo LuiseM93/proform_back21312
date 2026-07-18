@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { updateCompanySettings, updateNotificationPreferences, deleteAccount } from "./actions";
 import { useRouter } from "next/navigation";
 
@@ -190,7 +191,7 @@ export function SettingsClient({
             <div className="flex items-start gap-4">
               <div className="w-20 h-20 border-2 border-dashed border-outline-variant rounded flex items-center justify-center bg-surface">
                 {company?.logo_url ? (
-                  <img src={company.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                  <Image src={company.logo_url} alt="Company logo" className="max-w-full max-h-full object-contain" width={80} height={80} />
                 ) : (
                   <span className="material-symbols-outlined text-outline">image</span>
                 )}
