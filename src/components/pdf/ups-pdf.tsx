@@ -150,6 +150,7 @@ export function UpsPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
           <View style={styles.totalsBox}>
             {draft.totals.freight > 0 && <View style={styles.totalLine}><Text>Freight</Text><Text>{draft.totals.freight.toFixed(2)}</Text></View>}
             {draft.totals.insurance > 0 && <View style={styles.totalLine}><Text>Insurance</Text><Text>{draft.totals.insurance.toFixed(2)}</Text></View>}
+            {draft.totals.otherCharges > 0 && <View style={styles.totalLine}><Text>Other Charges</Text><Text>{draft.totals.otherCharges.toFixed(2)}</Text></View>}
             <View style={styles.totalLineFinal}>
               <Text>TOTAL DECLARED VALUE</Text>
               <Text>{draft.totals.total.toFixed(2)} {t(draft.currency)}</Text>
