@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { planLimits } from "@/lib/user-context";
 
 // This endpoint only tracks a COUNT of documents generated per month.
@@ -24,11 +24,13 @@ export async function POST(request: NextRequest) {
   const documentType = body.documentType || "proforma";
   const carrier = body.carrier || "other";
 
-  const { data: sub } = await supabase
+  // Usar ADMIN CLIENT para bypassear RLS al leer subscriptions
+  const admin = await createAdminClient();
+  const { data: sub } = await admin
     .from("subscriptions")
     .select("plan, status")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   const plan = sub?.plan || "starter";
   const status = sub?.status || "active";
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
   // For unlimited plans, use 999999 as the limit (effectively unlimited)
   const maxLimit = limits.docsPerMonth === Infinity ? 999999 : limits.docsPerMonth;
 
-  const { data: result, error: rpcError } = await supabase.rpc("increment_usage", {
+  const { data: result, error: rpcError } = await admin.rpc("increment_usage", {
     p_user_id: user.id,
     p_period_month: periodMonthStr,
     p_limit: maxLimit,
