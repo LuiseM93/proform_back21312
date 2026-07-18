@@ -55,6 +55,7 @@ export interface LineItem {
   marksAndNumbers?: string;
   packageCount?: number;
   packageType?: PackageType;
+  packageDimensions?: string; // e.g. "40x30x20 cm"
 }
 
 export interface Totals {
@@ -225,7 +226,7 @@ export function validateIncotermConsistency(
 }
 
 export function validateCurrencies(items: LineItem[]): string | null {
-  const currencies = new Set(items.map((i) => i.currency));
+  const currencies = new Set(items.map((i) => i.currency).filter(Boolean));
   if (currencies.size > 1) {
     return `All items must use the same currency. Found: ${Array.from(currencies).join(", ")}.`;
   }

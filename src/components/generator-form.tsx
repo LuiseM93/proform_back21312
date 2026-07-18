@@ -31,6 +31,7 @@ function makeEmptyItem(currency: string): LineItem {
     marksAndNumbers: "",
     packageCount: 0,
     packageType: "CTN",
+    packageDimensions: "",
   };
 }
 
@@ -608,6 +609,12 @@ export function GeneratorForm({
                         <option value="PCS">Pieces</option>
                         <option value="OTH">Other</option>
                       </select>
+                      <input
+                        className="form-input"
+                        placeholder="Dimensions (LxWxH cm)"
+                        value={item.packageDimensions || ""}
+                        onChange={(e) => updateItem(item.id, { packageDimensions: e.target.value })}
+                      />
                     </div>
                   </div>
                 ))}

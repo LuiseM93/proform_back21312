@@ -13,6 +13,15 @@ export const partySchema = z.object({
   contactEmail: z.string().email().optional().or(z.literal("")),
 });
 
+export const notifyPartySchema = z.object({
+  companyName: z.string().optional(),
+  address: z.string().optional(),
+  country: z.string().optional(),
+}).refine(
+  (np) => !np.companyName || (np.address && np.country),
+  { message: "Notify Party requires address and country if company name is provided", path: ["address"] }
+);
+
 export const shipmentSchema = z.object({
   incoterm: z.enum(["EXW", "FCA", "FOB", "CIF", "CFR", "CPT", "CIP", "DAP", "DPU", "DDP"]),
   portOfLoading: z.string().optional(),
@@ -25,6 +34,7 @@ export const shipmentSchema = z.object({
   sealNumber: z.string().optional(),
   exportReason: z.enum(["sale", "gift", "sample", "return", "repair", "other"]).optional(),
   placeOfDelivery: z.string().optional(),
+  notifyParty: notifyPartySchema.optional(),
 });
 
 export const lineItemSchema = z.object({
@@ -44,7 +54,14 @@ export const lineItemSchema = z.object({
   marksAndNumbers: z.string().optional(),
   packageCount: z.number().int().nonnegative().optional(),
   packageType: z.enum(["CTN", "PLT", "DRM", "BAG", "CRT", "BND", "PCS", "OTH"]).optional(),
-});
+  packageDimensions: z.string().optional(),
+}).refine(
+  (item) => !item.packageCount || item.packageType,
+  { message: "Package Type is required when Package Count > 0", path: ["packageType"] }
+).refine(
+  (item) => !item.packageType || (item.packageCount && item.packageCount > 0),
+  { message: "Package Count must be > 0 when Package Type is set", path: ["packageCount"] }
+);
 
 export const bankingSchema = z.object({
   beneficiary: z.string().optional(),
@@ -71,10 +88,12 @@ export const documentDraftSchema = z.object({
     total: z.number(),
   }),
   currency: z.string().min(1, "Currency is required"),
+  pageSize: z.enum(["A4", "LETTER"]).optional(),
   banking: bankingSchema.optional(),
   legalDeclaration: z.string().optional(),
   logoDataUrl: z.string().optional(),
   paymentTerms: z.string().optional(),
+  signature: z.string().optional(),
 });
 
 export const companySchema = z.object({
