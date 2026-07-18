@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const PLAN_LABELS: Record<string, string> = {
   starter: "Starter Free",
@@ -9,8 +9,8 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 export function BillingClient({
-  plan,
-  status,
+  plan: initialPlan,
+  status: initialStatus,
   currentPeriodEnd,
   billingInterval,
   hasStripeCustomer,
@@ -25,8 +25,32 @@ export function BillingClient({
   documentsUsed: number;
   docsPerMonth: number;
 }) {
+  const [plan, setPlan] = useState(initialPlan);
+  const [status, setStatus] = useState(initialStatus);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Verificar plan real al montar y cada 30s
+  useEffect(() => {
+    const verifyPlan = async () => {
+      try {
+        const res = await fetch("/api/billing/status");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.plan !== plan) {
+            setPlan(data.plan);
+            setStatus(data.status);
+          }
+        }
+      } catch (e) {
+        // Silencioso
+      }
+    };
+    verifyPlan();
+    const interval = setInterval(verifyPlan, 30000);
+    return () => clearInterval(interval);
+  }, [plan]);
+
   const usagePct = docsPerMonth === Infinity ? 0 : Math.min((documentsUsed / docsPerMonth) * 100, 100);
 
   async function handleUpgrade(targetPlan: "professional" | "business", interval: "month" | "year") {
@@ -72,7 +96,7 @@ export function BillingClient({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="font-headline-lg-mobile md:font-headline-lg text-primary tracking-tight">
-            Billing &amp; Usage
+            Billing & Usage
           </h2>
           <p className="font-body-lg text-on-surface-variant mt-2 max-w-2xl">
             Manage your subscription, monitor document usage, and review billing history.
@@ -114,7 +138,7 @@ export function BillingClient({
               Current Plan
             </h3>
             <span className="px-3 py-1 bg-primary text-on-primary font-label-md text-xs uppercase tracking-widest rounded-full">
-              {PLAN_LABELS[plan]}
+              {plan === "starter" ? "Starter Free" : plan === "professional" ? "Professional" : "Business"}
             </span>
           </div>
           <div className="p-6 md:p-8 flex-1 grid grid-cols-2 gap-6">
@@ -131,9 +155,7 @@ export function BillingClient({
             </div>
             <div className="space-y-1">
               <p className="font-label-md text-on-surface-variant uppercase tracking-wider text-xs">Next Invoice</p>
-              <p className="font-body-lg text-primary">
-                {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString() : "N/A"}
-              </p>
+              <p className="font-body-lg text-primary">{currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString() : "N/A"}</p>
             </div>
             <div className="space-y-1">
               <p className="font-label-md text-on-surface-variant uppercase tracking-wider text-xs">Payment Method</p>
@@ -164,7 +186,7 @@ export function BillingClient({
                 </p>
               </div>
               <div className="h-4 w-full border border-primary bg-surface-variant rounded-full overflow-hidden flex">
-                <div className="h-full bg-primary transition-all duration-1000 ease-out" style={{ width: `${usagePct}%` }} />
+                <div className="h-full bg-primary transition-all duration-1000 ease-out" style={{ width: `${Math.min((documentsUsed / (docsPerMonth || 1)) * 100, 100)}%` }} />
               </div>
             </div>
           </div>
