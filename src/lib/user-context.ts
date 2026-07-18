@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -7,14 +8,16 @@ export async function getCurrentUser() {
 }
 
 export async function getUserContext() {
+  noStore(); // 🔴 DESACTIVA CACHÉ - SIEMPRE DATOS FRESCOS
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
   const [profileRes, companyRes, subRes] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.from("companies").select("*").eq("user_id", user.id).maybeSingle(),
-    supabase.from("subscriptions").select("*").eq("user_id", user.id).single(),
+    supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const periodMonth = new Date();
@@ -42,7 +45,7 @@ export interface PlanLimits {
   watermark: boolean;
   allTypes: boolean;
   carrierReady: boolean;
-  maxCurrencies: number; // 5 for Pro, 24 for Business
+  maxCurrencies: number;
   unlimitedHistory: boolean;
   unlimitedTemplates: boolean;
   prioritySupport: boolean;
@@ -68,7 +71,7 @@ export function planLimits(plan: string): PlanLimits {
         allTypes: true,
         carrierReady: true,
         maxCurrencies: 5,
-        unlimitedHistory: false, // 50 docs
+        unlimitedHistory: false,
         unlimitedTemplates: false,
         prioritySupport: false,
       };
@@ -78,7 +81,7 @@ export function planLimits(plan: string): PlanLimits {
         watermark: true,
         allTypes: false,
         carrierReady: false,
-        maxCurrencies: 1, // USD only
+        maxCurrencies: 1,
         unlimitedHistory: false,
         unlimitedTemplates: false,
         prioritySupport: false,

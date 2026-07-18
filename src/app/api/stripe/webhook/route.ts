@@ -59,21 +59,20 @@ export async function POST(req: Request) {
           console.log("[Webhook] Retrieving subscription:", session.subscription);
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
           console.log("[Webhook] Retrieved subscription:", subscription.id, "status:", subscription.status);
-          
+
           const priceId = subscription.items.data[0]?.price.id;
           console.log("[Webhook] priceId:", priceId);
 
           const plan = planFromPriceId(priceId);
           console.log("[Webhook] Plan determined:", plan);
 
-          console.log("[Webhook] Checking current subscription in Supabase for user:", userId);
+          // Check if subscription was already cancelled
           const { data: existingSub } = await supabase
             .from("subscriptions")
             .select("status, stripe_subscription_id")
             .eq("user_id", userId)
             .maybeSingle();
 
-          // If subscription was already cancelled, don't reactivate
           if (existingSub?.status === "canceled") {
             console.log("[Webhook] Subscription already canceled for user:", userId, "- skipping reactivation");
             break;
@@ -114,7 +113,7 @@ export async function POST(req: Request) {
 
         const userId = subscription.metadata?.supabase_user_id;
         const priceId = subscription.items.data[0]?.price.id;
-        console.log("[Webhook] userId:", userId, "priceId:", subscription.items.data[0]?.price.id);
+        console.log("[Webhook] userId:", userId, "priceId:", priceId);
 
         if (userId) {
           const plan = planFromPriceId(priceId);
@@ -163,13 +162,24 @@ export async function POST(req: Request) {
         const subscription = event.data.object as Stripe.Subscription;
         console.log("[Webhook] subscription.deleted:", subscription.id);
 
+        // Use the first subscription item's current_period_end
+        const periodEnd = new Date(subscription.items.data[0]?.current_period_end * 1000);
+        const now = new Date();
+
+        // Resolve plan from the price_id of the deleted subscription
+        const priceId = subscription.items.data[0]?.price.id;
+        const currentPlan = priceId ? planFromPriceId(priceId) : "professional";
+
+        const newPlan = periodEnd < now ? "starter" : currentPlan;
+        const newStatus = periodEnd < now ? "canceled" : "active";
+
         const { error } = await supabase
           .from("subscriptions")
           .update({
-            plan: "starter",
-            status: "canceled",
-            stripe_subscription_id: null,
+            plan: newPlan,
+            status: newStatus,
             cancel_at_period_end: false,
+            current_period_end: periodEnd.toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq("stripe_customer_id", subscription.customer as string);
@@ -178,7 +188,14 @@ export async function POST(req: Request) {
           console.error("[Webhook] Delete update error:", error);
           throw error;
         }
-        console.log("[Webhook] Subscription canceled, set to starter");
+        console.log(
+          "[Webhook] Subscription deleted handled. Plan:",
+          newPlan,
+          "Status:",
+          newStatus,
+          "Period ends:",
+          periodEnd.toISOString()
+        );
         break;
       }
 
