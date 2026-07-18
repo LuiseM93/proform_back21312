@@ -27,6 +27,8 @@ export interface ShipmentInfo {
   countryOfDestination: string;
   carrier?: "fedex" | "ups" | "dhl" | "aramex" | "other";
   transportMode?: "ocean" | "air" | "land";
+  trackingNumber?: string;
+  notifyParty?: PartyInfo;
 }
 
 export interface LineItem {
@@ -38,6 +40,8 @@ export interface LineItem {
   unitPrice: number;
   weightKg?: number;
   currency: string;
+  countryOfOrigin?: string;
+  weightGrossKg?: number;
 }
 
 export interface Totals {
@@ -69,6 +73,7 @@ export interface DocumentDraft {
   banking?: BankingInfo;
   legalDeclaration?: string;
   logoDataUrl?: string;
+  signature?: string;
 }
 
 export const INCOTERMS: { value: Incoterm; label: string }[] = [

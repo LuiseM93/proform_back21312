@@ -19,6 +19,7 @@ interface Company {
   swift_bic?: string | null;
   iban?: string | null;
   legal_declaration?: string | null;
+  logo_url?: string | null;
 }
 
 interface NotifPrefs {
@@ -39,6 +40,8 @@ export function SettingsClient({
 }) {
   const [tab, setTab] = useState<typeof TABS[number]>("General");
   const [saving, setSaving] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleCompanySave(formData: FormData) {
@@ -57,6 +60,35 @@ export function SettingsClient({
     if (!confirm("This will permanently delete your account and all data. Continue?")) return;
     const res = await deleteAccount();
     if (res.success) router.push("/");
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadStatus("uploading");
+    setUploadError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload/logo", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUploadStatus("success");
+        router.refresh();
+      } else {
+        setUploadStatus("error");
+        setUploadError(data.error || "Upload failed");
+      }
+    } catch {
+      setUploadStatus("error");
+      setUploadError("Connection error. Please try again.");
+    }
   }
 
   return (
@@ -151,6 +183,38 @@ export function SettingsClient({
           <input type="hidden" name="default_currency" value={company?.default_currency || "USD"} />
           <input type="hidden" name="default_incoterm" value={company?.default_incoterm || "FOB"} />
           <input type="hidden" name="date_format" value={company?.date_format || "MM/DD/YYYY"} />
+          <section className="border border-outline p-6 rounded bg-surface-container-lowest">
+            <h3 className="font-headline-sm text-primary mb-6 border-b border-outline-variant pb-2">
+              Logo Upload
+            </h3>
+            <div className="flex items-start gap-4">
+              <div className="w-20 h-20 border-2 border-dashed border-outline-variant rounded flex items-center justify-center bg-surface">
+                {company?.logo_url ? (
+                  <img src={company.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                ) : (
+                  <span className="material-symbols-outlined text-outline">image</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <label className="block font-label-md text-on-surface mb-2">Company Logo</label>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                  onChange={handleLogoUpload}
+                  className="form-input mb-2"
+                />
+                <p className="font-body-md text-on-surface-variant text-xs">
+                  PNG, JPEG, or SVG. Max 2MB. Appears on generated documents.
+                </p>
+                {uploadStatus === "uploading" && (
+                  <p className="font-label-md text-primary text-xs mt-2">Uploading...</p>
+                )}
+                {uploadError && (
+                  <p className="font-label-md text-error text-xs mt-2">{uploadError}</p>
+                )}
+              </div>
+            </div>
+          </section>
           <section className="border border-outline p-6 rounded bg-surface-container-lowest">
             <h3 className="font-headline-sm text-primary mb-6 border-b border-outline-variant pb-2">
               Entity Information

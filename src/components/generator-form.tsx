@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useCallback } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { DocumentPdf } from "@/components/pdf/document-pdf";
@@ -16,6 +15,8 @@ function makeEmptyItem(): LineItem {
     unitPrice: 0,
     weightKg: 0,
     currency: "USD",
+    countryOfOrigin: "",
+    weightGrossKg: 0,
   };
 }
 
@@ -78,6 +79,17 @@ export function GeneratorForm({
   const [portOfDischarge, setPortOfDischarge] = useState("");
   const [countryOfOrigin, setCountryOfOrigin] = useState(defaultCompany?.country || "");
   const [countryOfDestination, setCountryOfDestination] = useState("");
+  const [transportMode, setTransportMode] = useState<"ocean" | "air" | "land" | "">("");
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [notifyParty, setNotifyParty] = useState({
+    companyName: "",
+    address: "",
+    country: "",
+    taxId: "",
+    contactName: "",
+    contactPhone: "",
+    contactEmail: "",
+  });
 
   const [items, setItems] = useState<LineItem[]>([makeEmptyItem()]);
   const [discount, setDiscount] = useState(0);
@@ -89,6 +101,7 @@ export function GeneratorForm({
   const [swiftBic, setSwiftBic] = useState(defaultCompany?.swift_bic || "");
   const [iban, setIban] = useState(defaultCompany?.iban || "");
   const [beneficiary, setBeneficiary] = useState(defaultCompany?.company_name || "");
+  const [signatureName, setSignatureName] = useState("");
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [limitError, setLimitError] = useState<string | null>(null);
@@ -109,14 +122,19 @@ export function GeneratorForm({
       countryOfOrigin,
       countryOfDestination,
       carrier,
+      transportMode: transportMode || undefined,
+      trackingNumber: trackingNumber || undefined,
+      notifyParty: notifyParty.companyName ? notifyParty : undefined,
     },
     items,
     totals,
     banking: { beneficiary, bankName, swiftBic, ibanAccount: iban },
     legalDeclaration:
       defaultCompany?.legal_declaration ||
-      "These commodities, technology, or software were exported in accordance with applicable export regulations. Diversion contrary to law is prohibited.",
-  }), [docType, docNumber, exporter, importer, incoterm, portOfLoading, portOfDischarge, countryOfOrigin, countryOfDestination, carrier, items, totals, beneficiary, bankName, swiftBic, iban, defaultCompany]);
+      "We certify that this invoice is true and correct and that the origin of the goods is as stated above.",
+    logoDataUrl: defaultCompany?.logo_url || undefined,
+    signature: signatureName || undefined,
+  }), [docType, docNumber, exporter, importer, incoterm, portOfLoading, portOfDischarge, countryOfOrigin, countryOfDestination, carrier, transportMode, trackingNumber, notifyParty, items, totals, beneficiary, bankName, swiftBic, iban, signatureName, defaultCompany]);
 
   function updateItem(id: string, patch: Partial<LineItem>) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
@@ -144,14 +162,67 @@ export function GeneratorForm({
       }
 
       const draft = buildDraft();
+      
+      let PdfComponent;
+      if (carrier === "fedex") {
+        PdfComponent = (await import("@/components/pdf/fedex-pdf")).FedexPdf;
+      } else if (carrier === "ups") {
+        PdfComponent = (await import("@/components/pdf/ups-pdf")).UpsPdf;
+      } else if (carrier === "dhl") {
+        PdfComponent = (await import("@/components/pdf/ups-pdf")).UpsPdf;
+      } else {
+        PdfComponent = DocumentPdf;
+      }
+      
       const blob = await pdf(
-        <DocumentPdf draft={draft} watermark={data.watermark ?? planWatermark} carrier={carrier} />
+        <PdfComponent draft={draft} watermark={data.watermark ?? planWatermark} carrier={carrier} />
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `${docType}-${docNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  async function handleCarrierDownload(targetCarrier: "fedex" | "ups" | "dhl") {
+    setLimitError(null);
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/usage/increment", { method: "POST" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLimitError(data.error || "Could not generate document.");
+        setIsGenerating(false);
+        return;
+      }
+
+      const draft = buildDraft();
+      
+      let PdfComponent;
+      if (targetCarrier === "fedex") {
+        PdfComponent = (await import("@/components/pdf/fedex-pdf")).FedexPdf;
+      } else if (targetCarrier === "ups") {
+        PdfComponent = (await import("@/components/pdf/ups-pdf")).UpsPdf;
+      } else {
+        PdfComponent = (await import("@/components/pdf/ups-pdf")).UpsPdf;
+      }
+      
+      const blob = await pdf(
+        <PdfComponent draft={draft} watermark={false} carrier={targetCarrier} />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${docType}-${targetCarrier}-${docNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -170,10 +241,8 @@ export function GeneratorForm({
 
   return (
     <div className="flex-1 flex flex-col lg:flex-row min-h-screen">
-      {/* Form column */}
       <div className="flex-1 overflow-y-auto p-4 md:p-margin-md bg-surface border-r-0 lg:border-r-2 border-primary">
         <div className="max-w-3xl mx-auto space-y-8 pb-16">
-          {/* Document type selector */}
           <div className="flex gap-2 flex-wrap">
             {docTypeOptions.map((opt) => {
               const locked = opt.requiresPro && !planAllTypes;
@@ -198,7 +267,6 @@ export function GeneratorForm({
             })}
           </div>
 
-          {/* Step indicator */}
           <div className="flex items-center justify-between font-label-md text-sm">
             {STEPS.map((s, i) => (
               <div key={s} className="flex items-center flex-1">
@@ -218,7 +286,6 @@ export function GeneratorForm({
             ))}
           </div>
 
-          {/* Step 0: Parties */}
           {step === 0 && (
             <section className="bg-background border border-primary p-6 relative">
               <div className="absolute -top-3 left-4 bg-background px-2 font-headline-sm font-bold">
@@ -232,7 +299,6 @@ export function GeneratorForm({
             </section>
           )}
 
-          {/* Step 1: Shipment */}
           {step === 1 && (
             <section className="bg-background border border-primary p-6 relative">
               <div className="absolute -top-3 left-4 bg-background px-2 font-headline-sm font-bold">
@@ -279,12 +345,36 @@ export function GeneratorForm({
                 <Field label="Country of Destination">
                   <input className="form-input" value={countryOfDestination} onChange={(e) => setCountryOfDestination(e.target.value)} />
                 </Field>
+                <Field label="Transport Mode">
+                  <select className="form-input" value={transportMode} onChange={(e) => setTransportMode(e.target.value as "ocean" | "air" | "land")}>
+                    <option value="">Select...</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="air">Air</option>
+                    <option value="land">Land</option>
+                  </select>
+                </Field>
+                <Field label="Tracking Number">
+                  <input className="form-input" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} placeholder="Optional" />
+                </Field>
+              </div>
+              <div className="mt-4">
+                <p className="font-label-md text-on-surface mb-2">Notify Party (Delivery Address - Optional)</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label="Company Name">
+                    <input className="form-input" value={notifyParty.companyName} onChange={(e) => setNotifyParty({...notifyParty, companyName: e.target.value})} />
+                  </Field>
+                  <Field label="Address">
+                    <input className="form-input" value={notifyParty.address} onChange={(e) => setNotifyParty({...notifyParty, address: e.target.value})} />
+                  </Field>
+                  <Field label="Country">
+                    <input className="form-input" value={notifyParty.country} onChange={(e) => setNotifyParty({...notifyParty, country: e.target.value})} />
+                  </Field>
+                </div>
               </div>
               <StepNav step={step} setStep={setStep} max={STEPS.length - 1} />
             </section>
           )}
 
-          {/* Step 2: Items */}
           {step === 2 && (
             <section className="bg-background border border-primary p-6 relative">
               <div className="absolute -top-3 left-4 bg-background px-2 font-headline-sm font-bold">
@@ -295,9 +385,7 @@ export function GeneratorForm({
                   <div key={item.id} className="border border-outline-variant p-4 rounded relative">
                     <div className="flex justify-between mb-2">
                       <span className="font-label-md text-sm text-on-surface-variant">Item {idx + 1}</span>
-                      <button onClick={() => removeItem(item.id)} className="text-secondary text-sm font-label-md">
-                        Remove
-                      </button>
+                      <button onClick={() => removeItem(item.id)} className="text-secondary text-sm font-label-md">Remove</button>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                       <input
@@ -311,6 +399,12 @@ export function GeneratorForm({
                         placeholder="HS Code"
                         value={item.hsCode}
                         onChange={(e) => updateItem(item.id, { hsCode: e.target.value })}
+                      />
+                      <input
+                        className="form-input"
+                        placeholder="Origin Country"
+                        value={item.countryOfOrigin || ""}
+                        onChange={(e) => updateItem(item.id, { countryOfOrigin: e.target.value })}
                       />
                       <input
                         className="form-input"
@@ -335,9 +429,16 @@ export function GeneratorForm({
                       <input
                         className="form-input"
                         type="number"
-                        placeholder="Weight (kg)"
+                        placeholder="Net Weight (kg)"
                         value={item.weightKg}
                         onChange={(e) => updateItem(item.id, { weightKg: Number(e.target.value) })}
+                      />
+                      <input
+                        className="form-input"
+                        type="number"
+                        placeholder="Gross Weight (kg)"
+                        value={item.weightGrossKg}
+                        onChange={(e) => updateItem(item.id, { weightGrossKg: Number(e.target.value) })}
                       />
                       <select
                         className="form-input"
@@ -364,11 +465,10 @@ export function GeneratorForm({
             </section>
           )}
 
-          {/* Step 3: Totals & Banking */}
           {step === 3 && (
             <section className="bg-background border border-primary p-6 relative">
               <div className="absolute -top-3 left-4 bg-background px-2 font-headline-sm font-bold">
-                04. Totals &amp; Banking
+                04. Totals & Banking
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                 <Field label="Discount">
@@ -396,44 +496,86 @@ export function GeneratorForm({
             </section>
           )}
 
-          {/* Step 4: Review */}
           {step === 4 && (
             <section className="bg-background border border-primary p-6 relative">
               <div className="absolute -top-3 left-4 bg-background px-2 font-headline-sm font-bold">
-                05. Review &amp; Generate
+                05. Review & Sign
               </div>
-              <div className="mt-4 space-y-2 font-body-md text-on-surface-variant">
-                <p>Document type: <strong className="text-primary">{docType}</strong></p>
-                <p>Exporter: <strong className="text-primary">{exporter.companyName || "—"}</strong></p>
-                <p>Importer: <strong className="text-primary">{importer.companyName || "—"}</strong></p>
-                <p>Items: <strong className="text-primary">{items.length}</strong></p>
-                <p>Total: <strong className="text-primary">{totals.total.toFixed(2)} {items[0]?.currency || "USD"}</strong></p>
-              </div>
-              {remainingDocs !== null && (
-                <p className="mt-4 font-label-md text-sm text-secondary">
-                  {remainingDocs} document(s) remaining this month on your plan.
+              <div className="mt-4 space-y-4">
+                <Field label="Signature (type name)">
+                  <input className="form-input" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} placeholder="Full name for signature" />
+                </Field>
+                <div className="space-y-2 font-body-md text-on-surface-variant">
+                  <p>Document type: <strong className="text-primary">{docType}</strong></p>
+                  <p>Exporter: <strong className="text-primary">{exporter.companyName || "—"}</strong></p>
+                  <p>Importer: <strong className="text-primary">{importer.companyName || "—"}</strong></p>
+                  <p>Items: <strong className="text-primary">{items.length}</strong></p>
+                  <p>Total: <strong className="text-primary">{totals.total.toFixed(2)} {items[0]?.currency || "USD"}</strong></p>
+                </div>
+                {remainingDocs !== null && (
+                  <p className="mt-4 font-label-md text-sm text-secondary">
+                    {remainingDocs} document(s) remaining this month on your plan.
+                  </p>
+                )}
+                {limitError && (
+                  <p className="mt-4 font-label-md text-sm text-error">{limitError}</p>
+                )}
+                <div className="mt-6 flex flex-col gap-3">
+                  {planCarrierReady && carrier !== "other" && (
+                    <div>
+                      <p className="font-label-md text-on-surface mb-2">Carrier-ready download:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {carrier === "fedex" && (
+                          <button
+                            onClick={() => handleCarrierDownload("fedex")}
+                            disabled={isGenerating}
+                            className="bg-tertiary text-on-tertiary px-4 py-2 rounded font-label-md hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined">download</span>
+                            Download for FedEx
+                          </button>
+                        )}
+                        {carrier === "ups" && (
+                          <button
+                            onClick={() => handleCarrierDownload("ups")}
+                            disabled={isGenerating}
+                            className="bg-tertiary text-on-tertiary px-4 py-2 rounded font-label-md hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined">download</span>
+                            Download for UPS
+                          </button>
+                        )}
+                        {carrier === "dhl" && (
+                          <button
+                            onClick={() => handleCarrierDownload("dhl")}
+                            disabled={isGenerating}
+                            className="bg-tertiary text-on-tertiary px-4 py-2 rounded font-label-md hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined">download</span>
+                            Download for DHL
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleDownload}
+                    disabled={isGenerating}
+                    className="w-full md:w-auto bg-primary text-on-primary px-8 py-4 rounded font-label-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined">download</span>
+                    {isGenerating ? "Generating..." : "Export PDF"}
+                  </button>
+                </div>
+                <p className="mt-3 text-xs text-on-surface-variant">
+                  Your document is generated in your browser and never stored on our servers.
                 </p>
-              )}
-              {limitError && (
-                <p className="mt-4 font-label-md text-sm text-error">{limitError}</p>
-              )}
-              <button
-                onClick={handleDownload}
-                disabled={isGenerating}
-                className="mt-6 w-full md:w-auto bg-primary text-on-primary px-8 py-4 rounded font-label-md hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined">download</span>
-                {isGenerating ? "Generating..." : "Export PDF"}
-              </button>
-              <p className="mt-3 text-xs text-on-surface-variant">
-                Your document is generated in your browser and never stored on our servers.
-              </p>
+              </div>
             </section>
           )}
         </div>
       </div>
 
-      {/* Live PDF preview column */}
       <div className="w-full lg:w-[45%] xl:w-1/2 bg-surface-container-high hidden lg:flex flex-col relative">
         <div className="p-4 border-b border-outline-variant bg-surface flex justify-between items-center">
           <span className="font-label-md font-bold text-primary flex items-center">
@@ -485,8 +627,8 @@ export function GeneratorForm({
                 <tr className="border-b-2 border-primary text-left">
                   <th className="py-2">Description</th>
                   <th className="py-2">HS Code</th>
+                  <th className="py-2">Origin</th>
                   <th className="py-2 text-right">Qty</th>
-                  <th className="py-2 text-right">Unit Price</th>
                   <th className="py-2 text-right">Total</th>
                 </tr>
               </thead>
@@ -496,8 +638,8 @@ export function GeneratorForm({
                     <tr key={item.id} className="border-b border-outline-variant">
                       <td className="py-2">{item.description || "—"}</td>
                       <td className="py-2">{item.hsCode || "—"}</td>
+                      <td className="py-2">{item.countryOfOrigin || "—"}</td>
                       <td className="py-2 text-right">{item.quantity} {item.unit}</td>
-                      <td className="py-2 text-right">{item.unitPrice.toFixed(2)}</td>
                       <td className="py-2 text-right">{(item.quantity * item.unitPrice).toFixed(2)}</td>
                     </tr>
                   ))
@@ -564,6 +706,12 @@ function PartyForm({
         </div>
         <Field label="Contact Name">
           <input className="form-input" value={value.contactName} onChange={(e) => onChange({ ...value, contactName: e.target.value })} />
+        </Field>
+        <Field label="Contact Phone">
+          <input className="form-input" value={value.contactPhone} onChange={(e) => onChange({ ...value, contactPhone: e.target.value })} />
+        </Field>
+        <Field label="Contact Email">
+          <input className="form-input" value={value.contactEmail} onChange={(e) => onChange({ ...value, contactEmail: e.target.value })} />
         </Field>
       </div>
     </div>
