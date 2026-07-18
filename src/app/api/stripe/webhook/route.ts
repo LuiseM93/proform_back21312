@@ -174,7 +174,7 @@ export async function POST(req: Request) {
         const newStatus = periodEnd < now ? "canceled" : "active";
 
         // Try to find by stripe_subscription_id first (since stripe_customer_id might be null)
-        let { error } = await supabase
+        let { error, count } = await supabase
           .from("subscriptions")
           .update({
             plan: newPlan,
@@ -183,12 +183,19 @@ export async function POST(req: Request) {
             current_period_end: periodEnd.toISOString(),
             updated_at: new Date().toISOString(),
           })
-          .eq("stripe_subscription_id", subscription.id);
+          .eq("stripe_subscription_id", subscription.id)
+          .select("id", { count: "exact", head: true });
+
+        // If no rows updated, try fallback 1
+        if (!count || count === 0) {
+          console.log("[Webhook] No rows updated by stripe_subscription_id, trying fallback 1");
+          error = new Error("No rows updated");
+        }
 
         // Fallback 1: try by stripe_customer_id
         if (error && subscription.customer) {
           console.log("[Webhook] Fallback to stripe_customer_id:", subscription.customer);
-          const { error: fallbackError } = await supabase
+          const { error: fallbackError, count: fallbackCount } = await supabase
             .from("subscriptions")
             .update({
               plan: newPlan,
@@ -197,17 +204,20 @@ export async function POST(req: Request) {
               current_period_end: periodEnd.toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("stripe_customer_id", subscription.customer as string);
+            .eq("stripe_customer_id", subscription.customer as string)
+            .select("id", { count: "exact", head: true });
           
-          if (!fallbackError) {
+          if (fallbackCount && fallbackCount > 0) {
             error = null; // Success on fallback
+          } else if (fallbackError) {
+            error = fallbackError;
           }
         }
 
         // Fallback 2: try by user_id from subscription metadata
         if (error && subscription.metadata?.supabase_user_id) {
           console.log("[Webhook] Fallback to metadata.supabase_user_id:", subscription.metadata.supabase_user_id);
-          const { error: fallbackError } = await supabase
+          const { error: fallbackError, count: fallbackCount } = await supabase
             .from("subscriptions")
             .update({
               plan: newPlan,
@@ -216,10 +226,13 @@ export async function POST(req: Request) {
               current_period_end: periodEnd.toISOString(),
               updated_at: new Date().toISOString(),
             })
-            .eq("user_id", subscription.metadata.supabase_user_id);
+            .eq("user_id", subscription.metadata.supabase_user_id)
+            .select("id", { count: "exact", head: true });
           
-          if (!fallbackError) {
+          if (fallbackCount && fallbackCount > 0) {
             error = null; // Success on fallback
+          } else if (fallbackError) {
+            error = fallbackError;
           }
         }
 
