@@ -13,55 +13,61 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Parse body for document type, carrier, and currencies validation
-  let body: { documentType?: string; carrier?: string; currencies?: string[] } = {};
-  try {
-    body = await request.json();
-  } catch {
-    // Body optional
-  }
+  // Parse body for document type, carrier, and currency validation
+    let body: { documentType?: string; carrier?: string; currency?: string } = {};
+    try {
+      body = await request.json();
+    } catch {
+      // Body optional
+    }
 
-  const documentType = body.documentType || "proforma";
-  const carrier = body.carrier || "other";
-  const currencies = body.currencies || [];
+    const documentType = body.documentType || "proforma";
+    const carrier = body.carrier || "other";
+    const currency = body.currency || "USD";
 
-  // Usar ADMIN CLIENT para bypassear RLS al leer subscriptions
-  const admin = await createAdminClient();
-  const { data: sub } = await admin
-    .from("subscriptions")
-    .select("plan, status")
-    .eq("user_id", user.id)
-    .maybeSingle();
+    // Usar ADMIN CLIENT para bypassear RLS al leer subscriptions
+    const admin = await createAdminClient();
+    const { data: sub } = await admin
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-  const plan = sub?.plan || "starter";
-  const status = sub?.status || "active";
+    const plan = sub?.plan || "starter";
+    const status = sub?.status || "active";
 
-  // If plan is paid but subscription is inactive, treat as starter
-  const effectivePlan = (plan !== "starter" && status !== "active") ? "starter" : plan;
-  const limits = planLimits(effectivePlan);
+    // If plan is paid but subscription is inactive, treat as starter
+    const effectivePlan = (plan !== "starter" && status !== "active") ? "starter" : plan;
+    const limits = planLimits(effectivePlan);
 
-  // SERVER-SIDE VALIDATION: document type
-  // Block commercial, packing, bundle for Starter (only proforma allowed)
-  const allowedStarterTypes = ["proforma"];
-  if (!limits.allTypes && !allowedStarterTypes.includes(documentType)) {
-    return NextResponse.json({
-      error: "Starter plan only supports Proforma Invoices. Upgrade to Professional for Commercial Invoices, Packing Lists, and Bundles."
-    }, { status: 403 });
-  }
+    // SERVER-SIDE VALIDATION: document type
+    // Block commercial, packing, bundle for Starter (only proforma allowed)
+    const allowedStarterTypes = ["proforma"];
+    if (!limits.allTypes && !allowedStarterTypes.includes(documentType)) {
+      return NextResponse.json({
+        error: "Starter plan only supports Proforma Invoices. Upgrade to Professional for Commercial Invoices, Packing Lists, and Bundles."
+      }, { status: 403 });
+    }
 
-  // SERVER-SIDE VALIDATION: carrier
-  if (!limits.carrierReady && carrier !== "other") {
-    return NextResponse.json({
-      error: "Starter plan only supports standard PDFs. Upgrade to Professional for carrier-ready PDFs (FedEx/UPS/DHL)."
-    }, { status: 403 });
-  }
+    // SERVER-SIDE VALIDATION: carrier
+    if (!limits.carrierReady && carrier !== "other") {
+      return NextResponse.json({
+        error: "Starter plan only supports standard PDFs. Upgrade to Professional for carrier-ready PDFs (FedEx/UPS/DHL)."
+      }, { status: 403 });
+    }
 
-  // SERVER-SIDE VALIDATION: currencies
-  if (currencies.length > limits.maxCurrencies) {
-    return NextResponse.json({
-      error: `Max ${limits.maxCurrencies} currencies allowed on ${effectivePlan} plan.`
-    }, { status: 403 });
-  }
+    // SERVER-SIDE VALIDATION: currency
+    const allowedCurrencies = effectivePlan === "business" 
+      ? ["USD", "EUR", "MXN", "GBP", "CNY", "JPY", "KRW", "BRL", "ARS", "CLP", "COP", "PEN", "CAD", "AUD", "CHF", "SEK", "NOK", "DKK", "INR", "RUB", "ZAR", "TRY", "AED", "SAR"]
+      : effectivePlan === "professional"
+      ? ["USD", "EUR", "MXN", "GBP", "CNY"]
+      : ["USD"];
+  
+    if (!allowedCurrencies.includes(currency)) {
+      return NextResponse.json({
+        error: `Currency ${currency} not allowed on ${effectivePlan} plan. Allowed: ${allowedCurrencies.join(", ")}`
+      }, { status: 403 });
+    }
 
   const periodMonth = new Date();
   periodMonth.setDate(1);

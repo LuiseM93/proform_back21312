@@ -201,6 +201,16 @@ export function GeneratorForm({
   async function handleDownload() {
     setLimitError(null);
 
+    // Validate required fields
+    if (!exporter.companyName || !exporter.address || !exporter.country) {
+      setLimitError("Exporter company name, address, and country are required.");
+      return;
+    }
+    if (!importer.companyName || !importer.address || !importer.country) {
+      setLimitError("Importer company name, address, and country are required.");
+      return;
+    }
+
     // Don't allow download if there are incoterm errors
     const hasErrors = incotermErrors.some((e) => e.severity === "error");
     if (hasErrors || curError) return;
@@ -210,7 +220,7 @@ export function GeneratorForm({
       const res = await fetch("/api/usage/increment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentType: docType, carrier }),
+        body: JSON.stringify({ documentType: docType, carrier, currency: documentCurrency }),
       });
       const data = await res.json();
 
@@ -254,12 +264,23 @@ export function GeneratorForm({
 
   async function handleCarrierDownload(targetCarrier: "fedex" | "ups" | "dhl") {
     setLimitError(null);
+
+    // Validate required fields
+    if (!exporter.companyName || !exporter.address || !exporter.country) {
+      setLimitError("Exporter company name, address, and country are required.");
+      return;
+    }
+    if (!importer.companyName || !importer.address || !importer.country) {
+      setLimitError("Importer company name, address, and country are required.");
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const res = await fetch("/api/usage/increment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentType: docType, carrier: targetCarrier }),
+        body: JSON.stringify({ documentType: docType, carrier: targetCarrier, currency: documentCurrency }),
       });
       const data = await res.json();
 
@@ -297,11 +318,11 @@ export function GeneratorForm({
     }
   }
 
-  const docTypeOptions: { value: DocumentType; label: string; requiresPro?: boolean }[] = [
+  const docTypeOptions: { value: DocumentType; label: string; requiresPro?: boolean; tooltip?: string }[] = [
     { value: "proforma", label: "Proforma Invoice" },
     { value: "commercial", label: "Commercial Invoice", requiresPro: true },
     { value: "packing", label: "Packing List", requiresPro: true },
-    { value: "bundle", label: "Bundle", requiresPro: true },
+    { value: "bundle", label: "Bundle", requiresPro: true, tooltip: "Bundle = Commercial Invoice + Packing List (Professional+)" },
   ];
 
   const isDapDdp = incoterm === "DAP" || incoterm === "DPU" || incoterm === "DDP";
@@ -325,7 +346,7 @@ export function GeneratorForm({
                       ? "border-outline-variant text-outline cursor-not-allowed opacity-50"
                       : "border-outline bg-background text-on-surface hover:border-primary"
                   }`}
-                  title={locked ? "Upgrade to Professional to unlock" : undefined}
+                  title={opt.tooltip || (locked ? "Upgrade to Professional to unlock" : undefined)}
                 >
                   {opt.label}
                   {locked && " 🔒"}
@@ -378,7 +399,15 @@ export function GeneratorForm({
                   <select
                     className="form-input"
                     value={incoterm}
-                    onChange={(e) => setIncoterm(e.target.value as Incoterm)}
+                    onChange={(e) => {
+                      const newIncoterm = e.target.value as Incoterm;
+                      setIncoterm(newIncoterm);
+                      // Auto-clear freight/insurance for EXW, FOB, FCA
+                      if (["EXW", "FOB", "FCA"].includes(newIncoterm)) {
+                        setFreight(0);
+                        setInsurance(0);
+                      }
+                    }}
                   >
                     {INCOTERMS.map((it) => (
                       <option key={it.value} value={it.value}>{it.label}</option>
@@ -909,14 +938,14 @@ function PartyForm({
       <h3 className="font-label-md font-bold border-b border-outline-variant pb-2">{title}</h3>
       <div className="space-y-3">
         <Field label="Company Name *">
-          <input className="form-input" value={value.companyName} onChange={(e) => onChange({ ...value, companyName: e.target.value })} />
+          <input className="form-input" value={value.companyName} onChange={(e) => onChange({ ...value, companyName: e.target.value })} required />
         </Field>
         <Field label="Address *">
-          <textarea className="form-input h-20" value={value.address} onChange={(e) => onChange({ ...value, address: e.target.value })} />
+          <textarea className="form-input h-20" value={value.address} onChange={(e) => onChange({ ...value, address: e.target.value })} required />
         </Field>
         <div className="grid grid-cols-2 gap-2">
           <Field label="Country *">
-            <input className="form-input" value={value.country} onChange={(e) => onChange({ ...value, country: e.target.value })} />
+            <input className="form-input" value={value.country} onChange={(e) => onChange({ ...value, country: e.target.value })} required />
           </Field>
           <Field label="Tax ID / VAT">
             <input className="form-input" value={value.taxId} onChange={(e) => onChange({ ...value, taxId: e.target.value })} />

@@ -8,6 +8,11 @@ export const dynamic = "force-dynamic";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+// Startup validation - warn if test webhook secret used in production
+if (webhookSecret?.startsWith("whsec_test_")) {
+  console.error("⚠️  WARNING: Using TEST Stripe webhook secret in production! Set STRIPE_WEBHOOK_SECRET to production signing secret.");
+}
+
 function planFromPriceId(priceId: string): string {
   if (priceId === process.env.STRIPE_PRICE_BUSINESS_MONTHLY || priceId === process.env.STRIPE_PRICE_BUSINESS_YEARLY) {
     return "business";
@@ -40,6 +45,23 @@ export async function POST(req: Request) {
   }
 
   const supabase = createAdminClient();
+
+  // IDEMPOTENCY: Check if we've already processed this event
+  const { data: existingEvent, error: eventCheckError } = await supabase
+    .from("webhook_events")
+    .select("id")
+    .eq("stripe_event_id", event.id)
+    .maybeSingle();
+
+  if (eventCheckError) {
+    console.error("[Webhook] Error checking idempotency:", eventCheckError);
+    return new NextResponse("Webhook Error: idempotency check failed", { status: 500 });
+  }
+
+  if (existingEvent) {
+    console.log("[Webhook] Event already processed, skipping:", event.id);
+    return new NextResponse("Webhook processed (duplicate)", { status: 200 });
+  }
 
   try {
     switch (event.type) {
@@ -83,6 +105,7 @@ export async function POST(req: Request) {
             .from("subscriptions")
             .upsert({
               user_id: userId,
+              stripe_customer_id: subscription.customer as string,
               stripe_subscription_id: subscription.id,
               plan: plan,
               status: subscription.status,
@@ -141,7 +164,7 @@ export async function POST(req: Request) {
           if (subscription.customer) {
             const { error } = await supabase
               .from("subscriptions")
-              .upsert({ stripe_customer_id: subscription.customer as string, ...subscriptionData }, { onConflict: "stripe_customer_id" });
+              .upsert({ stripe_customer_id: subscription.customer as string, user_id: userId, ...subscriptionData }, { onConflict: "stripe_customer_id" });
 
             if (error) {
               console.error("[Webhook] Fallback upsert error:", error);
@@ -154,103 +177,131 @@ export async function POST(req: Request) {
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
-        console.log("[Webhook] subscription.deleted:", subscription.id);
+              const subscription = event.data.object as Stripe.Subscription;
+              console.log("[Webhook] subscription.deleted:", subscription.id);
 
-        // Use the first subscription item's current_period_end
-        const periodEnd = new Date(subscription.items.data[0]?.current_period_end * 1000);
-        const now = new Date();
+              // Use the first subscription item's current_period_end
+              const periodEnd = new Date(subscription.items.data[0]?.current_period_end * 1000);
+              const now = new Date();
 
-        // Resolve plan from the price_id of the deleted subscription
-        const priceId = subscription.items.data[0]?.price.id;
-                const currentPlan = priceId ? planFromPriceId(priceId) : "professional";
+              // Resolve plan from the price_id of the deleted subscription
+              const priceId = subscription.items.data[0]?.price.id;
+              const currentPlan = priceId ? planFromPriceId(priceId) : "professional";
 
-                // If periodEnd is in the future, keep the plan active until periodEnd expires
-                // Only downgrade to starter when periodEnd has already passed
-                const newPlan = periodEnd > now ? currentPlan : "starter";
-                const newStatus = periodEnd > now ? "active" : "canceled";
+              // CHECK FOR IMMEDIATE CANCELLATION (invoice_now=true)
+              // If subscription was canceled immediately, canceled_at will be set and < now
+              // Or if cancel_at_period_end is false but status is canceled and no period end in future
+              const canceledAt = subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null;
+              const isImmediateCancel = canceledAt && canceledAt <= now;
 
-                // Try to find by stripe_subscription_id first (since stripe_customer_id might be null)
-                                let error: Error | null = null;
-                                const { data } = await supabase
-                                  .from("subscriptions")
-                                  .update({
-                                    plan: newPlan,
-                                    status: newStatus,
-                                    cancel_at_period_end: false,
-                                    current_period_end: periodEnd.toISOString(),
-                                    updated_at: new Date().toISOString(),
-                                  })
-                                  .eq("stripe_subscription_id", subscription.id)
-                                  .select("id");
+              // If periodEnd is in the future AND not immediate cancellation, keep plan active until periodEnd expires
+              // Only downgrade to starter when periodEnd has already passed OR it was immediate cancellation
+              const newPlan = (periodEnd > now && !isImmediateCancel) ? currentPlan : "starter";
+              const newStatus = (periodEnd > now && !isImmediateCancel) ? "active" : "canceled";
 
-                                // If no rows updated, try fallback 1
-                                if (!data || data.length === 0) {
-                                  console.log("[Webhook] No rows updated by stripe_subscription_id, trying fallback 1");
-                                  error = new Error("No rows updated");
-                                }
+              if (isImmediateCancel) {
+                console.log("[Webhook] IMMEDIATE CANCELLATION detected (invoice_now=true) - downgrading to starter immediately");
+              } else if (periodEnd > now) {
+                console.log("[Webhook] Period-end cancellation - keeping", currentPlan, "until", periodEnd.toISOString());
+              } else {
+                console.log("[Webhook] Period already ended - downgrading to starter");
+              }
 
-                                // Fallback 1: try by stripe_customer_id
-                                if (error && subscription.customer) {
-                                  console.log("[Webhook] Fallback to stripe_customer_id:", subscription.customer);
-                                  const { error: fallbackError, data: fallbackData } = await supabase
-                                    .from("subscriptions")
-                                    .update({
-                                      plan: newPlan,
-                                      status: newStatus,
-                                      cancel_at_period_end: false,
-                                      current_period_end: periodEnd.toISOString(),
-                                      updated_at: new Date().toISOString(),
-                                    })
-                                    .eq("stripe_customer_id", subscription.customer as string)
-                                    .select("id");
+              // Try to find by stripe_subscription_id first (since stripe_customer_id might be null)
+              let error: Error | null = null;
+              const { data } = await supabase
+                .from("subscriptions")
+                .update({
+                  plan: newPlan,
+                  status: newStatus,
+                  cancel_at_period_end: false,
+                  current_period_end: periodEnd.toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("stripe_subscription_id", subscription.id)
+                .select("id");
 
-                                  if (fallbackData && fallbackData.length > 0) {
-                                    error = null; // Success on fallback
-                                  } else if (fallbackError) {
-                                    error = fallbackError;
-                                  }
-                                }
+              // If no rows updated, try fallback 1
+              if (!data || data.length === 0) {
+                console.log("[Webhook] No rows updated by stripe_subscription_id, trying fallback 1");
+                error = new Error("No rows updated");
+              }
 
-                                // Fallback 2: try by user_id from subscription metadata
-                                if (error && subscription.metadata?.supabase_user_id) {
-                                  console.log("[Webhook] Fallback to metadata.supabase_user_id:", subscription.metadata.supabase_user_id);
-                                  const { error: fallbackError, data: fallbackData } = await supabase
-                                    .from("subscriptions")
-                                    .update({
-                                      plan: newPlan,
-                                      status: newStatus,
-                                      cancel_at_period_end: false,
-                                      current_period_end: periodEnd.toISOString(),
-                                      updated_at: new Date().toISOString(),
-                                    })
-                                    .eq("user_id", subscription.metadata.supabase_user_id)
-                                    .select("id");
-        
-                                  if (fallbackData && fallbackData.length > 0) {
-                                    error = null; // Success on fallback
-                                  } else if (fallbackError) {
-                                    error = fallbackError;
-                                  }
-                                }
+              // Fallback 1: try by stripe_customer_id
+              if (error && subscription.customer) {
+                console.log("[Webhook] Fallback to stripe_customer_id:", subscription.customer);
+                const { error: fallbackError, data: fallbackData } = await supabase
+                  .from("subscriptions")
+                  .update({
+                    plan: newPlan,
+                    status: newStatus,
+                    cancel_at_period_end: false,
+                    current_period_end: periodEnd.toISOString(),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("stripe_customer_id", subscription.customer as string)
+                  .select("id");
 
-        if (error) {
-          console.error("[Webhook] Delete update error:", error);
-          throw error;
-        }
-        console.log(
-          "[Webhook] Subscription deleted handled. Plan:",
-          newPlan,
-          "Status:",
-          newStatus,
-          "Period ends:",
-          periodEnd.toISOString()
-        );
-        break;
-      }
+                if (fallbackData && fallbackData.length > 0) {
+                  error = null; // Success on fallback
+                } else if (fallbackError) {
+                  error = fallbackError;
+                }
+              }
+
+              // Fallback 2: try by user_id from subscription metadata
+              if (error && subscription.metadata?.supabase_user_id) {
+                console.log("[Webhook] Fallback to metadata.supabase_user_id:", subscription.metadata.supabase_user_id);
+                const { error: fallbackError, data: fallbackData } = await supabase
+                  .from("subscriptions")
+                  .update({
+                    plan: newPlan,
+                    status: newStatus,
+                    cancel_at_period_end: false,
+                    current_period_end: periodEnd.toISOString(),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("user_id", subscription.metadata.supabase_user_id)
+                  .select("id");
+
+                if (fallbackData && fallbackData.length > 0) {
+                  error = null; // Success on fallback
+                } else if (fallbackError) {
+                  error = fallbackError;
+                }
+              }
+
+              if (error) {
+                console.error("[Webhook] Delete update error:", error);
+                throw error;
+              }
+              console.log(
+                "[Webhook] Subscription deleted handled. Plan:",
+                newPlan,
+                "Status:",
+                newStatus,
+                "Period ends:",
+                periodEnd.toISOString()
+              );
+              break;
+            }
 
       default:
         console.log("[Webhook] Unhandled event type:", event.type);
+    }
+
+    // Record webhook event for idempotency
+    const { error: webhookEventError } = await supabase
+      .from("webhook_events")
+      .insert({
+        stripe_event_id: event.id,
+        event_type: event.type,
+        payload: JSON.parse(body),
+      });
+
+    if (webhookEventError) {
+      console.error("[Webhook] Failed to record webhook event:", webhookEventError);
+      // Don't fail the webhook, just log
     }
 
     return new NextResponse("Webhook processed", { status: 200 });
