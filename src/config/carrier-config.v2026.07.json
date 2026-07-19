@@ -1,0 +1,86 @@
+{
+  "version": "2026.07",
+  "effectiveDate": "2026-07-01",
+  "carriers": {
+    "FEDEX": {
+      "awbFormat": "^\\d{12}$",
+      "awbLength": 12,
+      "descriptionRequired": true,
+      "descriptionMinWords": 3,
+      "paperSizeByCountry": {
+        "US_CA": "LETTER",
+        "MX": "LETTER",
+        "EU": "A4",
+        "REST_OF_WORLD": "A4"
+      },
+      "supportedReasonsForExport": ["SALE", "GIFT", "SAMPLE", "RETURN", "REPAIR", "WARRANTY", "INTERCOMPANY", "OTHER"],
+      "etdSupported": true,
+      "regulatoryChanges": []
+    },
+    "UPS": {
+      "awbFormat": "^\\d{11}$",
+      "awbLength": 11,
+      "descriptionRequired": true,
+      "descriptionMinWords": 3,
+      "paperSizeByCountry": {
+        "US_CA": "LETTER",
+        "MX": "LETTER",
+        "EU": "A4",
+        "REST_OF_WORLD": "A4"
+      },
+      "partiesRelationshipRequired": true,
+      "usmcaSupported": true,
+      "regulatoryChanges": [
+        {
+          "id": "USMCA-2026-Q3",
+          "activeFrom": "2026-07-01",
+          "description": "USMCA certification must be separate document (per 19 CFR 181)."
+        }
+      ]
+    },
+    "DHL": {
+      "awbFormat": "^\\d{10}$",
+      "awbLength": 10,
+      "descriptionRequired": true,
+      "descriptionMinWords": 3,
+      "paperSizeByCountry": {
+        "US_CA": "LETTER",
+        "MX": "LETTER",
+        "EU": "A4",
+        "REST_OF_WORLD": "A4"
+      },
+      "iorRequired": true,
+      "mydhlSupported": true,
+      "regulatoryChanges": []
+    },
+    "NONE": {
+      "awbFormat": "",
+      "awbLength": 0,
+      "descriptionRequired": true,
+      "descriptionMinWords": 3,
+      "paperSizeByCountry": {
+        "US_CA": "LETTER",
+        "MX": "LETTER",
+        "EU": "A4",
+        "REST_OF_WORLD": "A4"
+      },
+      "regulatoryChanges": []
+    }
+  },
+  "blacklist": [
+    "cheap", "fake", "replica", "copy", "imitation", "knockoff", "counterfeit",
+    "generic", "various", "misc", "stuff", "things", "as seen", "brand new",
+    "original", "authentic", "GENUINE", "100%", "free gift", "sample only",
+    "no commercial value", "gift", "parts", "components", "accessories",
+    "electronics", "toys", "clothing", "machine", "equipment"
+  ],
+  "restrictedWords": ["sample", "repair", "return", "warranty", "gift"],
+  "paperSizeByDocumentType": {
+    "PACKING_LIST": "LANDSCAPE",
+    "BUNDLE_CIPL": "LANDSCAPE",
+    "PROFORMA": "PORTRAIT",
+    "CI_FEDEX": "PORTRAIT",
+    "CI_UPS": "PORTRAIT",
+    "CI_DHL": "PORTRAIT"
+  }
+}

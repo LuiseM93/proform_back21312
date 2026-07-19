@@ -1,0 +1,194 @@
+// ============================================================================
+// CiFedexDocument — Commercial Invoice FedEx M-1054 (2 páginas)
+// ProformaFlow · FASE 3
+// ============================================================================
+import React, { useMemo } from 'react';
+import { Document, Page, View, Text } from '@react-pdf/renderer';
+import type { CiFedexData } from '@/types/shipment';
+import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
+
+export function CiFedexDocument({ data }: { data: CiFedexData }) {
+  registerFonts();
+  const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
+  const fedex = data.carrierSpecific.fedex!;
+
+  return (
+    <Document>
+      {/* PAGE 1 */}
+      <Page size={data.output.paperSize === 'LETTER' ? 'LETTER' : 'A4'} orientation={orientation} style={styles.page}>
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.title, { fontSize: 16 }]}>COMMERCIAL INVOICE</Text>
+            <Text style={{ fontSize: 8, marginTop: 2 }}>FedEx International — M-1054 Format</Text>
+          </View>
+          <View style={{ textAlign: 'right', width: '35%' }}>
+            <Text style={{ fontSize: 9, fontWeight: 'bold' }}>AWB: {fedex.awbNumber}</Text>
+            <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
+            <Text style={{ fontSize: 8 }}>Ref: {fedex.exportReferences || 'N/A'}</Text>
+            {fedex.etdEnabled && <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold' }}>✓ ETD ENABLED — No physical copies required</Text>}
+          </View>
+        </View>
+
+        {/* PARTIES */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Parties</Text>
+          <View style={styles.partyBlock}>
+            <View style={styles.partyColumn}>
+              <Text style={styles.partyLabel}>Shipper / Exporter</Text>
+              <Text style={styles.partyValue}>{data.parties.shipper?.legalName || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.shipper?.address.street || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.shipper?.address.city || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.shipper?.address.countryName || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.shipper?.taxIdType || "—"}: {data.parties.shipper?.taxId || "—"}</Text>
+            </View>
+            <View style={styles.partyColumn}>
+              <Text style={styles.partyLabel}>Consignee / Importer</Text>
+              <Text style={styles.partyValue}>{data.parties.consignee?.legalName || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.consignee?.address.street || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.consignee?.address.city || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.consignee?.address.countryName || "—"}</Text>
+              <Text style={styles.partyValue}>{data.parties.consignee?.taxIdType || "—"}: {data.parties.consignee?.taxId || "—"}</Text>
+            </View>
+          </View>
+          {data.parties.buyer && (
+            <View style={{ marginTop: 6 }}>
+              <Text style={styles.partyLabel}>Importer of Record (if different)</Text>
+              <Text style={styles.partyValue}>{data.parties.buyer.legalName} — {data.parties.buyer.address.countryName}</Text>
+            </View>
+          )}
+        </View>
+
+        {/* SHIPMENT INFO */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Shipment Information</Text>
+          <View style={styles.flexRow}>
+            <View style={{ width: '25%' }}>
+              <Text style={styles.partyLabel}>Reason for Export</Text>
+              <Text style={styles.partyValue}>{fedex.reasonForExport}</Text>
+            </View>
+            <View style={{ width: '25%' }}>
+              <Text style={styles.partyLabel}>Incoterms® 2020</Text>
+              <Text style={styles.partyValue}>{getIncotermDisplay(data.lines[0]?.incoterm ? { code: data.lines[0].incoterm, place: data.parties.consignee.address.city } : { code: 'DAP', place: data.parties.consignee.address.city })}</Text>
+            </View>
+            <View style={{ width: '25%' }}>
+              <Text style={styles.partyLabel}>Duty/Tax Billing</Text>
+              <Text style={styles.partyValue}>{fedex.dutyTaxBilling === 'BILL_RECIPIENT' ? 'Bill Recipient' : 'Bill Shipper'}</Text>
+            </View>
+            <View style={{ width: '25%' }}>
+              <Text style={styles.partyLabel}>CPC (Optional)</Text>
+              <Text style={styles.partyValue}>{fedex.customsProcedureCode || 'N/A'}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* COMMODITY TABLE */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Commodity Description (19 CFR § 141.86)</Text>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableCellHeader, { width: '4%' }]}>#</Text>
+            <Text style={[styles.tableCellHeader, { width: '28%' }]}>Description</Text>
+            <Text style={[styles.tableCellHeader, { width: '8%' }]}>HS Code</Text>
+            <Text style={[styles.tableCellHeader, { width: '6%' }]}>Origin</Text>
+            <Text style={[styles.tableCellHeader, { width: '6%' }]}>Qty</Text>
+            <Text style={[styles.tableCellHeader, { width: '4%' }]}>UOM</Text>
+            <Text style={[styles.tableCellHeader, { width: '9%' }]}>Unit</Text>
+            <Text style={[styles.tableCellHeader, { width: '9%' }]}>Total</Text>
+            <Text style={[styles.tableCellHeader, { width: '7%' }]}>Net kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '8%' }]}>Gross kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '11%' }]}>Marks & Numbers</Text>
+          </View>
+          {data.lines.map((line, idx) => {
+            const marks = line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A';
+            return (
+              <View key={idx} style={styles.tableRow}>
+                <Text style={[styles.tableCell, { width: '4%' }]}>{idx + 1}</Text>
+                <View style={[styles.tableCell, { width: '28%' }]}>
+                  <Text style={{ fontWeight: 'bold' }}>{line.description}</Text>
+                  {line.descriptionEs && <Text style={{ fontSize: 6, color: '#666' }}>{line.descriptionEs}</Text>}
+                </View>
+                <Text style={[styles.tableCell, { width: '8%' }]}>{line.hsCode}</Text>
+                <Text style={[styles.tableCell, { width: '6%' }]}>{line.countryOfOrigin}</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
+                <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
+                <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
+                <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
+                <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '8%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '11%', fontSize: 6 }]}>{marks}</Text>
+              </View>
+            );
+          })}
+          <View style={[styles.totalsRow, styles.tableRow]}>
+            <Text style={[styles.tableCell, { width: '4%' }]} />
+            <Text style={[styles.tableCell, { width: '28%', fontWeight: 'bold' }]}>TOTAL</Text>
+            <Text style={[styles.tableCell, { width: '8%' }]} />
+            <Text style={[styles.tableCell, { width: '6%' }]} />
+            <Text style={[styles.tableCell, { width: '6%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalQuantity, 0)}</Text>
+            <Text style={[styles.tableCell, { width: '4%' }]} />
+            <Text style={[styles.tableCell, { width: '9%' }]} />
+            <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
+            <Text style={[styles.tableCell, { width: '7%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '8%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '11%' }]} />
+          </View>
+        </View>
+
+        {/* DECLARATION */}
+        <View style={[styles.section, { marginTop: 'auto', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#000' }]}>
+          <Text style={styles.sectionTitle}>Declaration</Text>
+          <Text style={{ fontSize: 7, marginBottom: 8, lineHeight: 1.3 }}>
+            I, the undersigned, declare that the information on this invoice is true and correct, and that the goods described above are of the origin,
+            value, and classification stated. I understand that false statements may result in penalties under 19 CFR § 141.86 and applicable customs laws.
+          </Text>
+          {data.output.includeSignature ? (
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 6 }}>Date: {data.issueDate}</Text></View>
+              <View style={styles.signatureLine}><Text>Printed Name / Title</Text></View>
+              <View style={styles.signatureLine}><Text>{data.parties.shipper.legalName}</Text></View>
+            </View>
+          ) : fedex.etdEnabled && (
+            <View style={{ textAlign: 'center', marginTop: 8, padding: 8, backgroundColor: '#e8f5e9', borderWidth: 0.5, borderColor: '#28a745' }}>
+              <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold' }}>ELECTRONICALLY TRANSMITTED VIA FEDEX ETD — NO PHYSICAL SIGNATURE REQUIRED</Text>
+            </View>
+          )}
+        </View>
+        <Text style={{ position: 'absolute', bottom: 20, right: 36, fontSize: 7 }}>CI FedEx — Page 1</Text>
+      </Page>
+
+      {/* PAGE 2 */}
+      <Page size={data.output.paperSize === 'LETTER' ? 'LETTER' : 'A4'} orientation={orientation} style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>COMMERCIAL INVOICE — CONTINUATION</Text>
+          <Text style={{ fontSize: 8 }}>AWB: {fedex.awbNumber} | Page 2 of 2</Text>
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Additional Information</Text>
+          <View style={styles.flexRow}>
+            <View style={{ width: '50%' }}>
+              <Text style={styles.partyLabel}>Currency</Text>
+              <Text style={styles.partyValue}>{data.totals.currency}</Text>
+            </View>
+            <View style={{ width: '50%' }}>
+              <Text style={styles.partyLabel}>Total Invoice Value</Text>
+              <Text style={styles.partyValue}>{formatCurrency(data.totals.grandTotal, data.totals.currency)}</Text>
+            </View>
+          </View>
+          {fedex.customsProcedureCode && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.partyLabel}>Customs Procedure Code</Text>
+              <Text style={styles.partyValue}>{fedex.customsProcedureCode}</Text>
+            </View>
+          )}
+          <View style={{ marginTop: 16 }}>
+            <Text style={styles.partyLabel}>Certification</Text>
+            <Text style={{ fontSize: 7, lineHeight: 1.4 }}>
+              These commodities, technology, or software were exported from the United States (or country of origin) in accordance with the Export
+              Administration Regulations. Diversion contrary to U.S. law prohibited.
+            </Text>
+          </View>
+        </View>
+        <Text style={{ position: 'absolute', bottom: 20, right: 36, fontSize: 7 }}>CI FedEx — Continuation</Text>
+      </Page>
+    </Document>
+  );
+}

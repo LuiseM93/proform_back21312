@@ -1,4 +1,4 @@
-import { GeneratorForm } from "@/components/generator-form";
+import { GeneratorFormV2 } from "@/components/generator/GeneratorFormV2";
 import { getUserContext, planLimits } from "@/lib/user-context";
 
 export default async function GeneratorPage() {
@@ -9,13 +9,12 @@ export default async function GeneratorPage() {
   const remaining = limits.docsPerMonth === Infinity ? null : Math.max(limits.docsPerMonth - used, 0);
 
   return (
-    <GeneratorForm
+    <GeneratorFormV2
       planWatermark={limits.watermark}
       planAllTypes={limits.allTypes}
       planCarrierReady={limits.carrierReady}
       remainingDocs={remaining}
       plan={plan}
-      defaultCompany={ctx?.company || undefined}
     />
   );
 }
