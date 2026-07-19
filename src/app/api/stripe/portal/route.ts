@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
 
 export async function POST() {
   try {
-    const admin = await createAdminClient();
-    const { data: { user } } = await admin.auth.getUser();
+    // Use regular client to get user from session cookies
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    // Use admin client for database query (bypasses RLS)
+    const admin = await createAdminClient();
     const { data: sub } = await admin
       .from("subscriptions")
       .select("stripe_customer_id")
