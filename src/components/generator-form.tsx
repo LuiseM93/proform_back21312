@@ -1,7 +1,11 @@
 "use client";
 import { useState, useCallback } from "react";
-import { pdf } from "@react-pdf/renderer";
+import { pdf, PDFViewer, DocumentProps } from "@react-pdf/renderer";
 import { DocumentPdf } from "@/components/pdf/document-pdf";
+import { FedexPdf } from "@/components/pdf/fedex-pdf";
+import { UpsPdf } from "@/components/pdf/ups-pdf";
+import { DhlPdf } from "@/components/pdf/dhl-pdf";
+import { PackingListPdf } from "@/components/pdf/packing-list-pdf";
 import {
   INCOTERMS, calculateTotals, validateIncotermConsistency,
   validateCurrencies, calculateTotalNetWeight, calculateTotalGrossWeight,
@@ -820,7 +824,7 @@ export function GeneratorForm({
         </div>
       </div>
 
-      {/* Live Preview */}
+      {/* Live Preview — renders the REAL PDF component based on docType + carrier */}
       <div className="w-full lg:w-[45%] xl:w-1/2 bg-surface-container-high hidden lg:flex flex-col relative">
         <div className="p-4 border-b border-outline-variant bg-surface flex justify-between items-center">
           <span className="font-label-md font-bold text-primary flex items-center">
@@ -831,81 +835,12 @@ export function GeneratorForm({
           </span>
         </div>
         <div className="flex-1 overflow-y-auto p-4 md:p-margin-md flex justify-center items-start">
-          <div className="bg-background w-full max-w-[210mm] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-primary p-8 font-body-md relative">
-            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none overflow-hidden">
-              <span className="font-headline-lg transform -rotate-45 whitespace-nowrap text-primary scale-[3]">
-                {planWatermark ? "PROFORMAFLOW DRAFT" : ""}
-              </span>
-            </div>
-            <div className="flex justify-between items-start border-b-2 border-primary pb-4 mb-8">
-              <div>
-                <h2 className="font-headline-md font-bold uppercase tracking-tighter">
-                  {docType === "proforma" && "Proforma Invoice"}
-                  {docType === "commercial" && "Commercial Invoice"}
-                  {docType === "packing" && "Packing List"}
-                  {docType === "bundle" && "Commercial Invoice & Packing List"}
-                </h2>
-                <p className="text-on-surface-variant">No: {docNumber}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold">{exporter.companyName || "Your Company"}</p>
-                <p className="text-sm text-on-surface-variant">{exporter.address || "[Address pending]"}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
-              <div className="border border-outline p-4">
-                <h4 className="font-bold mb-2 border-b border-outline pb-1">Shipper</h4>
-                <p>{exporter.companyName || <span className="italic text-outline">Awaiting input...</span>}</p>
-              </div>
-              <div className="border border-outline p-4">
-                <h4 className="font-bold mb-2 border-b border-outline pb-1">Consignee</h4>
-                <p>{importer.companyName || <span className="italic text-outline">Awaiting input...</span>}</p>
-              </div>
-            </div>
-            <div className="border-t border-b border-primary py-2 mb-8 flex justify-between font-label-md font-bold text-xs">
-              <span>Incoterm: {incoterm}</span>
-              {!isDapDdp && <span>POL: {portOfLoading || "--"}</span>}
-              {!isDapDdp && <span>POD: {portOfDischarge || "--"}</span>}
-              {isDapDdp && <span>Delivery: {placeOfDelivery || "--"}</span>}
-              <span>Currency: {documentCurrency}</span>
-            </div>
-            <table className="w-full text-sm mb-8 border-collapse">
-              <thead>
-                <tr className="border-b-2 border-primary text-left">
-                  <th className="py-2">Description</th>
-                  <th className="py-2">HS Code</th>
-                  <th className="py-2">Origin</th>
-                  <th className="py-2 text-right">Qty</th>
-                  <th className="py-2 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.some((i) => i.description) ? (
-                  items.map((item) => (
-                    <tr key={item.id} className="border-b border-outline-variant">
-                      <td className="py-2">{item.description || "—"}</td>
-                      <td className="py-2">{item.hsCode || "—"}</td>
-                      <td className="py-2">{item.countryOfOrigin || "—"}</td>
-                      <td className="py-2 text-right">{item.quantity} {item.unit}</td>
-                      <td className="py-2 text-right">{(item.quantity * item.unitPrice).toFixed(2)}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="border-b border-outline-variant text-on-surface-variant">
-                    <td className="py-4 italic" colSpan={5}>No items added yet...</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            <div className="flex justify-end">
-              <div className="w-56 text-sm space-y-1">
-                <div className="flex justify-between"><span>Subtotal</span><span>{totals.subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between font-bold border-t-2 border-primary pt-2 mt-2">
-                  <span>Total</span><span>{totals.total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <LivePreview
+            docType={docType}
+            carrier={carrier}
+            draft={buildDraft()}
+            watermark={planWatermark}
+          />
         </div>
       </div>
     </div>
@@ -983,5 +918,69 @@ function StepNav({ step, setStep, max }: { step: number; setStep: (n: number) =>
         Continue
       </button>
     </div>
+  );
+}
+
+/**
+ * Live Preview: renders the SAME react-pdf component used for the real export,
+ * chosen by docType + carrier. For bundle it stacks Commercial Invoice + Packing List.
+ */
+function LivePreview({
+  docType,
+  carrier,
+  draft,
+  watermark,
+}: {
+  docType: DocumentType;
+  carrier: "fedex" | "ups" | "dhl" | "aramex" | "other";
+  draft: DocumentDraft;
+  watermark: boolean;
+}) {
+  let content: React.ReactElement<DocumentProps>;
+
+  if (docType === "proforma") {
+    content = <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  } else if (docType === "commercial" && carrier === "fedex") {
+    content = <FedexPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  } else if (docType === "commercial" && carrier === "ups") {
+    content = <UpsPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  } else if (docType === "commercial" && carrier === "dhl") {
+    content = <DhlPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  } else if (docType === "commercial") {
+    // commercial + other/aramex -> generic commercial invoice
+    content = <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  } else if (docType === "packing") {
+    content = <PackingListPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  } else if (docType === "bundle") {
+    // Bundle = Commercial Invoice + Packing List.
+    // Render both real PDFs stacked (each is its own Document/Page, exactly
+    // like the real export). Two viewers side by side keeps each PDF intact.
+    return (
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+        <PDFViewer
+          showToolbar={false}
+          style={{ width: "100%", height: "70vh", border: "none" }}
+        >
+          <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />
+        </PDFViewer>
+        <PDFViewer
+          showToolbar={false}
+          style={{ width: "100%", height: "70vh", border: "none" }}
+        >
+          <PackingListPdf draft={draft} watermark={watermark} carrier={carrier} />
+        </PDFViewer>
+      </div>
+    );
+  } else {
+    content = <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  }
+
+  return (
+    <PDFViewer
+      showToolbar={false}
+      style={{ width: "100%", height: "100%", minHeight: "70vh", border: "none" }}
+    >
+      {content}
+    </PDFViewer>
   );
 }
