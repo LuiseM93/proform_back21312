@@ -103,7 +103,7 @@ export default function PricingPage() {
               <p className="font-body-md text-on-surface-variant h-12">For growing businesses needing carrier integration.</p>
             </div>
             <ul className="flex-grow space-y-3 mb-8">
-              {["Unlimited docs", "No watermark", "All document types", "Carrier-ready PDFs (FedEx/UPS/DHL)", "50 document history", "5 currencies", "Email support"].map(f => (
+              {["Unlimited docs", "No watermark", "All document types", "Carrier-ready PDFs (FedEx/UPS/DHL)", "5 currencies", "Email support"].map(f => (
                 <li key={f} className="flex items-start gap-2"><span className="material-symbols-outlined text-primary text-sm">check</span><span className="font-body-md font-medium">{f}</span></li>
               ))}
             </ul>
@@ -123,7 +123,7 @@ export default function PricingPage() {
               <p className="font-body-md text-on-surface-variant h-12">Advanced features for high-volume operations.</p>
             </div>
             <ul className="flex-grow space-y-3 mb-8">
-              {["All Pro features", "Unlimited history", "Unlimited templates", "20+ currencies", "Priority support"].map(f => (
+              {["All Pro features", "Unlimited templates", "20+ currencies"].map(f => (
                 <li key={f} className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md font-medium">{f}</span></li>
               ))}
             </ul>

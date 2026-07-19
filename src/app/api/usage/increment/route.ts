@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { planLimits } from "@/lib/user-context";
+import { PRO_CURRENCIES, BUSINESS_CURRENCIES } from "@/lib/document-types";
 
 // This endpoint only tracks a COUNT of documents generated per month.
 // It never receives or stores the document content itself — that stays
@@ -56,13 +57,13 @@ export async function POST(request: NextRequest) {
       }, { status: 403 });
     }
 
-    // SERVER-SIDE VALIDATION: currency
-    const allowedCurrencies = effectivePlan === "business" 
-      ? ["USD", "EUR", "MXN", "GBP", "CNY", "JPY", "KRW", "BRL", "ARS", "CLP", "COP", "PEN", "CAD", "AUD", "CHF", "SEK", "NOK", "DKK", "INR", "RUB", "ZAR", "TRY", "AED", "SAR"]
+    // SERVER-SIDE VALIDATION: currency - use shared constants
+    const allowedCurrencies = effectivePlan === "business"
+      ? BUSINESS_CURRENCIES
       : effectivePlan === "professional"
-      ? ["USD", "EUR", "MXN", "GBP", "CNY"]
+      ? PRO_CURRENCIES
       : ["USD"];
-  
+
     if (!allowedCurrencies.includes(currency)) {
       return NextResponse.json({
         error: `Currency ${currency} not allowed on ${effectivePlan} plan. Allowed: ${allowedCurrencies.join(", ")}`

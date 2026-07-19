@@ -54,8 +54,8 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (eventCheckError) {
-    console.error("[Webhook] Error checking idempotency:", eventCheckError);
-    return new NextResponse("Webhook Error: idempotency check failed", { status: 500 });
+    console.warn("[Webhook] Idempotency check error (non-blocking):", eventCheckError.message);
+    // Don't fail — the unique constraint on stripe_event_id will catch duplicates at insert
   }
 
   if (existingEvent) {
@@ -88,15 +88,15 @@ export async function POST(req: Request) {
           const plan = planFromPriceId(priceId);
           console.log("[Webhook] Plan determined:", plan);
 
-          // Check if subscription was already cancelled
+          // Check if THIS SAME subscription was already canceled (prevent double-processing)
           const { data: existingSub } = await supabase
             .from("subscriptions")
             .select("status, stripe_subscription_id")
             .eq("user_id", userId)
             .maybeSingle();
 
-          if (existingSub?.status === "canceled") {
-            console.log("[Webhook] Subscription already canceled for user:", userId, "- skipping reactivation");
+          if (existingSub?.stripe_subscription_id === subscription.id && existingSub?.status === "canceled") {
+            console.log("[Webhook] SAME subscription already canceled for user:", userId, "- skipping reactivation");
             break;
           }
 

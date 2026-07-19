@@ -49,9 +49,7 @@ export interface PlanLimits {
   allTypes: boolean;
   carrierReady: boolean;
   maxCurrencies: number;
-  unlimitedHistory: boolean;
   unlimitedTemplates: boolean;
-  prioritySupport: boolean;
 }
 
 export function planLimits(plan: string): PlanLimits {
@@ -63,9 +61,7 @@ export function planLimits(plan: string): PlanLimits {
         allTypes: true,
         carrierReady: true,
         maxCurrencies: 24,
-        unlimitedHistory: true,
         unlimitedTemplates: true,
-        prioritySupport: true,
       };
     case "professional":
       return {
@@ -74,9 +70,7 @@ export function planLimits(plan: string): PlanLimits {
         allTypes: true,
         carrierReady: true,
         maxCurrencies: 5,
-        unlimitedHistory: false,
         unlimitedTemplates: false,
-        prioritySupport: false,
       };
     default:
       return {
@@ -85,9 +79,7 @@ export function planLimits(plan: string): PlanLimits {
         allTypes: false,
         carrierReady: false,
         maxCurrencies: 1,
-        unlimitedHistory: false,
         unlimitedTemplates: false,
-        prioritySupport: false,
       };
   }
 }

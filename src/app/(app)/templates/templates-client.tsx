@@ -15,11 +15,39 @@ interface Template {
   last_used_at: string | null;
 }
 
-export function TemplatesClient({ templates }: { templates: Template[] }) {
+interface PlanLimits {
+  unlimitedTemplates: boolean;
+  docsPerMonth: number;
+  watermark: boolean;
+  allTypes: boolean;
+  carrierReady: boolean;
+  maxCurrencies: number;
+}
+
+export function TemplatesClient({ 
+  templates, 
+  plan, 
+  limits 
+}: { 
+  templates: Template[]; 
+  plan: string;
+  limits: PlanLimits;
+}) {
   const [showForm, setShowForm] = useState(false);
   const [pending, setPending] = useState(false);
 
+  // Define template limits per plan
+  const getTemplateLimit = (plan: string): number => {
+    if (plan === "business") return Infinity;
+    if (plan === "professional") return 10;
+    return 3; // starter
+  };
+
+  const templateLimit = getTemplateLimit(plan);
+  const isAtLimit = templates.length >= templateLimit && !limits.unlimitedTemplates;
+
   async function handleCreate(formData: FormData) {
+    if (isAtLimit) return;
     setPending(true);
     await createTemplate(formData);
     setPending(false);
@@ -27,7 +55,7 @@ export function TemplatesClient({ templates }: { templates: Template[] }) {
   }
 
   return (
-    <div className="p-4 md:p-margin-md lg:p-margin-lg">
+    <div className="p-4 md:p-[32px] lg:p-[48px]">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 pb-4 border-b-2 border-primary gap-4">
         <div>
           <h1 className="font-headline-lg-mobile md:font-headline-lg text-primary mb-2">
@@ -40,14 +68,15 @@ export function TemplatesClient({ templates }: { templates: Template[] }) {
         </div>
         <button
           onClick={() => setShowForm((s) => !s)}
-          className="bg-primary text-on-primary font-label-md py-3 px-6 rounded flex items-center hover:opacity-90 transition-colors shrink-0"
+          disabled={isAtLimit}
+          className={`bg-primary text-on-primary font-label-md py-3 px-6 rounded flex items-center hover:opacity-90 transition-colors shrink-0 ${isAtLimit ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <span className="material-symbols-outlined mr-2">add_box</span>
-          {showForm ? "Cancel" : "Create Template"}
+          {showForm ? "Cancel" : isAtLimit ? `Limit Reached (${templateLimit})` : "Create Template"}
         </button>
       </div>
 
-      {showForm && (
+      {showForm && !isAtLimit && (
         <form action={handleCreate} className="border border-primary rounded p-6 mb-8 bg-surface grid grid-cols-1 md:grid-cols-2 gap-4">
           <input name="name" required placeholder="Template name" className="form-input md:col-span-2" />
           <select name="transport_mode" className="form-input">
@@ -67,6 +96,25 @@ export function TemplatesClient({ templates }: { templates: Template[] }) {
             {pending ? "Saving..." : "Save Template"}
           </button>
         </form>
+      )}
+
+      {isAtLimit && !showForm && (
+        <div className="mb-8 p-4 bg-surface-container-high border-2 border-secondary rounded flex items-center gap-4">
+          <span className="material-symbols-outlined text-secondary">lock</span>
+          <div>
+            <p className="font-label-md text-primary">Template limit reached</p>
+            <p className="font-body-md text-on-surface-variant">
+              Your {plan === "professional" ? "Professional" : "Starter"} plan allows <strong>{templateLimit} templates</strong>.
+              Upgrade to Business for unlimited templates.
+            </p>
+          </div>
+          <Link 
+            href="/billing" 
+            className="ml-auto px-4 py-2 bg-secondary text-on-secondary rounded font-label-md hover:opacity-90 transition-opacity"
+          >
+            Upgrade
+          </Link>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -110,8 +158,9 @@ export function TemplatesClient({ templates }: { templates: Template[] }) {
           </div>
         ))}
         <button
-          onClick={() => setShowForm(true)}
-          className="bg-surface-container-lowest border-2 border-dashed border-outline hover:border-primary rounded p-5 flex flex-col items-center justify-center group transition-all duration-200 min-h-[240px]"
+          onClick={() => !isAtLimit && setShowForm(true)}
+          className={`bg-surface-container-lowest border-2 border-dashed border-outline hover:border-primary rounded p-5 flex flex-col items-center justify-center group transition-all duration-200 min-h-[240px] ${isAtLimit ? "opacity-50 cursor-not-allowed" : ""}`}
+          disabled={isAtLimit}
         >
           <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-on-primary transition-all">
             <span className="material-symbols-outlined text-[32px]">add</span>
