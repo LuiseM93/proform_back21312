@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { pdf, PDFViewer, DocumentProps } from "@react-pdf/renderer";
 import { DocumentPdf } from "@/components/pdf/document-pdf";
 import { FedexPdf } from "@/components/pdf/fedex-pdf";
@@ -924,6 +924,11 @@ function StepNav({ step, setStep, max }: { step: number; setStep: (n: number) =>
 /**
  * Live Preview: renders the SAME react-pdf component used for the real export,
  * chosen by docType + carrier. For bundle it stacks Commercial Invoice + Packing List.
+ *
+ * The draft object is rebuilt on every parent render, so we memoize `content`
+ * by its primitive inputs to avoid regenerating the PDF on unrelated renders.
+ * PDFViewer background is forced white so the react-pdf reload flash is white
+ * (imperceptible) instead of black.
  */
 function LivePreview({
   docType,
@@ -936,50 +941,56 @@ function LivePreview({
   draft: DocumentDraft;
   watermark: boolean;
 }) {
-  let content: React.ReactElement<DocumentProps>;
+  const viewerStyle = {
+    width: "100%",
+    height: "100%",
+    minHeight: "70vh",
+    backgroundColor: "#fff",
+  } as const;
 
-  if (docType === "proforma") {
-    content = <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
-  } else if (docType === "commercial" && carrier === "fedex") {
-    content = <FedexPdf draft={draft} watermark={watermark} carrier={carrier} />;
-  } else if (docType === "commercial" && carrier === "ups") {
-    content = <UpsPdf draft={draft} watermark={watermark} carrier={carrier} />;
-  } else if (docType === "commercial" && carrier === "dhl") {
-    content = <DhlPdf draft={draft} watermark={watermark} carrier={carrier} />;
-  } else if (docType === "commercial") {
-    // commercial + other/aramex -> generic commercial invoice
-    content = <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
-  } else if (docType === "packing") {
-    content = <PackingListPdf draft={draft} watermark={watermark} carrier={carrier} />;
-  } else if (docType === "bundle") {
+  // Memoize so the PDF only regenerates when a real input changes.
+  const content = useMemo<React.ReactElement<DocumentProps>>(() => {
+    if (docType === "proforma") {
+      return <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
+    }
+    if (docType === "commercial" && carrier === "fedex") {
+      return <FedexPdf draft={draft} watermark={watermark} carrier={carrier} />;
+    }
+    if (docType === "commercial" && carrier === "ups") {
+      return <UpsPdf draft={draft} watermark={watermark} carrier={carrier} />;
+    }
+    if (docType === "commercial" && carrier === "dhl") {
+      return <DhlPdf draft={draft} watermark={watermark} carrier={carrier} />;
+    }
+    if (docType === "commercial") {
+      // commercial + other/aramex -> generic commercial invoice
+      return <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
+    }
+    if (docType === "packing") {
+      return <PackingListPdf draft={draft} watermark={watermark} carrier={carrier} />;
+    }
+    // fallback
+    return <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
+  }, [docType, carrier, draft, watermark]);
+
+  if (docType === "bundle") {
     // Bundle = Commercial Invoice + Packing List.
     // Render both real PDFs stacked (each is its own Document/Page, exactly
-    // like the real export). Two viewers side by side keeps each PDF intact.
+    // like the real export). Two viewers keeps each PDF intact.
     return (
       <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
-        <PDFViewer
-          showToolbar={false}
-          style={{ width: "100%", height: "70vh", border: "none" }}
-        >
+        <PDFViewer showToolbar={false} style={viewerStyle}>
           <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />
         </PDFViewer>
-        <PDFViewer
-          showToolbar={false}
-          style={{ width: "100%", height: "70vh", border: "none" }}
-        >
+        <PDFViewer showToolbar={false} style={viewerStyle}>
           <PackingListPdf draft={draft} watermark={watermark} carrier={carrier} />
         </PDFViewer>
       </div>
     );
-  } else {
-    content = <DocumentPdf draft={draft} watermark={watermark} carrier={carrier} />;
   }
 
   return (
-    <PDFViewer
-      showToolbar={false}
-      style={{ width: "100%", height: "100%", minHeight: "70vh", border: "none" }}
-    >
+    <PDFViewer showToolbar={false} style={viewerStyle}>
       {content}
     </PDFViewer>
   );
