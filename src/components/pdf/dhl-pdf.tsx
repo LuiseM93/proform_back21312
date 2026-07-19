@@ -57,6 +57,8 @@ export function DhlPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
               {t(draft.exporter.address)}{"\n"}
               {t(draft.exporter.country)}
               {draft.exporter.taxId ? `\nTax ID: ${t(draft.exporter.taxId)}` : ""}
+              {draft.exporter.contactName ? `\nAttn: ${t(draft.exporter.contactName)}` : ""}
+              {draft.exporter.contactEmail ? `\n${t(draft.exporter.contactEmail)}` : ""}
               {draft.exporter.contactPhone ? `\nPhone: ${t(draft.exporter.contactPhone)}` : ""}
             </Text>
           </View>
@@ -67,6 +69,8 @@ export function DhlPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
               {t(draft.importer.address)}{"\n"}
               {t(draft.importer.country)}
               {draft.importer.taxId ? `\nTax ID: ${t(draft.importer.taxId)}` : ""}
+              {draft.importer.contactName ? `\nAttn: ${t(draft.importer.contactName)}` : ""}
+              {draft.importer.contactEmail ? `\n${t(draft.importer.contactEmail)}` : ""}
               {draft.importer.contactPhone ? `\nPhone: ${t(draft.importer.contactPhone)}` : ""}
             </Text>
           </View>
@@ -96,6 +100,18 @@ export function DhlPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
           {!hasDapDdp && draft.shipment.portOfDischarge && <Text style={styles.infoTag}><Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>POD: </Text>{t(draft.shipment.portOfDischarge)}</Text>}
           {hasDapDdp && draft.shipment.placeOfDelivery && <Text style={styles.infoTag}><Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Delivery: </Text>{t(draft.shipment.placeOfDelivery)}</Text>}
         </View>
+
+        {/* Notify Party */}
+        {draft.shipment.notifyParty?.companyName && (
+          <View style={{ border: `1.5px solid ${"#1b1c1c"}`, padding: 6, marginBottom: 8, fontSize: 9 }}>
+            <Text style={{ fontSize: 9, fontFamily: "NotoSans", fontWeight: 700, textTransform: "uppercase", marginBottom: 2 }}>NOTIFY PARTY</Text>
+            <Text>
+              {t(draft.shipment.notifyParty.companyName)}
+              {draft.shipment.notifyParty.address ? `, ${t(draft.shipment.notifyParty.address)}` : ""}
+              {draft.shipment.notifyParty.country ? `, ${t(draft.shipment.notifyParty.country)}` : ""}
+            </Text>
+          </View>
+        )}
 
         {/* Weight Box - DHL Prominent */}
         <View style={styles.weightBox}>

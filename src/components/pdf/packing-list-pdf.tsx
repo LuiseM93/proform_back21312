@@ -49,14 +49,24 @@ export function PackingListPdf({ draft, watermark }: { draft: DocumentDraft; wat
             <Text style={styles.partyTitle}>SHIPPER / EXPORTER</Text>
             <Text style={styles.partyText}>
               {t(draft.exporter.companyName)}{"\n"}
+              {t(draft.exporter.address)}{"\n"}
               {t(draft.exporter.country)}
+              {draft.exporter.taxId ? `\nTax ID: ${t(draft.exporter.taxId)}` : ""}
+              {draft.exporter.contactName ? `\nAttn: ${t(draft.exporter.contactName)}` : ""}
+              {draft.exporter.contactEmail ? `\n${t(draft.exporter.contactEmail)}` : ""}
+              {draft.exporter.contactPhone ? `\nTel: ${t(draft.exporter.contactPhone)}` : ""}
             </Text>
           </View>
           <View style={styles.partyBox}>
             <Text style={styles.partyTitle}>CONSIGNEE</Text>
             <Text style={styles.partyText}>
               {t(draft.importer.companyName)}{"\n"}
+              {t(draft.importer.address)}{"\n"}
               {t(draft.importer.country)}
+              {draft.importer.taxId ? `\nTax ID: ${t(draft.importer.taxId)}` : ""}
+              {draft.importer.contactName ? `\nAttn: ${t(draft.importer.contactName)}` : ""}
+              {draft.importer.contactEmail ? `\n${t(draft.importer.contactEmail)}` : ""}
+              {draft.importer.contactPhone ? `\nTel: ${t(draft.importer.contactPhone)}` : ""}
             </Text>
           </View>
         </View>

@@ -60,6 +60,9 @@ export function UpsPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
               {t(draft.exporter.address)}{"\n"}
               {t(draft.exporter.country)}
               {draft.exporter.taxId ? `\nTax ID: ${t(draft.exporter.taxId)}` : ""}
+              {draft.exporter.contactName ? `\nAttn: ${t(draft.exporter.contactName)}` : ""}
+              {draft.exporter.contactEmail ? `\n${t(draft.exporter.contactEmail)}` : ""}
+              {draft.exporter.contactPhone ? `\nPhone: ${t(draft.exporter.contactPhone)}` : ""}
             </Text>
           </View>
           <View style={styles.partyBox}>
@@ -69,6 +72,9 @@ export function UpsPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
               {t(draft.importer.address)}{"\n"}
               {t(draft.importer.country)}
               {draft.importer.taxId ? `\nTax ID: ${t(draft.importer.taxId)}` : ""}
+              {draft.importer.contactName ? `\nAttn: ${t(draft.importer.contactName)}` : ""}
+              {draft.importer.contactEmail ? `\n${t(draft.importer.contactEmail)}` : ""}
+              {draft.importer.contactPhone ? `\nPhone: ${t(draft.importer.contactPhone)}` : ""}
             </Text>
           </View>
           <View style={styles.partyBox}>
@@ -106,6 +112,8 @@ export function UpsPdf({ draft, watermark }: { draft: DocumentDraft; watermark?:
           <Text style={styles.infoTag}>
             <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Incoterm: </Text>{t(draft.shipment.incoterm)}
           </Text>
+          {draft.shipment.countryOfOrigin && <Text style={styles.infoTag}>Origin: {t(draft.shipment.countryOfOrigin)}</Text>}
+          {draft.shipment.transportMode && <Text style={styles.infoTag}>Mode: {t(draft.shipment.transportMode).toUpperCase()}</Text>}
           {draft.shipment.exportReason && <Text style={styles.infoTag}>Reason: {t(draft.shipment.exportReason).toUpperCase()}</Text>}
           <Text style={styles.infoTag}>Currency: {t(draft.currency)}</Text>
           {!hasDapDdp && draft.shipment.portOfLoading && <Text style={styles.infoTag}>POL: {t(draft.shipment.portOfLoading)}</Text>}

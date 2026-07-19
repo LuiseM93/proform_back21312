@@ -144,6 +144,9 @@ export function DocumentPdf({ draft, watermark, carrier }: { draft: DocumentDraf
               {draft.exporter.address}{"\n"}
               {draft.exporter.country}
               {draft.exporter.taxId ? `\nTax ID: ${draft.exporter.taxId}` : ""}
+              {draft.exporter.contactName ? `\nAttn: ${draft.exporter.contactName}` : ""}
+              {draft.exporter.contactEmail ? `\n${draft.exporter.contactEmail}` : ""}
+              {draft.exporter.contactPhone ? `\nTel: ${draft.exporter.contactPhone}` : ""}
             </Text>
           </View>
           <View style={styles.partyBox}>
@@ -153,6 +156,9 @@ export function DocumentPdf({ draft, watermark, carrier }: { draft: DocumentDraf
               {draft.importer.address}{"\n"}
               {draft.importer.country}
               {draft.importer.taxId ? `\nTax ID: ${draft.importer.taxId}` : ""}
+              {draft.importer.contactName ? `\nAttn: ${draft.importer.contactName}` : ""}
+              {draft.importer.contactEmail ? `\n${draft.importer.contactEmail}` : ""}
+              {draft.importer.contactPhone ? `\nTel: ${draft.importer.contactPhone}` : ""}
             </Text>
           </View>
         </View>
@@ -172,6 +178,8 @@ export function DocumentPdf({ draft, watermark, carrier }: { draft: DocumentDraf
             <Text style={{ fontFamily: "NotoSans", fontWeight: 700 }}>Incoterm: </Text>{draft.shipment.incoterm}
           </Text>
           <Text style={styles.infoTag}>Currency: {draft.currency}</Text>
+          {draft.shipment.countryOfOrigin && <Text style={styles.infoTag}>Origin: {draft.shipment.countryOfOrigin}</Text>}
+          {draft.shipment.transportMode && <Text style={styles.infoTag}>Mode: {draft.shipment.transportMode.toUpperCase()}</Text>}
           {draft.shipment.exportReason && <Text style={styles.infoTag}>Reason: {draft.shipment.exportReason.toUpperCase()}</Text>}
           {!hasDapDdp && draft.shipment.portOfLoading && <Text style={styles.infoTag}>POL: {draft.shipment.portOfLoading}</Text>}
           {!hasDapDdp && draft.shipment.portOfDischarge && <Text style={styles.infoTag}>POD: {draft.shipment.portOfDischarge}</Text>}
