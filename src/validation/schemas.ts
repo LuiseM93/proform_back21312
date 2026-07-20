@@ -248,6 +248,9 @@ export const CiFedexSchema = ShipmentBaseSchema.extend({
   (data) => data.carrierSpecific.fedex !== undefined,
   { message: 'FedEx: carrierSpecific.fedex is required', path: ['carrierSpecific', 'fedex'] }
 ).refine(
+  (data) => data.parties.shipper.address.countryCode !== 'MX' || rfcSchema.safeParse(data.parties.shipper.taxId).success,
+  { message: 'Shipper in Mexico: a valid RFC tax ID is mandatory for Commercial Invoices (CFDI 4.0 + Complemento Comercio Exterior)', path: ['parties', 'shipper', 'taxId'] }
+).refine(
   (data) => data.parties.shipper.address.countryCode !== data.parties.consignee.address.countryCode,
   { message: 'International shipment: shipper and consignee must be in different countries', path: ['parties'] }
 ).refine(
@@ -269,6 +272,9 @@ export const CiUpsSchema = ShipmentBaseSchema.extend({
   (data) => data.carrierSpecific.ups !== undefined,
   { message: 'UPS: carrierSpecific.ups is required', path: ['carrierSpecific', 'ups'] }
 ).refine(
+  (data) => data.parties.shipper.address.countryCode !== 'MX' || rfcSchema.safeParse(data.parties.shipper.taxId).success,
+  { message: 'Shipper in Mexico: a valid RFC tax ID is mandatory for Commercial Invoices (CFDI 4.0 + Complemento Comercio Exterior)', path: ['parties', 'shipper', 'taxId'] }
+).refine(
   (data) => data.carrierSpecific.ups?.partiesRelationship !== undefined,
   { message: 'UPS: partiesRelationship (RELATED/NOT_RELATED) is required', path: ['carrierSpecific', 'ups', 'partiesRelationship'] }
 ).refine(
@@ -282,6 +288,9 @@ export const CiDhlSchema = ShipmentBaseSchema.extend({
 }).refine(
   (data) => data.carrierSpecific.dhl !== undefined,
   { message: 'DHL: carrierSpecific.dhl is required', path: ['carrierSpecific', 'dhl'] }
+).refine(
+  (data) => data.parties.shipper.address.countryCode !== 'MX' || rfcSchema.safeParse(data.parties.shipper.taxId).success,
+  { message: 'Shipper in Mexico: a valid RFC tax ID is mandatory for Commercial Invoices (CFDI 4.0 + Complemento Comercio Exterior)', path: ['parties', 'shipper', 'taxId'] }
 ).refine(
   (data) => data.destinationCountryGroup === 'EU'
     ? !!data.parties.importerOfRecord?.taxId && eoriSchema.safeParse(data.parties.importerOfRecord!.taxId).success

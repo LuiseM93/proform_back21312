@@ -147,7 +147,7 @@ export function GeneratorFormV2({
             onChange={(parties: Parties) => update({ parties })} />
         )}
         {step === 2 && (
-          <LinesForm documentType={activeDoc} value={data.lines}
+          <LinesForm documentType={activeDoc} carrier={carrier} value={data.lines}
             destinationCountry={data.destinationCountryCode}
             onChange={(lines: ProductLine[]) => {
               const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);

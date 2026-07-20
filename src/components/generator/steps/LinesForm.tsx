@@ -5,19 +5,21 @@
 // ProformaFlow · FASE 2
 // ============================================================================
 import React from 'react';
-import type { ProductLine, UOM, Currency, Incoterm2020, DocumentType } from '@/types/shipment';
+import type { ProductLine, UOM, Currency, Incoterm2020, DocumentType, Carrier } from '@/types/shipment';
 import {
   UOM_CATALOG, CURRENCIES, INCOTERMS_2020, PACKAGE_TYPES,
+  validateDescriptionForCarrier,
 } from '@/constants/controlled-vocabularies';
 
 interface LinesFormProps {
   documentType: DocumentType;
+  carrier: Carrier;
   value: ProductLine[];
   destinationCountry: string;
   onChange: (lines: ProductLine[]) => void;
 }
 
-export function LinesForm({ documentType, value, destinationCountry, onChange }: LinesFormProps) {
+export function LinesForm({ documentType, carrier, value, destinationCountry, onChange }: LinesFormProps) {
   const showPackages = documentType === 'PACKING_LIST' || documentType === 'BUNDLE_CIPL';
   const showDimensions = showPackages;
 
@@ -64,8 +66,27 @@ export function LinesForm({ documentType, value, destinationCountry, onChange }:
               placeholder="Description (specific: what, material, use, brand/model)"
               value={line.description}
               onChange={(e) => updateLine(idx, { description: e.target.value })}
-              style={{ ...inputStyle, minHeight: 60, gridColumn: 'span 3' }}
+              style={{ ...inputStyle, minHeight: 60, gridColumn: 'span 3', borderColor: (() => {
+                const check = validateDescriptionForCarrier(carrier, line.description);
+                if (check.errors.length > 0) return '#dc2626';
+                if (check.warnings.length > 0) return '#f59e0b';
+                return line.description ? '#16a34a' : '#d1d5db';
+              })() }}
             />
+            {(() => {
+              const check = validateDescriptionForCarrier(carrier, line.description);
+              if (check.errors.length === 0 && check.warnings.length === 0) return null;
+              return (
+                <div style={{ gridColumn: 'span 3', fontSize: 11, marginTop: 2 }}>
+                  {check.errors.map((err, i) => (
+                    <div key={`e${i}`} style={{ color: '#dc2626' }}>🔴 {err}</div>
+                  ))}
+                  {check.warnings.map((warn, i) => (
+                    <div key={`w${i}`} style={{ color: '#b45309' }}>🟡 {warn}</div>
+                  ))}
+                </div>
+              );
+            })()}
             <input
               placeholder="HS Code (6-10 digits)"
               value={line.hsCode}
