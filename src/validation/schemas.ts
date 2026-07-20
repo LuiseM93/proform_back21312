@@ -229,10 +229,36 @@ export const ShipmentBaseSchema = z.object({
   totals: ShipmentTotalsSchema,
   carrierSpecific: CarrierSpecificSchema,
   output: OutputConfigSchema,
-});
+}).refine(
+  (data) => {
+    const sumLines = data.lines.reduce((s, l) => s + (l.lineTotal || 0), 0);
+    return Math.abs(sumLines - data.totals.subtotal) < 0.01;
+  },
+  { message: 'Totals mismatch: sum of line totals must equal totals.subtotal', path: ['totals', 'subtotal'] }
+).refine(
+  (data) => {
+    const sumNet = data.lines.reduce((s, l) => s + (l.netWeightKg || 0), 0);
+    const sumGross = data.lines.reduce((s, l) => s + (l.grossWeightKg || 0), 0);
+    return Math.abs(sumNet - data.totals.totalNetWeightKg) < 0.01
+      && Math.abs(sumGross - data.totals.totalGrossWeightKg) < 0.01;
+  },
+  { message: 'Totals mismatch: line weights must equal totals (net/gross)', path: ['totals', 'totalNetWeightKg'] }
+).refine(
+  (data) => {
+    const sumQty = data.lines.reduce((s, l) => s + (l.quantity || 0), 0);
+    return sumQty === data.totals.totalQuantity;
+  },
+  { message: 'Totals mismatch: sum of line quantities must equal totals.totalQuantity', path: ['totals', 'totalQuantity'] }
+).refine(
+  (data) => {
+    const sumPkgs = data.lines.reduce((s, l) => s + (l.packages?.length || 0), 0);
+    return sumPkgs === data.totals.totalPackages;
+  },
+  { message: 'Totals mismatch: sum of package details must equal totals.totalPackages', path: ['totals', 'totalPackages'] }
+);
 
 // ─── Refinamientos por tipo ─────────────────────────────────────────────────
-export const ProformaSchema = ShipmentBaseSchema.extend({
+export const ProformaSchema = ShipmentBaseSchema.safeExtend({
   documentType: z.literal('PROFORMA'),
   carrier: z.literal('NONE'),
   validityDays: z.number().int().positive().default(30),
@@ -241,7 +267,7 @@ export const ProformaSchema = ShipmentBaseSchema.extend({
   { message: 'Proforma: precio unitario debe ser > 0', path: ['lines'] }
 );
 
-export const CiFedexSchema = ShipmentBaseSchema.extend({
+export const CiFedexSchema = ShipmentBaseSchema.safeExtend({
   documentType: z.literal('CI_FEDEX'),
   carrier: z.literal('FEDEX'),
 }).refine(
@@ -265,7 +291,7 @@ export const CiFedexSchema = ShipmentBaseSchema.extend({
   { message: 'EU destination: exporter (shipper) EORI is required', path: ['parties', 'shipper', 'eori'] }
 );
 
-export const CiUpsSchema = ShipmentBaseSchema.extend({
+export const CiUpsSchema = ShipmentBaseSchema.safeExtend({
   documentType: z.literal('CI_UPS'),
   carrier: z.literal('UPS'),
 }).refine(
@@ -282,7 +308,7 @@ export const CiUpsSchema = ShipmentBaseSchema.extend({
   { message: 'USMCA: certifierRole is required when a certification is included', path: ['carrierSpecific', 'ups', 'usmcaCertification'] }
 );
 
-export const CiDhlSchema = ShipmentBaseSchema.extend({
+export const CiDhlSchema = ShipmentBaseSchema.safeExtend({
   documentType: z.literal('CI_DHL'),
   carrier: z.literal('DHL'),
 }).refine(
@@ -298,7 +324,7 @@ export const CiDhlSchema = ShipmentBaseSchema.extend({
   { message: 'EU destination: IOR EORI is required', path: ['parties', 'importerOfRecord', 'taxId'] }
 );
 
-export const PackingListSchema = ShipmentBaseSchema.extend({
+export const PackingListSchema = ShipmentBaseSchema.safeExtend({
   documentType: z.literal('PACKING_LIST'),
   carrier: z.literal('NONE'),
 }).refine(
@@ -315,7 +341,7 @@ export const PackingListSchema = ShipmentBaseSchema.extend({
   { message: 'PL: total packages in lines must match carrierSpecific.packingList.packages.length', path: ['carrierSpecific', 'packingList'] }
 );
 
-export const BundleSchema = ShipmentBaseSchema.extend({
+export const BundleSchema = ShipmentBaseSchema.safeExtend({
   documentType: z.literal('BUNDLE_CIPL'),
   carrier: z.enum(['FEDEX', 'UPS', 'DHL', 'NONE']),
 }).refine(

@@ -42,6 +42,7 @@ const validLine = {
   lineTotal: 1550,
   netWeightKg: 50,
   grossWeightKg: 55,
+  packages: [{ packageNumber: 1, packageType: 'BOX' as const, quantity: 100, netWeightKg: 50, grossWeightKg: 55, dimensions: { lengthCm: 40, widthCm: 30, heightCm: 20 }, shippingMarks: 'ACME-001' }],
 };
 
 const validTotals = {
@@ -50,7 +51,7 @@ const validTotals = {
   totalNetWeightKg: 50,
   totalGrossWeightKg: 55,
   totalVolumeCbm: 0.5,
-  totalPackages: 5,
+  totalPackages: 1,
   subtotal: 1550,
   totalAdditionalCosts: 100,
   grandTotal: 1650,
@@ -354,7 +355,7 @@ describe('Zod Schemas - GREEN Validation (Pass)', () => {
       issueDate: '2026-07-15',
       parties: { shipper: validParty, consignee: validParty },
       lines: [{ ...validLine, packages: [{ packageNumber: 1, packageType: 'BOX' as const, quantity: 100, netWeightKg: 50, grossWeightKg: 55, dimensions: { lengthCm: 40, widthCm: 30, heightCm: 20 }, shippingMarks: 'ACME-001' }] }],
-      totals: validTotals,
+      totals: { ...validTotals, totalPackages: 1 },
       carrierSpecific: {
         packingList: {
           plNumber: 'PL-001',
@@ -380,7 +381,7 @@ describe('Zod Schemas - GREEN Validation (Pass)', () => {
       issueDate: '2026-07-15',
       parties: { shipper: validParty, consignee: validParty },
       lines: [{ ...validLine, packages: [{ packageNumber: 1, packageType: 'BOX' as const, quantity: 100, netWeightKg: 50, grossWeightKg: 55, dimensions: { lengthCm: 40, widthCm: 30, heightCm: 20 }, shippingMarks: 'ACME-001' }] }],
-      totals: validTotals,
+      totals: { ...validTotals, totalPackages: 1 },
       carrierSpecific: {
         bundle: {
           documentNumber: 'BUNDLE-001',

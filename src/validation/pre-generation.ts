@@ -163,15 +163,17 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     });
   }
 
-  // 10. PROFORMA_USED_AS_CI — A Proforma Invoice is NOT a Commercial Invoice (BLOCKING)
+  // 10. PROFORMA_USED_AS_CI — A Proforma Invoice is NOT a Commercial Invoice (WARNING)
   // 19 CFR 141.86: only a formal Commercial Invoice is accepted for customs clearance.
+  // The Proforma itself is a VALID quotation document and MUST be generable. We warn (not block)
+  // so the user knows it cannot be used for clearance — but we do NOT prevent generation.
   if (data.documentType === 'PROFORMA') {
-    blockingErrors.push({
+    warnings.push({
       code: 'PROFORMA_USED_AS_CI',
       message: 'A PROFORMA INVOICE is NOT valid for customs clearance. Generate a formal Commercial Invoice for the actual shipment.',
       field: 'documentType',
-      severity: 'BLOCKING',
-      regulation: '19 CFR 141.86(a)(1)',
+      severity: 'WARNING',
+      recommendation: 'Use a Commercial Invoice (CI_FEDEX/CI_UPS/CI_DHL) for actual shipment and customs clearance.',
     });
   }
 

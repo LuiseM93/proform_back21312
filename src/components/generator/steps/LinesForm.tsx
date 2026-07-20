@@ -214,8 +214,13 @@ function PackageEditor({ line, idx, onChange }: {
           <input type="number" placeholder="Qty" value={pkg.quantity} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, quantity: Number(e.target.value) } : p))} style={inputStyle} />
           <input placeholder="Marks" value={pkg.shippingMarks} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, shippingMarks: e.target.value } : p))} style={inputStyle} />
           <input type="number" placeholder="Net kg" value={pkg.netWeightKg} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, netWeightKg: Number(e.target.value) } : p))} style={inputStyle} />
+          <input type="number" placeholder="Gross kg" value={pkg.grossWeightKg} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, grossWeightKg: Number(e.target.value) } : p))} style={inputStyle} />
+          <input type="number" placeholder="L cm" value={pkg.dimensions?.lengthCm || ''} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, dimensions: { lengthCm: Number(e.target.value), widthCm: p.dimensions?.widthCm || 0, heightCm: p.dimensions?.heightCm || 0 } } : p))} style={inputStyle} />
+          <input type="number" placeholder="W cm" value={pkg.dimensions?.widthCm || ''} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, dimensions: { lengthCm: p.dimensions?.lengthCm || 0, widthCm: Number(e.target.value), heightCm: p.dimensions?.heightCm || 0 } } : p))} style={inputStyle} />
+          <input type="number" placeholder="H cm" value={pkg.dimensions?.heightCm || ''} onChange={(e) => onChange(packages.map((p, i) => i === pi ? { ...p, dimensions: { lengthCm: p.dimensions?.lengthCm || 0, widthCm: p.dimensions?.widthCm || 0, heightCm: Number(e.target.value) } } : p))} style={inputStyle} />
         </div>
       ))}
+
     </div>
   );
 }

@@ -46,6 +46,7 @@ function line(over: Partial<ProductLine> = {}): ProductLine {
     lineTotal: 1000,
     netWeightKg: 5,
     grossWeightKg: 6,
+    packages: [{ packageNumber: 1, packageType: 'BOX', quantity: 100, netWeightKg: 5, grossWeightKg: 6, dimensions: { lengthCm: 10, widthCm: 10, heightCm: 10 }, shippingMarks: 'MK1' }],
     ...over,
   };
 }
@@ -165,10 +166,11 @@ describe('§8 RED — Blocking errors', () => {
     expect(r.blockingErrors.some((e) => e.code === 'PARTIES_RELATIONSHIP_MISSING_UPS')).toBe(true);
   });
 
-  it('PROFORMA_USED_AS_CI — blocks (RED) when Proforma selected', () => {
+  it('PROFORMA_USED_AS_CI — warns (AMBER) when Proforma selected, still generable', () => {
     const r = runPreGenerationChecks(baseShipment({ documentType: 'PROFORMA', carrier: 'NONE', validityDays: 30 }));
-    expect(r.blockingErrors.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
-    expect(r.canGenerate).toBe(false);
+    expect(r.blockingErrors.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(false);
+    expect(r.warnings.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
+    expect(r.canGenerate).toBe(true);
   });
 
   it('NAFTA_OBSOLETE_EMBEDDED — blocks UPS CI with legacy NAFTA block', () => {

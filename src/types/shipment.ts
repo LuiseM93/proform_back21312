@@ -159,6 +159,7 @@ export interface USMCAGood {
 export interface USMCACertification {
   certifierRole: 'IMPORTER' | 'EXPORTER' | 'PRODUCER';
   certifier: Party;
+  certifierTitle?: string; // Job title of certifier (Annex 3, element 2)
   exporter?: Party;
   producer?: Party;
   importer: Party;

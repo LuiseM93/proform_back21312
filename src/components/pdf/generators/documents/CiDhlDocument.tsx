@@ -41,6 +41,8 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={styles.partyValue}>{data.parties.shipper?.address.street || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.address.city || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.taxIdType || "—"}: {data.parties.shipper?.taxId || "—"}</Text>
+              {data.parties.shipper?.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
+              {data.parties.shipper?.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee / Importer</Text>
@@ -48,12 +50,18 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={styles.partyValue}>{data.parties.consignee?.address.street || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.address.city || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.taxIdType || "—"}: {data.parties.consignee?.taxId || "—"}</Text>
+              {data.parties.consignee?.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
+              {data.parties.consignee?.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
             </View>
           </View>
           {data.parties.importerOfRecord && (
             <View style={{ marginTop: 6 }}>
               <Text style={styles.partyLabel}>Importer of Record (IOR)</Text>
-              <Text style={styles.partyValue}>{data.parties.importerOfRecord.legalName} — {data.parties.importerOfRecord.address.countryName}</Text>
+              <Text style={styles.partyValue}>{data.parties.importerOfRecord.legalName}</Text>
+              <Text style={styles.partyValue}>{data.parties.importerOfRecord.address.street}, {data.parties.importerOfRecord.address.city}, {data.parties.importerOfRecord.address.countryName}</Text>
+              <Text style={styles.partyValue}>{data.parties.importerOfRecord.taxIdType}: {data.parties.importerOfRecord.taxId}</Text>
+              {data.parties.importerOfRecord.phone && <Text style={styles.partyValue}>Tel: {data.parties.importerOfRecord.phone}</Text>}
+              {data.parties.importerOfRecord.email && <Text style={styles.partyValue}>{data.parties.importerOfRecord.email}</Text>}
             </View>
           )}
         </View>

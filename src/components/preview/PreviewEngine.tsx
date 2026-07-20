@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react';
 import type { ShipmentData, DocumentType } from '@/types/shipment';
 import { runPreGenerationChecks } from '@/validation/pre-generation';
+import { ShipmentSchema } from '@/validation/schemas';
 
 interface PreviewEngineProps {
   data: ShipmentData;
@@ -16,7 +17,14 @@ interface PreviewEngineProps {
 
 export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: PreviewEngineProps) {
   const preCheck = useMemo(() => runPreGenerationChecks(data), [data]);
-  const hasBlocking = preCheck.blockingErrors.length > 0;
+  // FIX F2: also run the full Zod schema so preview reflects the SAME blocking
+  // errors as handleGenerate (EORI/RFC/AWB/totals-mismatch etc.)
+  const zodResult = useMemo(() => ShipmentSchema.safeParse(data), [data]);
+  const zodBlocking = useMemo(() => {
+    if (zodResult.success) return [] as string[];
+    return zodResult.error.issues.map((i) => `${i.path.join('.') || 'root'}: ${i.message}`);
+  }, [zodResult]);
+  const hasBlocking = preCheck.blockingErrors.length > 0 || zodBlocking.length > 0;
 
   // FASE 2: warnings per line (field starts with "lines[idx]")
   const lineWarnings = useMemo(() => {
@@ -45,11 +53,12 @@ export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: Prev
       <h3 style={{ marginTop: 0, fontSize: 14 }}>Live Preview — {activeDocument}</h3>
 
       {/* Validation Banner — RED (Blocking) */}
-      {preCheck.blockingErrors.length > 0 && (
+      {(preCheck.blockingErrors.length > 0 || zodBlocking.length > 0) && (
         <div style={{ background: '#fef2f2', border: '1px solid #dc2626', borderRadius: 6, padding: 8, marginBottom: 12 }}>
-          <strong style={{ color: '#dc2626', fontSize: 12 }}>🔴 {preCheck.blockingErrors.length} Blocking Error(s)</strong>
+          <strong style={{ color: '#dc2626', fontSize: 12 }}>🔴 {preCheck.blockingErrors.length + zodBlocking.length} Blocking Error(s)</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 11 }}>
-            {preCheck.blockingErrors.map((e, i) => <li key={i} style={{ color: '#991b1b' }}>{e.message}</li>)}
+            {preCheck.blockingErrors.map((e, i) => <li key={`p${i}`} style={{ color: '#991b1b' }}>{e.message}</li>)}
+            {zodBlocking.map((e, i) => <li key={`z${i}`} style={{ color: '#991b1b' }}>{e}</li>)}
           </ul>
         </div>
       )}

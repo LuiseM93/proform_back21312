@@ -14,7 +14,9 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
   const { styles } = useMemo(() => createBaseStyles(data.output.paperSize, 'LANDSCAPE'), [data.output]);
   const pl = data.carrierSpecific.packingList!;
 
-  // Flatten packages preservando shippingMarks por bulto
+  // Flatten packages preservando shippingMarks por bulto.
+  // SSOT: line.packages. carrierSpecific.packingList.packages se ignora en render
+  // (consistencia garantizada por validación cross-document).
   const allPackages = data.lines.flatMap((line) =>
     (line.packages || []).map((pkg) => ({
       ...pkg,

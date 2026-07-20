@@ -37,6 +37,8 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyValue}>{data.parties.shipper?.address.street || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.address.city || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.taxIdType || "—"}: {data.parties.shipper?.taxId || "—"}</Text>
+              {data.parties.shipper?.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
+              {data.parties.shipper?.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee / Importer</Text>
@@ -44,12 +46,16 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyValue}>{data.parties.consignee?.address.street || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.address.city || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.taxIdType || "—"}: {data.parties.consignee?.taxId || "—"}</Text>
+              {data.parties.consignee?.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
+              {data.parties.consignee?.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
             </View>
           </View>
           {data.parties.buyer && (
             <View style={{ marginTop: 6 }}>
               <Text style={styles.partyLabel}>Sold To Party (Buyer)</Text>
               <Text style={styles.partyValue}>{data.parties.buyer.legalName} — {data.parties.buyer.address.countryName}</Text>
+              <Text style={styles.partyValue}>{data.parties.buyer.address.street}, {data.parties.buyer.address.city}</Text>
+              <Text style={styles.partyValue}>{data.parties.buyer.taxIdType}: {data.parties.buyer.taxId}</Text>
             </View>
           )}
           {data.parties.producer && (
@@ -57,6 +63,7 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyLabel}>Producer Name and Address</Text>
               <Text style={styles.partyValue}>{data.parties.producer.legalName} — {data.parties.producer.address.countryName}</Text>
               <Text style={styles.partyValue}>{data.parties.producer.address.street}, {data.parties.producer.address.city}</Text>
+              <Text style={styles.partyValue}>{data.parties.producer.taxIdType}: {data.parties.producer.taxId}</Text>
             </View>
           )}
           <View style={{ marginTop: 6 }}>
@@ -172,7 +179,14 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
           <View style={styles.section}>
             <Text style={styles.partyLabel}>Certifier Role: {ups.usmcaCertification.certifierRole}</Text>
             <Text style={styles.partyValue}>Certifier: {ups.usmcaCertification.certifier.legalName}</Text>
+            {ups.usmcaCertification.certifierTitle && <Text style={styles.partyValue}>Title: {ups.usmcaCertification.certifierTitle}</Text>}
+            {ups.usmcaCertification.certifier.phone && <Text style={styles.partyValue}>Phone: {ups.usmcaCertification.certifier.phone}</Text>}
+            {ups.usmcaCertification.certifier.email && <Text style={styles.partyValue}>Email: {ups.usmcaCertification.certifier.email}</Text>}
+            {ups.usmcaCertification.certifier.address && <Text style={styles.partyValue}>{ups.usmcaCertification.certifier.address.street}, {ups.usmcaCertification.certifier.address.city}, {ups.usmcaCertification.certifier.address.countryName}</Text>}
+            {ups.usmcaCertification.exporter && <Text style={styles.partyValue}>Exporter: {ups.usmcaCertification.exporter.legalName}</Text>}
+            {ups.usmcaCertification.producer && <Text style={styles.partyValue}>Producer: {ups.usmcaCertification.producer.legalName}</Text>}
             <Text style={styles.partyValue}>Importer: {ups.usmcaCertification.importer.legalName}</Text>
+            {ups.usmcaCertification.blanketPeriod && <Text style={styles.partyValue}>Blanket Period: {ups.usmcaCertification.blanketPeriod.start} to {ups.usmcaCertification.blanketPeriod.end}</Text>}
             <Text style={styles.partyValue}>Authorized Signature: {ups.usmcaCertification.authorizedSignature}</Text>
             <Text style={styles.partyValue}>Date: {ups.usmcaCertification.date}</Text>
           </View>

@@ -44,7 +44,7 @@ export function BundleDocument({ data }: { data: BundleData }) {
           </View>
         </View>
 
-        {/* COMBINED 13-COLUMN TABLE */}
+        {/* COMBINED 13-COLUMN TABLE — una fila por bulto (granularidad total) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Combined Commodity & Packing Detail (13 cols)</Text>
           <View style={styles.tableHeader}>
@@ -62,25 +62,27 @@ export function BundleDocument({ data }: { data: BundleData }) {
             <Text style={[styles.tableCellHeader, { width: '8%' }]}>Dims cm</Text>
             <Text style={[styles.tableCellHeader, { width: '15%' }]}>Marks</Text>
           </View>
-          {data.lines.map((line, idx) => (
-            <View key={idx} style={styles.tableRow}>
-              <Text style={[styles.tableCell, { width: '4%' }]}>{idx + 1}</Text>
-              <Text style={[styles.tableCell, { width: '18%' }]}>{line.description}</Text>
-              <Text style={[styles.tableCell, { width: '7%' }]}>{line.hsCode}</Text>
-              <Text style={[styles.tableCell, { width: '5%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
-              <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
-              <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
-              <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
-              <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
-              <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
-              <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
-              <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{line.packages?.length || 0}</Text>
-              <Text style={[styles.tableCell, { width: '8%', textAlign: 'center' }]}>
-                {line.dimensions ? `${line.dimensions.lengthCm}×${line.dimensions.widthCm}×${line.dimensions.heightCm}` : '—'}
-              </Text>
-              <Text style={[styles.tableCell, { width: '15%', fontSize: 6 }]}>{line.packages?.map((p) => p.shippingMarks).join('; ') || '—'}</Text>
-            </View>
-          ))}
+          {data.lines.flatMap((line, li) =>
+            (line.packages && line.packages.length > 0 ? line.packages : [{ packageType: '—', quantity: line.quantity, netWeightKg: line.netWeightKg, grossWeightKg: line.grossWeightKg, dimensions: line.dimensions, shippingMarks: '—' } as any]).map((pkg: any, pi: number) => (
+              <View key={`${li}-${pi}`} style={styles.tableRow}>
+                <Text style={[styles.tableCell, { width: '4%' }]}>{li + 1}.{pi + 1}</Text>
+                <Text style={[styles.tableCell, { width: '18%' }]}>{line.description}</Text>
+                <Text style={[styles.tableCell, { width: '7%' }]}>{line.hsCode}</Text>
+                <Text style={[styles.tableCell, { width: '5%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.quantity, 0)}</Text>
+                <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
+                <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
+                <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.netWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.grossWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>1</Text>
+                <Text style={[styles.tableCell, { width: '8%', textAlign: 'center' }]}>
+                  {pkg.dimensions ? `${pkg.dimensions.lengthCm}×${pkg.dimensions.widthCm}×${pkg.dimensions.heightCm}` : '—'}
+                </Text>
+                <Text style={[styles.tableCell, { width: '15%', fontSize: 6 }]}>{pkg.shippingMarks || '—'}</Text>
+              </View>
+            ))
+          )}
           <View style={[styles.totalsRow, styles.tableRow]}>
             <Text style={[styles.tableCell, { width: '4%' }]} />
             <Text style={[styles.tableCell, { width: '18%', fontWeight: 'bold' }]}>TOTALS</Text>

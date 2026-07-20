@@ -407,11 +407,11 @@ describe('Pre-Generation Checks - AMBER (Warnings)', () => {
   });
 
   describe('PROFORMA_USED_AS_CI', () => {
-    it('blocks Proforma from being used for customs clearance', () => {
+    it('warns (not blocks) Proforma from being used for customs clearance — Proforma IS generable', () => {
       const data = { ...baseValidData, documentType: 'PROFORMA' as DocumentType, carrier: 'NONE' as Carrier, carrierSpecific: {} };
       const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(false);
-      expect(result.blockingErrors.some(e => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
+      expect(result.canGenerate).toBe(true);
+      expect(result.warnings.some(e => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
     });
   });
 
