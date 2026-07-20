@@ -93,8 +93,9 @@ export function ProformaDocument({ data }: { data: ProformaData }) {
             <View key={idx} style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: '4%' }]}>{idx + 1}</Text>
               <Text style={[styles.tableCell, { width: '35%' }]}>{line.description}</Text>
+              {line.descriptionEs && <Text style={[styles.tableCell, { width: '35%', fontSize: 6, color: '#666' }]}>{line.descriptionEs}</Text>}
               <Text style={[styles.tableCell, { width: '10%' }]}>{line.hsCode}</Text>
-              <Text style={[styles.tableCell, { width: '8%' }]}>{line.countryOfOrigin}</Text>
+              <Text style={[styles.tableCell, { width: '8%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
               <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
               <Text style={[styles.tableCell, { width: '5%' }]}>{line.uom}</Text>
               <Text style={[styles.tableCell, { width: '12%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
