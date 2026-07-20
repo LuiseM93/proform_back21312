@@ -265,10 +265,13 @@ describe('Zod Schemas - Validación VERDE (Pasar)', () => {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'CI_FEDEX' as const,
       carrier: 'FEDEX' as const,
-      destinationCountryCode: 'US',
-      destinationCountryGroup: 'US_CA' as const,
+      destinationCountryCode: 'MX',
+      destinationCountryGroup: 'MX' as const,
       issueDate: '2026-07-15',
-      parties: { shipper: validParty, consignee: validParty },
+      parties: { 
+        shipper: { ...validParty, address: { ...validParty.address, countryCode: 'US', countryName: 'United States' } }, 
+        consignee: { ...validParty, address: { ...validParty.address, countryCode: 'MX', countryName: 'Mexico' } }
+      },
       lines: [validLine],
       totals: validTotals,
       carrierSpecific: {

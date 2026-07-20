@@ -1,19 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { runPreGenerationChecks } from '@/validation/pre-generation';
-import type { ShipmentData } from '@/types/shipment';
+import type { ShipmentData, DocumentType, Carrier, CountryGroup, TaxIdType, UOM, Currency, PackageType, Incoterm2020, OutputFormat } from '@/types/shipment';
 
 const baseValidData: ShipmentData = {
   shipmentId: '123e4567-e89b-12d3-a456-426614174000',
-  documentType: 'CI_FEDEX',
-  carrier: 'FEDEX',
+  documentType: 'CI_FEDEX' as DocumentType,
+  carrier: 'FEDEX' as Carrier,
   destinationCountryCode: 'US',
-  destinationCountryGroup: 'US_CA',
+  destinationCountryGroup: 'US_CA' as CountryGroup,
   issueDate: '2026-07-15',
   parties: {
     shipper: {
       legalName: 'Test Exporter',
       taxId: '123456789',
-      taxIdType: 'EIN',
+      taxIdType: 'EIN' as TaxIdType,
       address: {
         street: '123 Main St',
         city: 'New York',
@@ -26,7 +26,7 @@ const baseValidData: ShipmentData = {
     consignee: {
       legalName: 'Test Importer',
       taxId: '987654321',
-      taxIdType: 'EIN',
+      taxIdType: 'EIN' as TaxIdType,
       address: {
         street: '456 Oak Ave',
         city: 'Los Angeles',
@@ -42,13 +42,13 @@ const baseValidData: ShipmentData = {
       lineNumber: 1,
       description: 'Men shirts, 50% cotton 50% polyester, box',
       hsCode: '610910',
-      hsCodeSource: 'USER',
+      hsCodeSource: 'USER' as const,
       countryOfOrigin: 'CN',
       countryOfOriginName: 'China',
       quantity: 100,
-      uom: 'PCS',
+      uom: 'PCS' as UOM,
       unitPrice: 15.50,
-      currency: 'USD',
+      currency: 'USD' as Currency,
       lineTotal: 1550,
       netWeightKg: 50,
       grossWeightKg: 55,
@@ -64,38 +64,37 @@ const baseValidData: ShipmentData = {
     subtotal: 1550,
     totalAdditionalCosts: 100,
     grandTotal: 1650,
-    currency: 'USD',
+    currency: 'USD' as Currency,
   },
   carrierSpecific: {
     fedex: {
       awbNumber: '123456789012',
-      dutyTaxBilling: 'BILL_RECIPIENT',
-      reasonForExport: 'SALE',
+      dutyTaxBilling: 'BILL_RECIPIENT' as const,
+      reasonForExport: 'SALE' as const,
       etdEnabled: true,
     },
   },
   output: {
-    paperSize: 'LETTER',
-    orientation: 'PORTRAIT',
-    language: 'EN',
+    paperSize: 'LETTER' as const,
+    orientation: 'PORTRAIT' as const,
+    language: 'EN' as const,
     includeSignature: false,
-    outputFormat: 'PDF',
+    outputFormat: 'PDF' as OutputFormat,
   },
 };
 
 describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
-  describe('DESCRIPTION_BLACKLIST_WORD (warning level) > genera warning por palabras genéricas (además de error)', () => {
-      it('genera warning para blacklist words en pre-generation', () => {
-        const data = {
-          ...baseValidData,
-          lines: [{ ...baseValidData.lines[0], description: 'Test goods merchandise description' }],
-        };
-        const result = runPreGenerationChecks(data);
-        expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true);
-        // FASE 1: blacklist ahora es ERROR (blocking), no warning
-        expect(result.warnings.some(w => w.code === 'DESCRIPTION_BLACKLIST_WORD')).toBe(false);
-      });
+  describe('DESCRIPTION_BLACKLIST_WORD - blacklist es ERROR (no warning)', () => {
+    it('genera error blocking para blacklist words', () => {
+      const data = {
+        ...baseValidData,
+        lines: [{ ...baseValidData.lines[0], description: 'Test goods merchandise description' }],
+      };
+      const result = runPreGenerationChecks(data);
+      expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true);
+      expect(result.warnings.some(w => w.code === 'DESCRIPTION_BLACKLIST_WORD')).toBe(false);
     });
+  });
 
   describe('HS_CODE_INVALID', () => {
     it('bloquea HS Code < 6 dígitos', () => {
@@ -123,7 +122,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('DESCRIPTION_TOO_GENERIC', () => {
-    const blacklistWords = ['goods', 'merchandise', 'products', 'items', 'parts', 'samples', 'gifts'];
+    const blacklistWords = ['goods', 'merchandise', 'products', 'items', 'parts', 'samples', 'gifts'] as const;
 
     blacklistWords.forEach(word => {
       it(`bloquea descripción con "${word}"`, () => {
@@ -144,21 +143,21 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
     it('bloquea UPS sin tipo de empaque en descripción', () => {
       const data = {
         ...baseValidData,
-        carrier: 'UPS',
-        documentType: 'CI_UPS',
+        carrier: 'UPS' as Carrier,
+        documentType: 'CI_UPS' as DocumentType,
         carrierSpecific: {
           ups: {
             invoiceNumber: '1Z999AA10123456784',
             invoiceDate: '2026-07-15',
-            currencyOfSale: 'USD',
+            currencyOfSale: 'USD' as Currency,
             grossWeightKg: 55,
-            termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-            brokerageDutyBilling: 'CONSIGNEE',
+            termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+            brokerageDutyBilling: 'CONSIGNEE' as const,
             additionalCosts: [],
-            partiesRelationship: 'NOT_RELATED',
+            partiesRelationship: 'NOT_RELATED' as const,
           },
         },
-        lines: [{ ...baseValidData.lines[0], description: 'Men shirts, 50% cotton 50% polyester' }], // sin box/carton/pallet
+        lines: [{ ...baseValidData.lines[0], description: 'Men shirts, 50% cotton 50% polyester' }],
       };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
@@ -171,10 +170,10 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
       const data = {
         ...baseValidData,
         destinationCountryCode: 'DE',
-        destinationCountryGroup: 'EU',
+        destinationCountryGroup: 'EU' as CountryGroup,
         parties: {
           ...baseValidData.parties,
-          consignee: { ...baseValidData.parties.consignee, taxId: '123', taxIdType: 'EIN' },
+          consignee: { ...baseValidData.parties.consignee, taxId: '123', taxIdType: 'EIN' as TaxIdType },
         },
       };
       const result = runPreGenerationChecks(data);
@@ -185,7 +184,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
 
   describe('INCOTERM_INVALID', () => {
     it('bloquea Incoterm inválido', () => {
-      const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], incoterm: 'INVALID' }] };
+      const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], incoterm: 'INVALID' as any }] };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
       expect(result.blockingErrors.some(e => e.code === 'INCOTERM_INVALID')).toBe(true);
@@ -203,15 +202,15 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
     it('bloquea AWB DHL ≠ 10 dígitos', () => {
       const data = {
         ...baseValidData,
-        documentType: 'CI_DHL',
-        carrier: 'DHL',
+        documentType: 'CI_DHL' as DocumentType,
+        carrier: 'DHL' as Carrier,
         carrierSpecific: {
           dhl: {
             awbNumber: '12345',
             shipmentReference: 'REF',
-            reasonForExport: 'SALE',
-            typeOfExport: 'PERMANENT',
-            termsOfTrade: { code: 'DAP', place: 'NY', version: '2020' },
+            reasonForExport: 'SALE' as const,
+            typeOfExport: 'PERMANENT' as const,
+            termsOfTrade: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
             mydhlGenerated: false,
           },
         },
@@ -224,18 +223,18 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
     it('bloquea UPS tracking 1Z inválido', () => {
       const data = {
         ...baseValidData,
-        documentType: 'CI_UPS',
-        carrier: 'UPS',
+        documentType: 'CI_UPS' as DocumentType,
+        carrier: 'UPS' as Carrier,
         carrierSpecific: {
           ups: {
-            invoiceNumber: 'INVALID',
+            invoiceNumber: '1Z999AA1012345678', // 17 chars, should be 18 (1Z + 16)
             invoiceDate: '2026-07-15',
-            currencyOfSale: 'USD',
+            currencyOfSale: 'USD' as Currency,
             grossWeightKg: 55,
-            termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-            brokerageDutyBilling: 'CONSIGNEE',
+            termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+            brokerageDutyBilling: 'CONSIGNEE' as const,
             additionalCosts: [],
-            partiesRelationship: 'NOT_RELATED',
+            partiesRelationship: 'NOT_RELATED' as const,
           },
         },
       };
@@ -249,21 +248,21 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
     it('bloquea CI_UPS sin partiesRelationship', () => {
       const data = {
         ...baseValidData,
-        documentType: 'CI_UPS',
-        carrier: 'UPS',
+        documentType: 'CI_UPS' as DocumentType,
+        carrier: 'UPS' as Carrier,
         carrierSpecific: {
           ups: {
             invoiceNumber: '1Z999AA10123456784',
             invoiceDate: '2026-07-15',
-            currencyOfSale: 'USD',
+            currencyOfSale: 'USD' as Currency,
             grossWeightKg: 55,
-            termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-            brokerageDutyBilling: 'CONSIGNEE',
+            termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+            brokerageDutyBilling: 'CONSIGNEE' as const,
             additionalCosts: [],
-            // partiesRelationship missing
+            // partiesRelationship missing - testing validation error
           },
         },
-      };
+      } as unknown as ShipmentData;
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
       expect(result.blockingErrors.some(e => e.code === 'PARTIES_RELATIONSHIP_MISSING_UPS')).toBe(true);
@@ -274,12 +273,12 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
     it('bloquea Bundle con peso bruto ≠ suma líneas', () => {
       const data = {
         ...baseValidData,
-        documentType: 'BUNDLE_CIPL',
-        carrier: 'FEDEX',
+        documentType: 'BUNDLE_CIPL' as DocumentType,
+        carrier: 'FEDEX' as Carrier,
         lines: [
-          { ...baseValidData.lines[0], grossWeightKg: 55, packages: [{ packageNumber: 1, packageType: 'BOX', quantity: 100, netWeightKg: 50, grossWeightKg: 55, dimensions: { lengthCm: 40, widthCm: 30, heightCm: 20 }, shippingMarks: 'ACME-001' }] },
+          { ...baseValidData.lines[0], grossWeightKg: 55, packages: [{ packageNumber: 1, packageType: 'BOX' as PackageType, quantity: 100, netWeightKg: 50, grossWeightKg: 55, dimensions: { lengthCm: 40, widthCm: 30, heightCm: 20 }, shippingMarks: 'ACME-001' }] },
         ],
-        totals: { ...baseValidData.totals, totalGrossWeightKg: 999 }, // wrong
+        totals: { ...baseValidData.totals, totalGrossWeightKg: 999 },
         carrierSpecific: {
           bundle: {
             documentNumber: 'BUNDLE-001',
@@ -288,8 +287,8 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
           },
           fedex: {
             awbNumber: '123456789012',
-            dutyTaxBilling: 'BILL_RECIPIENT',
-            reasonForExport: 'SALE',
+            dutyTaxBilling: 'BILL_RECIPIENT' as const,
+            reasonForExport: 'SALE' as const,
             etdEnabled: true,
           },
         },
@@ -312,12 +311,12 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
             ...baseValidData.parties.shipper,
             address: { ...baseValidData.parties.shipper.address, countryCode: 'MX', countryName: 'Mexico' },
             taxId: 'INVALID',
-            taxIdType: 'RFC',
+            taxIdType: 'RFC' as TaxIdType,
           },
         },
       };
       const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(true); // WARNING no bloquea
+      expect(result.canGenerate).toBe(true);
       expect(result.warnings.some(w => w.code === 'RFC_RECOMMENDED_MX')).toBe(true);
     });
   });
@@ -326,21 +325,21 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
     it('advierte si UPS sin EDI/Paperless', () => {
       const data = {
         ...baseValidData,
-        documentType: 'CI_UPS',
-        carrier: 'UPS',
+        documentType: 'CI_UPS' as DocumentType,
+        carrier: 'UPS' as Carrier,
         carrierSpecific: {
           ups: {
             invoiceNumber: '1Z999AA10123456784',
             invoiceDate: '2026-07-15',
-            currencyOfSale: 'USD',
+            currencyOfSale: 'USD' as Currency,
             grossWeightKg: 55,
-            termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-            brokerageDutyBilling: 'CONSIGNEE',
+            termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+            brokerageDutyBilling: 'CONSIGNEE' as const,
             additionalCosts: [],
-            partiesRelationship: 'NOT_RELATED',
+            partiesRelationship: 'NOT_RELATED' as const,
           },
         },
-        output: { ...baseValidData.output, outputFormat: 'PDF' }, // no EDI
+        output: { ...baseValidData.output, outputFormat: 'PDF' as OutputFormat },
       };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(true);
@@ -350,21 +349,21 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
     it('no advierte si UPS usa EDI_JSON', () => {
       const data = {
         ...baseValidData,
-        documentType: 'CI_UPS',
-        carrier: 'UPS',
+        documentType: 'CI_UPS' as DocumentType,
+        carrier: 'UPS' as Carrier,
         carrierSpecific: {
           ups: {
             invoiceNumber: '1Z999AA10123456784',
             invoiceDate: '2026-07-15',
-            currencyOfSale: 'USD',
+            currencyOfSale: 'USD' as Currency,
             grossWeightKg: 55,
-            termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-            brokerageDutyBilling: 'CONSIGNEE',
+            termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+            brokerageDutyBilling: 'CONSIGNEE' as const,
             additionalCosts: [],
-            partiesRelationship: 'NOT_RELATED',
+            partiesRelationship: 'NOT_RELATED' as const,
           },
         },
-        output: { ...baseValidData.output, outputFormat: 'EDI_JSON', ediFormat: 'UPS_PAPERLESS' },
+        output: { ...baseValidData.output, outputFormat: 'EDI_JSON' as OutputFormat, ediFormat: 'UPS_PAPERLESS' as const },
       };
       const result = runPreGenerationChecks(data);
       expect(result.warnings.some(w => w.code === 'PAPER_INVOICE_SURCHARGE_UPS')).toBe(false);
@@ -384,9 +383,9 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
     it('advierte si destino LATAM requiere CI+PL separados', () => {
       const data = {
         ...baseValidData,
-        documentType: 'BUNDLE_CIPL',
+        documentType: 'BUNDLE_CIPL' as DocumentType,
         destinationCountryCode: 'BR',
-        carrier: 'FEDEX',
+        carrier: 'FEDEX' as Carrier,
         carrierSpecific: {
           bundle: {
             documentNumber: 'BUNDLE-001',
@@ -395,8 +394,8 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
           },
           fedex: {
             awbNumber: '123456789012',
-            dutyTaxBilling: 'BILL_RECIPIENT',
-            reasonForExport: 'SALE',
+            dutyTaxBilling: 'BILL_RECIPIENT' as const,
+            reasonForExport: 'SALE' as const,
             etdEnabled: true,
           },
         },
@@ -409,7 +408,7 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
 
   describe('PROFORMA_NOT_FOR_CLEARANCE', () => {
     it('advierte Proforma no válida para despacho', () => {
-      const data = { ...baseValidData, documentType: 'PROFORMA', carrier: 'NONE', carrierSpecific: {} };
+      const data = { ...baseValidData, documentType: 'PROFORMA' as DocumentType, carrier: 'NONE' as Carrier, carrierSpecific: {} };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(true);
       expect(result.warnings.some(w => w.code === 'PROFORMA_NOT_FOR_CLEARANCE')).toBe(true);
@@ -420,19 +419,18 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
     it('advierte UPS CI sin USMCA cert', () => {
       const data = {
         ...baseValidData,
-        documentType: 'CI_UPS',
-        carrier: 'UPS',
+        documentType: 'CI_UPS' as DocumentType,
+        carrier: 'UPS' as Carrier,
         carrierSpecific: {
           ups: {
             invoiceNumber: '1Z999AA10123456784',
             invoiceDate: '2026-07-15',
-            currencyOfSale: 'USD',
+            currencyOfSale: 'USD' as Currency,
             grossWeightKg: 55,
-            termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-            brokerageDutyBilling: 'CONSIGNEE',
+            termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+            brokerageDutyBilling: 'CONSIGNEE' as const,
             additionalCosts: [],
-            partiesRelationship: 'NOT_RELATED',
-            // no usmcaCertification
+            partiesRelationship: 'NOT_RELATED' as const,
           },
         },
       };
@@ -443,11 +441,11 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
   });
 
   describe('DESCRIPTION_BLACKLIST_WORD (warning level)', () => {
-    it('genera warning por palabras genéricas (además de error)', () => {
+    it('no genera warning (blacklist es ERROR en bloqueante)', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], description: 'Test goods description with box' }] };
       const result = runPreGenerationChecks(data);
-      expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true); // error bloqueante
-      expect(result.warnings.some(w => w.code === 'DESCRIPTION_BLACKLIST_WORD')).toBe(true); // warning también
+      expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true);
+      expect(result.warnings.some(w => w.code === 'DESCRIPTION_BLACKLIST_WORD')).toBe(false);
     });
   });
 });
@@ -460,20 +458,20 @@ describe('Pre-Generation Checks - VERDE (Todo pasa)', () => {
   });
 
   it('permite CI_UPS válido completo', () => {
-    const data = {
+    const data: ShipmentData = {
       ...baseValidData,
-      documentType: 'CI_UPS',
-      carrier: 'UPS',
+      documentType: 'CI_UPS' as DocumentType,
+      carrier: 'UPS' as Carrier,
       carrierSpecific: {
         ups: {
           invoiceNumber: '1Z999AA10123456784',
           invoiceDate: '2026-07-15',
-          currencyOfSale: 'USD',
+          currencyOfSale: 'USD' as Currency,
           grossWeightKg: 55,
-          termsOfSale: { code: 'DAP', place: 'NY', version: '2020' },
-          brokerageDutyBilling: 'CONSIGNEE',
+          termsOfSale: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
+          brokerageDutyBilling: 'CONSIGNEE' as const,
           additionalCosts: [],
-          partiesRelationship: 'NOT_RELATED',
+          partiesRelationship: 'NOT_RELATED' as const,
         },
       },
     };
@@ -484,15 +482,15 @@ describe('Pre-Generation Checks - VERDE (Todo pasa)', () => {
   it('permite CI_DHL válido completo', () => {
     const data = {
       ...baseValidData,
-      documentType: 'CI_DHL',
-      carrier: 'DHL',
+      documentType: 'CI_DHL' as DocumentType,
+      carrier: 'DHL' as Carrier,
       carrierSpecific: {
         dhl: {
           awbNumber: '1234567890',
           shipmentReference: 'REF',
-          reasonForExport: 'SALE',
-          typeOfExport: 'PERMANENT',
-          termsOfTrade: { code: 'DAP', place: 'NY', version: '2020' },
+          reasonForExport: 'SALE' as const,
+          typeOfExport: 'PERMANENT' as const,
+          termsOfTrade: { code: 'DAP' as Incoterm2020, place: 'NY', version: '2020' as const },
           mydhlGenerated: false,
         },
       },
