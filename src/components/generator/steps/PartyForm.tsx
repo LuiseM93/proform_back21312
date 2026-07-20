@@ -91,9 +91,9 @@ export function PartyForm({ documentType, carrier, value, onChange }: PartyFormP
               style={{ ...inputStyle, gridColumn: 'span 2' }}
             />
           )}
-          {key === 'shipper' && party.address.countryCode === 'MX' && !party.taxId && (
+          {key === 'shipper' && party.address.countryCode === 'MX' && (
             <div style={warnBox}>
-              🟡 Shipper in Mexico without RFC. RFC is recommended for CFDI 4.0 / fiscal receipt.
+              🟡 Shipper in Mexico: RFC required for CFDI 4.0 + Complemento Comercio Exterior (Commercial Invoices). Capture Tax ID with type RFC.
             </div>
           )}
           {carrier === 'UPS' && (key === 'buyer' || key === 'producer' || key === 'consignee') && (

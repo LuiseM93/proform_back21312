@@ -70,7 +70,7 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     }
   });
 
-  // 4. DESCRIPTION — BLOCKING (length/package type) + WARNING (generic words) [FASE 3]
+  // 4. DESCRIPTION — BLOCKING (length/package type/blacklist words) [FASE 3 + FIX P1]
   data.lines.forEach((line, idx) => {
     const descCheck = validateDescriptionForCarrier(data.carrier, line.description);
     if (descCheck.errors.length > 0) {
@@ -82,15 +82,7 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
         regulation: 'FedEx/DHL/UPS description requirements; 19 CFR 141.86',
       });
     }
-    if (descCheck.warnings.length > 0) {
-      warnings.push({
-        code: 'DESCRIPTION_BLACKLIST_WORD',
-        message: `Line ${idx + 1}: ${descCheck.warnings.join('; ')}`,
-        field: `lines[${idx}].description`,
-        severity: 'WARNING',
-        recommendation: 'Replace generic terms with a specific description (what it is, material, use).',
-      });
-    }
+    // FIX P1: blacklist words are now inside descCheck.errors (BLOCKING). No separate warning.
   });
 
   // 5. EORI_MISSING_EU — EORI mandatory for EU destination

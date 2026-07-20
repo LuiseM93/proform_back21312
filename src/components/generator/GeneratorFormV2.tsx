@@ -175,7 +175,7 @@ export function GeneratorFormV2({
           <OutputForm documentType={activeDoc} destinationCountryGroup={data.destinationCountryGroup}
             value={data.output} onChange={(output: OutputConfig) => update({ output })}
             blockingErrors={preCheck.blockingErrors}
-            warnings={preCheck.warnings}
+            warnings={[...preCheck.warnings, ...crossResult.warnings.filter(w => w.documentTypes.includes(activeDoc))]}
             onGenerate={handleGenerate} />
         )}
 
@@ -195,7 +195,11 @@ export function GeneratorFormV2({
 
       {/* Right: Preview */}
       <div>
-        <PreviewEngine data={data} activeDocument={activeDoc} />
+        <PreviewEngine
+          data={data}
+          activeDocument={activeDoc}
+          crossWarnings={crossResult.warnings.filter((w) => w.documentTypes.includes(activeDoc))}
+        />
       </div>
     </div>
   );

@@ -104,11 +104,11 @@ export function validateDescriptionForCarrier(
     errors.push(`Description too short (minimum 20 characters). Specify: what it is, material, use.`);
   }
 
-  // FASE 1: generic-word blacklist = BLOCKING (RED), not a warning.
+  // FASE 1 (FIX P1): generic-word blacklist = BLOCKING (RED), not a warning.
   // #1 cause of customs holds (19 CFR 141.86). Prevents PDF/EDI generation.
   BLACKLISTED_DESCRIPTION_WORDS.forEach((word) => {
     if (descLower.split(/\s+/).includes(word)) {
-      errors.push(`Blocking generic word: "${word}". Specify: what it is, material, use, brand/model.`);
+      errors.push(`BLOCKING generic word: "${word}". Specify: what it is, material, use, brand/model.`);
     }
   });
 

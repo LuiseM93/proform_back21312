@@ -84,8 +84,33 @@ function UpsForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d
         Parties are RELATED (intercompany)
       </label>
       <span style={{ fontSize: 11, color: ups.partiesRelationship === 'NOT_RELATED' ? '#666' : '#16a34a' }}>{ups.partiesRelationship === 'RELATED' ? '⚠ Related party — valuation required' : '✓ Not Related (standard valuation)'}</span>
+
+      {/* USMCA Certification (separate document) */}
+      <h5 style={{ margin: '12px 0 4px', fontSize: 13 }}>USMCA Certification (separate doc)</h5>
+      <label style={labelStyle}>Certifier Role</label>
+      <select style={inputStyle} value={ups.usmcaCertification?.certifierRole || 'EXPORTER'}
+        onChange={(e) => set({ usmcaCertification: { certifierRole: e.target.value as 'IMPORTER' | 'EXPORTER' | 'PRODUCER', certifier: ups.usmcaCertification?.certifier || emptyParty(), importer: ups.usmcaCertification?.importer || emptyParty(), goods: ups.usmcaCertification?.goods || [], originCriterion: ups.usmcaCertification?.originCriterion || 'A', authorizedSignature: ups.usmcaCertification?.authorizedSignature || '', date: ups.usmcaCertification?.date || '' } })}>
+        <option value="IMPORTER">Importer</option>
+        <option value="EXPORTER">Exporter</option>
+        <option value="PRODUCER">Producer</option>
+      </select>
+      <label style={labelStyle}>Origin Criterion (A/B/C/D)</label>
+      <select style={inputStyle} value={ups.usmcaCertification?.originCriterion || 'A'}
+        onChange={(e) => set({ usmcaCertification: { certifierRole: ups.usmcaCertification?.certifierRole || 'EXPORTER', certifier: ups.usmcaCertification?.certifier || emptyParty(), importer: ups.usmcaCertification?.importer || emptyParty(), goods: ups.usmcaCertification?.goods || [], originCriterion: e.target.value as 'A' | 'B' | 'C' | 'D', authorizedSignature: ups.usmcaCertification?.authorizedSignature || '', date: ups.usmcaCertification?.date || '' } })}>
+        <option value="A">A — Wholly obtained</option>
+        <option value="B">B — Tariff shift</option>
+        <option value="C">C — 100% originating</option>
+        <option value="D">D — RVC</option>
+      </select>
+      <label style={labelStyle}>Authorized Signature</label>
+      <input style={inputStyle} value={ups.usmcaCertification?.authorizedSignature || ''}
+        onChange={(e) => set({ usmcaCertification: { certifierRole: ups.usmcaCertification?.certifierRole || 'EXPORTER', certifier: ups.usmcaCertification?.certifier || emptyParty(), importer: ups.usmcaCertification?.importer || emptyParty(), goods: ups.usmcaCertification?.goods || [], originCriterion: ups.usmcaCertification?.originCriterion || 'A', authorizedSignature: e.target.value, date: ups.usmcaCertification?.date || '' } })} />
+      <label style={labelStyle}>Date</label>
+      <input type="date" style={inputStyle} value={ups.usmcaCertification?.date || ''}
+        onChange={(e) => set({ usmcaCertification: { certifierRole: ups.usmcaCertification?.certifierRole || 'EXPORTER', certifier: ups.usmcaCertification?.certifier || emptyParty(), importer: ups.usmcaCertification?.importer || emptyParty(), goods: ups.usmcaCertification?.goods || [], originCriterion: ups.usmcaCertification?.originCriterion || 'A', authorizedSignature: ups.usmcaCertification?.authorizedSignature || '', date: e.target.value } })} />
+
       <div style={upsWarnBox}>
-        🟡 NAFTA is obsolete (replaced by USMCA in 2020). Do NOT include the “NAFTA Certification” block in the CI — the USMCA certification goes on a separate document.
+        🟡 NAFTA is obsolete (replaced by USMCA in 2020). Do NOT include the "NAFTA Certification" block in the CI — the USMCA certification goes on a separate document.
       </div>
       <div style={upsWarnBox}>
         🟡 UPS Paperless: sending a paper invoice adds a ~$5 USD surcharge per shipment. Use EDI/Paperless format to avoid it.
@@ -165,3 +190,10 @@ const blockStyle: React.CSSProperties = { border: '1px solid #e5e7eb', borderRad
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, marginTop: 8, display: 'block', color: '#374151' };
 const inputStyle: React.CSSProperties = { padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 13, width: '100%', boxSizing: 'border-box', marginTop: 2 };
 const upsWarnBox: React.CSSProperties = { marginTop: 10, background: '#fffbeb', border: '1px solid #f59e0b', color: '#92400e', borderRadius: 4, padding: '6px 8px', fontSize: 12 };
+
+function emptyParty() {
+  return {
+    legalName: '', taxId: '', taxIdType: 'EIN' as const,
+    address: { street: '', city: '', stateProvince: '', postalCode: '', countryCode: '', countryName: '' },
+  };
+}

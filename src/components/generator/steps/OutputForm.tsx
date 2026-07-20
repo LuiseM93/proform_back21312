@@ -14,7 +14,7 @@ interface OutputFormProps {
   value: OutputConfig;
   onChange: (config: OutputConfig) => void;
   blockingErrors: { code: string; message: string; field: string }[];
-  warnings: { code: string; message: string; field: string }[];
+  warnings: { code: string; message: string; field: string; recommendation?: string }[];
   onGenerate: () => void;
 }
 

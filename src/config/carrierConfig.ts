@@ -3,7 +3,7 @@
 // ProformaFlow · FASE 4
 // ============================================================================
 import configData from '@/config/carrier-config.v2026.07.json';
-import type { Carrier, CountryGroup, DocumentType, PaperSize } from '@/types/shipment';
+import type { Carrier, CountryGroup, PaperSize } from '@/types/shipment';
 
 export interface CarrierConfigEntry {
   awbFormat: string;
@@ -25,20 +25,12 @@ export interface CarrierConfigFile {
   carriers: Record<Carrier, CarrierConfigEntry>;
   blacklist: string[];
   restrictedWords: string[];
-  paperSizeByDocumentType: Record<DocumentType, PaperSize>;
 }
 
 export const carrierConfig: CarrierConfigFile = configData as CarrierConfigFile;
 
 export function getCarrierConfig(carrier: Carrier): CarrierConfigEntry {
   return carrierConfig.carriers[carrier];
-}
-
-export function getPaperSize(carrier: Carrier, countryGroup: CountryGroup, docType: DocumentType): PaperSize {
-  const carrierEntry = getCarrierConfig(carrier);
-  const byDoc = carrierConfig.paperSizeByDocumentType[docType];
-  if (byDoc === 'LETTER' || byDoc === 'A4') return byDoc;
-  return carrierEntry.paperSizeByCountry[countryGroup] || 'A4';
 }
 
 export function isRegulatoryChangeActive(changeId: string): boolean {

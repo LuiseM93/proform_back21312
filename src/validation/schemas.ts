@@ -90,7 +90,7 @@ export const ProductLineSchema = z.object({
   dimensions: DimensionsSchema.optional(),
   packages: z.array(PackageDetailSchema).optional(),
   preferentialOrigin: PreferentialOriginSchema.optional(),
-  incoterm: z.enum(INCOTERMS_2020).optional(),
+  incoterm: z.enum(INCOTERMS_2020).optional(), // FIX P1: enum strict against Incoterms 2020
 });
 
 // ─── Parties ────────────────────────────────────────────────────────────────

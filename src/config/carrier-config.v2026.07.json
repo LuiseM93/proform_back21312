@@ -74,13 +74,5 @@
     "no commercial value", "gift", "parts", "components", "accessories",
     "electronics", "toys", "clothing", "machine", "equipment"
   ],
-  "restrictedWords": ["sample", "repair", "return", "warranty", "gift"],
-  "paperSizeByDocumentType": {
-    "PACKING_LIST": "LANDSCAPE",
-    "BUNDLE_CIPL": "LANDSCAPE",
-    "PROFORMA": "PORTRAIT",
-    "CI_FEDEX": "PORTRAIT",
-    "CI_UPS": "PORTRAIT",
-    "CI_DHL": "PORTRAIT"
-  }
+  "restrictedWords": ["sample", "repair", "return", "warranty", "gift"]
 }

@@ -11,9 +11,10 @@ import { runPreGenerationChecks } from '@/validation/pre-generation';
 interface PreviewEngineProps {
   data: ShipmentData;
   activeDocument: DocumentType;
+  crossWarnings?: { code: string; message: string; field: string; recommendation?: string }[];
 }
 
-export function PreviewEngine({ data, activeDocument }: PreviewEngineProps) {
+export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: PreviewEngineProps) {
   const preCheck = useMemo(() => runPreGenerationChecks(data), [data]);
   const hasBlocking = preCheck.blockingErrors.length > 0;
 
@@ -33,9 +34,11 @@ export function PreviewEngine({ data, activeDocument }: PreviewEngineProps) {
   }, [preCheck.warnings]);
 
   // FASE 2: global regulatory warnings (not per line, with recommendation)
+  // FIX P3: also include cross-document warnings (price variance, proforma→CI diff, etc.)
   const regulatoryWarnings = useMemo(() => {
-    return preCheck.warnings.filter((w) => !w.field.startsWith('lines['));
-  }, [preCheck.warnings]);
+    const base = preCheck.warnings.filter((w) => !w.field.startsWith('lines['));
+    return [...base, ...crossWarnings.filter((w) => !w.field.startsWith('lines['))];
+  }, [preCheck.warnings, crossWarnings]);
 
   return (
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, background: '#fafafa', position: 'relative' }}>
