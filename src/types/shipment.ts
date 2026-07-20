@@ -160,6 +160,8 @@ export interface USMCACertification {
   certifierRole: 'IMPORTER' | 'EXPORTER' | 'PRODUCER';
   certifier: Party;
   certifierTitle?: string; // Job title of certifier (Annex 3, element 2)
+  certifierTel?: string; // Phone of certifier
+  certifierEmail?: string; // Email of certifier
   exporter?: Party;
   producer?: Party;
   importer: Party;
