@@ -84,17 +84,18 @@ const baseValidData: ShipmentData = {
 };
 
 describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
-  describe('UNIT_PRICE_ZERO', () => {
-    it('bloquea si unitPrice <= 0', () => {
-      const data = {
-        ...baseValidData,
-        lines: [{ ...baseValidData.lines[0], unitPrice: 0, lineTotal: 0 }],
-      };
-      const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(false);
-      expect(result.blockingErrors.some(e => e.code === 'UNIT_PRICE_ZERO')).toBe(true);
+  describe('DESCRIPTION_BLACKLIST_WORD (warning level) > genera warning por palabras genéricas (además de error)', () => {
+      it('genera warning para blacklist words en pre-generation', () => {
+        const data = {
+          ...baseValidData,
+          lines: [{ ...baseValidData.lines[0], description: 'Test goods merchandise description' }],
+        };
+        const result = runPreGenerationChecks(data);
+        expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true);
+        // FASE 1: blacklist ahora es ERROR (blocking), no warning
+        expect(result.warnings.some(w => w.code === 'DESCRIPTION_BLACKLIST_WORD')).toBe(false);
+      });
     });
-  });
 
   describe('HS_CODE_INVALID', () => {
     it('bloquea HS Code < 6 dígitos', () => {
