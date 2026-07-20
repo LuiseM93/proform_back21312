@@ -7,17 +7,22 @@
 import React, { useMemo } from 'react';
 import { Document, Page, View, Text } from '@react-pdf/renderer';
 import type { PackingListData } from '@/types/shipment';
-import { createBaseStyles, formatNumber, registerFonts } from '../BaseDocumentStyles';
+import { createBaseStyles, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
 export function PackingListDocument({ data }: { data: PackingListData }) {
   registerFonts();
   const { styles } = useMemo(() => createBaseStyles(data.output.paperSize, 'LANDSCAPE'), [data.output]);
   const pl = data.carrierSpecific.packingList!;
 
-  // Flatten packages
+  // Flatten packages preservando shippingMarks por bulto
   const allPackages = data.lines.flatMap((line) =>
-    (line.packages || []).map((pkg, i) => ({
-      ...pkg, lineIdx: line.lineNumber, description: line.description, hsCode: line.hsCode, origin: line.countryOfOrigin,
+    (line.packages || []).map((pkg) => ({
+      ...pkg,
+      lineIdx: line.lineNumber,
+      description: line.description,
+      hsCode: line.hsCode,
+      origin: line.countryOfOrigin,
+      shippingMarks: pkg.shippingMarks,
     }))
   );
   const totalPackages = allPackages.length || pl.packages.length;
@@ -53,6 +58,19 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
           </View>
         </View>
 
+        {data.parties.notifyParty && (
+          <View style={styles.section}>
+            <Text style={styles.partyLabel}>Notify Party</Text>
+            <Text style={styles.partyValue}>{data.parties.notifyParty.legalName} — {data.parties.notifyParty.address.countryName}</Text>
+          </View>
+        )}
+        {pl.incoterm && (
+          <View style={styles.section}>
+            <Text style={styles.partyLabel}>Incoterm</Text>
+            <Text style={styles.partyValue}>{getIncotermDisplay(pl.incoterm)}</Text>
+          </View>
+        )}
+
         {/* PACKAGES TABLE - NO MONETARY FIELDS */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Packages Detail</Text>
@@ -65,7 +83,8 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
             <Text style={[styles.tableCellHeader, { width: '8%' }]}>Origin</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Net kg</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Gross kg</Text>
-            <Text style={[styles.tableCellHeader, { width: '17%' }]}>Dimensions (L×W×H cm)</Text>
+            <Text style={[styles.tableCellHeader, { width: '15%' }]}>Dimensions (L×W×H cm)</Text>
+            <Text style={[styles.tableCellHeader, { width: '10%' }]}>Marks</Text>
           </View>
           {allPackages.map((pkg, idx) => (
             <View key={idx} style={styles.tableRow}>
@@ -77,9 +96,10 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
               <Text style={[styles.tableCell, { width: '8%' }]}>{pkg.origin || "—"}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatNumber(pkg.netWeightKg, 2)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatNumber(pkg.grossWeightKg, 2)}</Text>
-              <Text style={[styles.tableCell, { width: '17%', textAlign: 'center' }]}>
+              <Text style={[styles.tableCell, { width: '15%', textAlign: 'center' }]}>
                 {pkg.dimensions?.lengthCm || 0}×{pkg.dimensions?.widthCm || 0}×{pkg.dimensions?.heightCm || 0}
               </Text>
+              <Text style={[styles.tableCell, { width: '10%', fontSize: 6 }]}>{pkg.shippingMarks || '—'}</Text>
             </View>
           ))}
           <View style={[styles.totalsRow, styles.tableRow]}>
@@ -91,7 +111,8 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
             <Text style={[styles.tableCell, { width: '8%' }]} />
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
-            <Text style={[styles.tableCell, { width: '17%' }]} />
+            <Text style={[styles.tableCell, { width: '15%' }]} />
+            <Text style={[styles.tableCell, { width: '10%' }]} />
           </View>
         </View>
 

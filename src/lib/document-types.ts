@@ -233,6 +233,35 @@ export function validateCurrencies(items: LineItem[]): string | null {
   return null;
 }
 
+// FASE 1: Validación ROJO — unitPrice debe ser > 0 (incluso muestras/regalos requieren valor de aduana)
+export function validateLineItems(items: LineItem[]): { field: string; message: string; severity: "error" }[] {
+  const errors: { field: string; message: string; severity: "error" }[] = [];
+  items.forEach((item, idx) => {
+    if (!item.unitPrice || item.unitPrice <= 0) {
+      errors.push({
+        field: `items[${idx}].unitPrice`,
+        message: `Línea ${idx + 1}: Valor unitario debe ser > 0 (incluso muestras/regalos requieren valor de aduana).`,
+        severity: "error",
+      });
+    }
+    if (!item.hsCode || !/^\d{6,10}$/.test(item.hsCode)) {
+      errors.push({
+        field: `items[${idx}].hsCode`,
+        message: `Línea ${idx + 1}: HS Code inválido (requerido 6-10 dígitos).`,
+        severity: "error",
+      });
+    }
+    if (!item.countryOfOrigin || item.countryOfOrigin.length !== 2) {
+      errors.push({
+        field: `items[${idx}].countryOfOrigin`,
+        message: `Línea ${idx + 1}: País de origen requerido (ISO 3166-1 alpha-2).`,
+        severity: "error",
+      });
+    }
+  });
+  return errors;
+}
+
 // Total weight calculations
 export function calculateTotalNetWeight(items: LineItem[]): number {
   return items.reduce((sum, i) => sum + (i.weightKg || 0), 0);

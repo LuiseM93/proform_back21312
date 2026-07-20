@@ -91,6 +91,11 @@ export function PartyForm({ documentType, carrier, value, onChange }: PartyFormP
               style={{ ...inputStyle, gridColumn: 'span 2' }}
             />
           )}
+          {key === 'shipper' && party.address.countryCode === 'MX' && !party.taxId && (
+            <div style={warnBox}>
+              🟡 Exportador en México sin RFC. Se recomienda RFC para CFDI 4.0 / comprobante fiscal.
+            </div>
+          )}
           {carrier === 'UPS' && (key === 'buyer' || key === 'producer' || key === 'consignee') && (
             <select value={party.relationship || 'NOT_RELATED'}
               onChange={(e) => updatePartyField(key, 'relationship', e.target.value as 'RELATED' | 'NOT_RELATED')}
@@ -123,4 +128,14 @@ const inputStyle: React.CSSProperties = {
   fontSize: 13,
   width: '100%',
   boxSizing: 'border-box',
+};
+
+const warnBox: React.CSSProperties = {
+  gridColumn: 'span 2',
+  background: '#fffbeb',
+  border: '1px solid #f59e0b',
+  color: '#92400e',
+  borderRadius: 4,
+  padding: '6px 8px',
+  fontSize: 12,
 };

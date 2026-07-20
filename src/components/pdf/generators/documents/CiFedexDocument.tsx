@@ -133,6 +133,25 @@ export function CiFedexDocument({ data }: { data: CiFedexData }) {
           </View>
         </View>
 
+        {/* PREFERENTIAL ORIGIN DECLARATION */}
+        {data.lines.some((l) => l.preferentialOrigin) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Preferential Origin Declaration</Text>
+            <Text style={{ fontSize: 7, marginBottom: 6 }}>
+              The exporter declares that the goods listed qualify for preferential tariff treatment under the applicable Free Trade Agreement.
+            </Text>
+            {data.lines.filter((l) => l.preferentialOrigin).map((line, idx) => (
+              <View key={idx} style={{ marginBottom: 4 }}>
+                <Text style={{ fontSize: 7 }}>
+                  <Text style={{ fontWeight: 'bold' }}>{line.description}:</Text> {line.preferentialOrigin!.agreement}
+                  {' — Criterion '}{line.preferentialOrigin!.originCriterion}
+                  {line.preferentialOrigin!.blanketPeriod && ` (Blanket: ${line.preferentialOrigin!.blanketPeriod.start} to ${line.preferentialOrigin!.blanketPeriod.end})`}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* DECLARATION */}
         <View style={[styles.section, { marginTop: 'auto', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#000' }]}>
           <Text style={styles.sectionTitle}>Declaration</Text>

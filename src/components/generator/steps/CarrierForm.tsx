@@ -84,6 +84,12 @@ function UpsForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d
         Parties are RELATED (intercompany)
       </label>
       <span style={{ fontSize: 11, color: ups.partiesRelationship === 'NOT_RELATED' ? '#666' : '#16a34a' }}>{ups.partiesRelationship === 'RELATED' ? '⚠ Related party — valuation required' : '✓ Not Related (standard valuation)'}</span>
+      <div style={upsWarnBox}>
+        🟡 NAFTA está obsoleto (reemplazado por USMCA en 2020). NO incluyas el bloque &quot;NAFTA Certification&quot; en la CI — la certificación USMCA va en documento separado.
+      </div>
+      <div style={upsWarnBox}>
+        🟡 UPS Paperless: enviar la factura en papel añade un recargo aprox. de $5 USD por envío. Usa formato EDI/Paperless para evitarlo.
+      </div>
     </div>
   );
 }
@@ -158,3 +164,4 @@ function BundleForm({ value, onChange }: { value: CarrierSpecificData; onChange:
 const blockStyle: React.CSSProperties = { border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginTop: 12 };
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, marginTop: 8, display: 'block', color: '#374151' };
 const inputStyle: React.CSSProperties = { padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 13, width: '100%', boxSizing: 'border-box', marginTop: 2 };
+const upsWarnBox: React.CSSProperties = { marginTop: 10, background: '#fffbeb', border: '1px solid #f59e0b', color: '#92400e', borderRadius: 4, padding: '6px 8px', fontSize: 12 };

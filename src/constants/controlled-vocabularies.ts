@@ -65,10 +65,10 @@ export const TAX_ID_TYPES: readonly TaxIdType[] = [
 
 export const BLACKLISTED_DESCRIPTION_WORDS = [
   'goods', 'merchandise', 'products', 'items', 'stuff', 'things',
-  'parts', 'components', 'materials', 'supplies', 'cargo', 'gift',
-  'sample', 'present', 'donation', 'free', 'n/a', 'na', 'none',
-  'varios', 'varios productos', 'mercancia', 'general', 'miscellaneous',
-  'assorted', 'various',
+  'parts', 'components', 'materials', 'supplies', 'cargo', 'gift', 'gifts',
+  'sample', 'samples', 'present', 'donation', 'free',
+  'n/a', 'na', 'none', 'varios', 'varios productos', 'mercancia',
+  'general', 'miscellaneous', 'assorted', 'various'
 ] as const;
 
 // ─── Derivación PaperSize / Orientation ──────────────────────────────────────
@@ -91,20 +91,24 @@ export function derivePaperConfig(
 }
 
 // ─── Validación de descripción por carrier ──────────────────────────────────
+// FASE 3: separa BLOCKING (largo mínimo, tipo empaque UPS) de WARNING (palabras genéricas)
 export function validateDescriptionForCarrier(
   carrier: string,
   description: string
-): { valid: boolean; errors: string[] } {
+): { valid: boolean; errors: string[]; warnings: string[] } {
   const errors: string[] = [];
+  const warnings: string[] = [];
   const descLower = description.toLowerCase().trim();
 
   if (descLower.length < 20) {
     errors.push(`Descripción muy corta (mínimo 20 caracteres). Especifique: qué es, material, uso.`);
   }
 
+  // FASE 1: Blacklist de palabras genéricas = BLOQUEANTE (ROJO), no warning.
+  // Causa #1 de retenciones aduaneras (19 CFR 141.86). Impide generar PDF/EDI.
   BLACKLISTED_DESCRIPTION_WORDS.forEach((word) => {
     if (descLower.split(/\s+/).includes(word)) {
-      errors.push(`Palabra en lista negra: "${word}". Sea específico.`);
+      errors.push(`Palabra genérica bloqueante: "${word}". Especifique: qué es, material, uso, marca/modelo.`);
     }
   });
 
@@ -115,5 +119,5 @@ export function validateDescriptionForCarrier(
     }
   }
 
-  return { valid: errors.length === 0, errors };
+  return { valid: errors.length === 0, errors, warnings };
 }

@@ -6,7 +6,6 @@ import { z } from 'zod';
 import {
   INCOTERMS_2020, UOM_CATALOG, PACKAGE_TYPES, FEDEX_REASONS_FOR_EXPORT,
   DHL_REASONS_FOR_EXPORT, DHL_TYPES_OF_EXPORT, CURRENCIES, TAX_ID_TYPES,
-  BLACKLISTED_DESCRIPTION_WORDS,
 } from '@/constants/controlled-vocabularies';
 
 // ─── Utilidades ─────────────────────────────────────────────────────────────
@@ -61,7 +60,7 @@ export const PackageDetailSchema = z.object({
   netWeightKg: positiveNumber,
   grossWeightKg: positiveNumber,
   dimensions: DimensionsSchema,
-  shippingMarks: nonEmptyString.max(50),
+  shippingMarks: nonEmptyString.max(50).describe('Marks & numbers impresos en la caja (19 CFR 141.86)'),
 });
 
 export const PreferentialOriginSchema = z.object({
@@ -74,10 +73,8 @@ export const PreferentialOriginSchema = z.object({
 export const ProductLineSchema = z.object({
   lineNumber: z.number().int().positive(),
   sku: z.string().max(50).optional(),
-  description: nonEmptyString.max(500).refine(
-    (desc) => !BLACKLISTED_DESCRIPTION_WORDS.some((w) => desc.toLowerCase().split(/\s+/).includes(w)),
-    'Descripción demasiado genérica. Especifique: qué es, de qué material, para qué uso, marca/modelo.'
-  ),
+  description: nonEmptyString.max(500),
+  // FASE 3: blacklist de palabras genéricas movida a WARNING (pre-generation.ts), no bloquea el schema.
   descriptionEs: z.string().max(500).optional(),
   hsCode: hsCodeSchema,
   hsCodeSource: z.enum(['USER', 'AI_SUGGESTION', 'CARRIER_TOOL']),
@@ -131,7 +128,7 @@ export const AdditionalCostSchema = z.object({
 });
 
 export const UPSSpecificSchema = z.object({
-  invoiceNumber: nonEmptyString.max(50),
+  invoiceNumber: z.string().regex(/^1Z[A-Z0-9]{16}$/, 'UPS Invoice/Tracking: formato 1Z + 16 alfanuméricos (ej: 1Z999AA10123456784)'),
   invoiceDate: isoDateString,
   currencyOfSale: z.enum(CURRENCIES),
   grossWeightKg: positiveNumber,

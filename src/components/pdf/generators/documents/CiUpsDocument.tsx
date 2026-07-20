@@ -56,6 +56,7 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
             <View style={{ marginTop: 6 }}>
               <Text style={styles.partyLabel}>Producer Name and Address</Text>
               <Text style={styles.partyValue}>{data.parties.producer.legalName} — {data.parties.producer.address.countryName}</Text>
+              <Text style={styles.partyValue}>{data.parties.producer.address.street}, {data.parties.producer.address.city}</Text>
             </View>
           )}
           <View style={{ marginTop: 6 }}>
@@ -98,6 +99,8 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Unit</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Total</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Net kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '9%' }]}>Gross kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '10%' }]}>Marks & Numbers</Text>
           </View>
           {data.lines.map((line, idx) => (
             <View key={idx} style={styles.tableRow}>
@@ -110,6 +113,8 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
+              <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
+              <Text style={[styles.tableCell, { width: '10%', fontSize: 6 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
             </View>
           ))}
           <View style={[styles.totalsRow, styles.tableRow]}>
@@ -122,6 +127,8 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
             <Text style={[styles.tableCell, { width: '10%' }]} />
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '10%' }]} />
           </View>
         </View>
 

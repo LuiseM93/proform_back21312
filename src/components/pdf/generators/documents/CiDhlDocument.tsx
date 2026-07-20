@@ -87,6 +87,12 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={styles.partyValue}>{dhl.importLicenseNumber}</Text>
             </View>
           )}
+          {dhl.paymentMethod && (
+            <View style={{ marginTop: 4 }}>
+              <Text style={styles.partyLabel}>Payment Method</Text>
+              <Text style={styles.partyValue}>{dhl.paymentMethod}</Text>
+            </View>
+          )}
         </View>
 
         {/* COMMODITY TABLE */}
@@ -102,6 +108,8 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Unit</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Total</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Net kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '9%' }]}>Gross kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '11%' }]}>Marks & Numbers</Text>
           </View>
           {data.lines.map((line, idx) => (
             <View key={idx} style={styles.tableRow}>
@@ -114,6 +122,8 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
+              <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
+              <Text style={[styles.tableCell, { width: '11%', fontSize: 6 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
             </View>
           ))}
           <View style={[styles.totalsRow, styles.tableRow]}>
@@ -126,6 +136,8 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
             <Text style={[styles.tableCell, { width: '10%' }]} />
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '11%' }]} />
           </View>
         </View>
 

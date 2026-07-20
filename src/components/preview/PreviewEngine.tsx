@@ -2,7 +2,7 @@
 
 // ============================================================================
 // PreviewEngine — Live preview con error highlighting + blocking overlay
-// ProformaFlow · FASE 2
+// ProformaFlow · FASE 2 (warnings AMARILLO mapeados por línea + banner regulatorio)
 // ============================================================================
 import React, { useMemo } from 'react';
 import type { ShipmentData, DocumentType } from '@/types/shipment';
@@ -21,11 +21,31 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
 
   const documentErrors = validationErrors.filter((e) => e.documentTypes.includes(activeDocument));
 
+  // FASE 2: warnings por línea (field empieza con "lines[idx]")
+  const lineWarnings = useMemo(() => {
+    const map = new Map<number, string[]>();
+    preCheck.warnings.forEach((w) => {
+      const m = w.field.match(/^lines\[(\d+)\]/);
+      if (m) {
+        const idx = parseInt(m[1], 10);
+        const arr = map.get(idx) || [];
+        arr.push(w.message);
+        map.set(idx, arr);
+      }
+    });
+    return map;
+  }, [preCheck.warnings]);
+
+  // FASE 2: warnings regulatorios globales (no por línea, con recomendación)
+  const regulatoryWarnings = useMemo(() => {
+    return preCheck.warnings.filter((w) => !w.field.startsWith('lines['));
+  }, [preCheck.warnings]);
+
   return (
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, background: '#fafafa', position: 'relative' }}>
       <h3 style={{ marginTop: 0, fontSize: 14 }}>Live Preview — {activeDocument}</h3>
 
-      {/* Validation Banner */}
+      {/* Validation Banner — ROJO (Bloqueantes) */}
       {preCheck.blockingErrors.length > 0 && (
         <div style={{ background: '#fef2f2', border: '1px solid #dc2626', borderRadius: 6, padding: 8, marginBottom: 12 }}>
           <strong style={{ color: '#dc2626', fontSize: 12 }}>🔴 {preCheck.blockingErrors.length} Bloqueante(s)</strong>
@@ -34,11 +54,20 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
           </ul>
         </div>
       )}
-      {preCheck.warnings.length > 0 && (
+
+      {/* FASE 2: Banner AMARILLO — Advertencias regulatorias globales */}
+      {regulatoryWarnings.length > 0 && (
         <div style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: 6, padding: 8, marginBottom: 12 }}>
-          <strong style={{ color: '#b45309', fontSize: 12 }}>🟡 {preCheck.warnings.length} Advertencia(s)</strong>
+          <strong style={{ color: '#b45309', fontSize: 12 }}>🟡 {regulatoryWarnings.length} Advertencia(s) regulatoria(s)</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 11 }}>
-            {preCheck.warnings.map((w, i) => <li key={i} style={{ color: '#92400e' }}>{w.message}</li>)}
+            {regulatoryWarnings.map((w, i) => (
+              <li key={i} style={{ color: '#92400e' }}>
+                {w.message}
+                {w.recommendation && (
+                  <span style={{ display: 'block', color: '#b45309', fontStyle: 'italic' }}>→ {w.recommendation}</span>
+                )}
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -85,7 +114,18 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
                 <td style={tdStyle}>{idx + 1}</td>
                 <td style={tdStyle}>
                   {line.description || <span style={{ color: '#dc2626' }}>MISSING</span>}
-                  {hasFieldError(`lines[${idx}].description`, preCheck.blockingErrors) && <span style={{ color: '#dc2626' }}> ⚠</span>}
+                  {/* FASE 2: badge AMARILLO por línea */}
+                  {lineWarnings.get(idx) && lineWarnings.get(idx)!.length > 0 && (
+                    <span title={lineWarnings.get(idx)!.join(' | ')} style={lineWarnBadge}>
+                      🟡
+                    </span>
+                  )}
+                  {/* Tooltip expandido debajo de la descripción */}
+                  {lineWarnings.get(idx) && lineWarnings.get(idx)!.length > 0 && (
+                    <div style={{ fontSize: 8, color: '#b45309', marginTop: 2 }}>
+                      {lineWarnings.get(idx)!.map((w, i) => <div key={i}>⚠ {w}</div>)}
+                    </div>
+                  )}
                 </td>
                 <td style={tdStyle}>{line.hsCode || <span style={{ color: '#dc2626' }}>—</span>}</td>
                 <td style={tdStyle}>{line.countryOfOrigin || <span style={{ color: '#dc2626' }}>—</span>}</td>
@@ -137,9 +177,6 @@ function documentTitle(doc: DocumentType): string {
   return titles[doc];
 }
 
-function hasFieldError(field: string, errors: { field: string }[]): boolean {
-  return errors.some((e) => e.field === field);
-}
-
 const thStyle: React.CSSProperties = { padding: '4px 6px', textAlign: 'left', fontSize: 9, borderBottom: '1px solid #999' };
 const tdStyle: React.CSSProperties = { padding: '4px 6px', borderBottom: '1px solid #eee' };
+const lineWarnBadge: React.CSSProperties = { marginLeft: 4, cursor: 'help', fontSize: 11 };

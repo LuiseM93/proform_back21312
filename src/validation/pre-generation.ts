@@ -70,16 +70,25 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     }
   });
 
-  // 4. DESCRIPTION_TOO_GENERIC — Descripción específica
+  // 4. DESCRIPTION — BLOCKING (largo/empaque) + WARNING (palabras genéricas) [FASE 3]
   data.lines.forEach((line, idx) => {
     const descCheck = validateDescriptionForCarrier(data.carrier, line.description);
-    if (!descCheck.valid) {
+    if (descCheck.errors.length > 0) {
       blockingErrors.push({
         code: 'DESCRIPTION_TOO_GENERIC',
         message: `Línea ${idx + 1}: ${descCheck.errors.join('; ')}`,
         field: `lines[${idx}].description`,
         severity: 'BLOCKING',
         regulation: 'FedEx/DHL/UPS description requirements; 19 CFR 141.86',
+      });
+    }
+    if (descCheck.warnings.length > 0) {
+      warnings.push({
+        code: 'DESCRIPTION_BLACKLIST_WORD',
+        message: `Línea ${idx + 1}: ${descCheck.warnings.join('; ')}`,
+        field: `lines[${idx}].description`,
+        severity: 'WARNING',
+        recommendation: 'Reemplace términos genéricos por descripción específica (qué es, material, uso).',
       });
     }
   });
@@ -198,6 +207,20 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     });
   }
 
+  // AWB/Tracking UPS: si el Invoice Number se captura como tracking 1Z, validar formato (ROJO)
+  if (data.documentType === 'CI_UPS') {
+    const upsRef = data.carrierSpecific.ups?.invoiceNumber;
+    if (upsRef && upsRef.toUpperCase().startsWith('1Z') && !/^1Z[A-Z0-9]{16}$/.test(upsRef.toUpperCase())) {
+      blockingErrors.push({
+        code: 'AWB_FORMAT_INVALID',
+        message: `Tracking UPS inválido: formato 1Z requiere 1Z + 16 alfanuméricos (actual: "${upsRef}")`,
+        field: 'carrierSpecific.ups.invoiceNumber',
+        severity: 'BLOCKING',
+        regulation: 'UPS 1Z tracking format (1Z + 16 chars)',
+      });
+    }
+  }
+
   // 13. PARTIES_RELATIONSHIP_MISSING_UPS — UPS RELATED/NOT_RELATED (ROJO)
   if (data.documentType === 'CI_UPS' && !data.carrierSpecific.ups?.partiesRelationship) {
     blockingErrors.push({
@@ -210,7 +233,7 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
   }
 
   // 14. PAPER_INVOICE_SURCHARGE_UPS — Warning si UPS papel (AMARILLO)
-  if (data.carrier === 'UPS' && !data.carrierSpecific.ups?.usmcaCertification) {
+  if (data.carrier === 'UPS' && (data.output.outputFormat === 'PDF' || data.output.outputFormat === 'BOTH')) {
     warnings.push({
       code: 'PAPER_INVOICE_SURCHARGE_UPS',
       message: 'UPS cobra $5/shipment por factura en papel. Use Paperless Invoice / EDI para evitar recargo.',
