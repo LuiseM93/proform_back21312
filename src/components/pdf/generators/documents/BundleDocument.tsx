@@ -67,7 +67,7 @@ export function BundleDocument({ data }: { data: BundleData }) {
               <Text style={[styles.tableCell, { width: '4%' }]}>{idx + 1}</Text>
               <Text style={[styles.tableCell, { width: '18%' }]}>{line.description}</Text>
               <Text style={[styles.tableCell, { width: '7%' }]}>{line.hsCode}</Text>
-              <Text style={[styles.tableCell, { width: '5%' }]}>{line.countryOfOrigin}</Text>
+              <Text style={[styles.tableCell, { width: '5%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
               <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
               <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
               <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>

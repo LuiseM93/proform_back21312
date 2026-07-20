@@ -107,7 +107,7 @@ export function CiFedexDocument({ data }: { data: CiFedexData }) {
                   {line.descriptionEs && <Text style={{ fontSize: 6, color: '#666' }}>{line.descriptionEs}</Text>}
                 </View>
                 <Text style={[styles.tableCell, { width: '8%' }]}>{line.hsCode}</Text>
-                <Text style={[styles.tableCell, { width: '6%' }]}>{line.countryOfOrigin}</Text>
+                <Text style={[styles.tableCell, { width: '6%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
                 <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
                 <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
                 <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
