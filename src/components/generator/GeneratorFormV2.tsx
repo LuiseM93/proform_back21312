@@ -10,8 +10,7 @@ import type {
   CarrierSpecificData, OutputConfig,
 } from '@/types/shipment';
 import { ShipmentSchema } from '@/validation/schemas';
-import { runPreGenerationChecks } from '@/validation/pre-generation';
-import { validateCrossDocumentConsistency } from '@/validation/cross-document';
+import { validateShipment } from '@/validation';
 import { PartyForm } from './steps/PartyForm';
 import { LinesForm } from './steps/LinesForm';
 import { CarrierForm } from './steps/CarrierForm';
@@ -40,8 +39,10 @@ export function GeneratorFormV2({
     setData((prev) => ({ ...prev, ...patch, documentType: activeDoc, carrier }));
   }, [activeDoc, carrier]);
 
-  const preCheck = useMemo(() => runPreGenerationChecks(data), [data]);
-  const crossResult = useMemo(() => validateCrossDocumentConsistency(new Map([[activeDoc, data]])), [activeDoc, data]);
+  const validation = useMemo(
+    () => validateShipment(data, new Map([[activeDoc, data]])),
+    [activeDoc, data]
+  );
 
   const handleGenerate = useCallback(async () => {
     const result = ShipmentSchema.safeParse(data);
@@ -50,7 +51,7 @@ export function GeneratorFormV2({
       alert('Validation errors. Please review the form.');
       return;
     }
-    if (!preCheck.canGenerate) {
+    if (!validation.canGenerate) {
       alert('Blocking errors present. Cannot generate.');
       return;
     }
@@ -72,7 +73,7 @@ export function GeneratorFormV2({
       console.error('Generation error:', err);
       alert('Generation error: ' + (err as Error).message);
     }
-  }, [data, preCheck, activeDoc]);
+  }, [data, validation, activeDoc]);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 16 }}>
@@ -173,10 +174,10 @@ export function GeneratorFormV2({
         )}
         {step === 4 && (
           <OutputForm documentType={activeDoc} destinationCountryGroup={data.destinationCountryGroup}
-            value={data.output} onChange={(output: OutputConfig) => update({ output })}
-            blockingErrors={preCheck.blockingErrors}
-            warnings={[...preCheck.warnings, ...crossResult.warnings.filter(w => w.documentTypes.includes(activeDoc))]}
-            onGenerate={handleGenerate} />
+              value={data.output} onChange={(output: OutputConfig) => update({ output })}
+              blockingErrors={validation.blocking.map((i) => ({ code: i.code, message: i.message, field: i.field }))}
+              warnings={validation.warnings.map((i) => ({ code: i.code, message: i.message, field: i.field, recommendation: i.recommendation }))}
+              onGenerate={handleGenerate} />
         )}
 
         {/* Navigation */}
@@ -198,7 +199,7 @@ export function GeneratorFormV2({
         <PreviewEngine
           data={data}
           activeDocument={activeDoc}
-          crossWarnings={crossResult.warnings.filter((w) => w.documentTypes.includes(activeDoc))}
+          crossWarnings={validation.warnings.map((i) => ({ code: i.code, message: i.message, field: i.field, recommendation: i.recommendation }))}
         />
       </div>
     </div>

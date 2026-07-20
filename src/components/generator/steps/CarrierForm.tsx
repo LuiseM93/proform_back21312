@@ -109,6 +109,44 @@ function UpsForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d
       <input type="date" style={inputStyle} value={ups.usmcaCertification?.date || ''}
         onChange={(e) => set({ usmcaCertification: { certifierRole: ups.usmcaCertification?.certifierRole || 'EXPORTER', certifier: ups.usmcaCertification?.certifier || emptyParty(), importer: ups.usmcaCertification?.importer || emptyParty(), goods: ups.usmcaCertification?.goods || [], originCriterion: ups.usmcaCertification?.originCriterion || 'A', authorizedSignature: ups.usmcaCertification?.authorizedSignature || '', date: e.target.value } })} />
 
+      {/* USMCA Goods (per product) */}
+      <h6 style={{ margin: '10px 0 4px', fontSize: 12 }}>Goods ({ups.usmcaCertification?.goods?.length || 0})</h6>
+      {(ups.usmcaCertification?.goods || []).map((g, gi) => (
+        <div key={gi} style={{ border: '1px solid #e5e7eb', borderRadius: 4, padding: 6, marginBottom: 6 }}>
+          <label style={labelStyle}>Description</label>
+          <input style={inputStyle} value={g.description}
+            onChange={(e) => {
+              const goods = [...(ups.usmcaCertification?.goods || [])];
+              goods[gi] = { ...g, description: e.target.value };
+              set({ usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods, originCriterion: 'A', authorizedSignature: '', date: '' }), goods } });
+            }} />
+          <label style={labelStyle}>HS Code</label>
+          <input style={inputStyle} value={g.hsCode}
+            onChange={(e) => {
+              const goods = [...(ups.usmcaCertification?.goods || [])];
+              goods[gi] = { ...g, hsCode: e.target.value };
+              set({ usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods, originCriterion: 'A', authorizedSignature: '', date: '' }), goods } });
+            }} />
+          <label style={labelStyle}>Criterion</label>
+          <select style={inputStyle} value={g.originCriterion}
+            onChange={(e) => {
+              const goods = [...(ups.usmcaCertification?.goods || [])];
+              goods[gi] = { ...g, originCriterion: e.target.value as 'A' | 'B' | 'C' | 'D' };
+              set({ usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods, originCriterion: 'A', authorizedSignature: '', date: '' }), goods } });
+            }}>
+            <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+          </select>
+          <button type="button" onClick={() => {
+            const goods = (ups.usmcaCertification?.goods || []).filter((_, i) => i !== gi);
+            set({ usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods, originCriterion: 'A', authorizedSignature: '', date: '' }), goods } });
+          }} style={{ fontSize: 11, color: '#b91c1c', marginTop: 4 }}>Remove</button>
+        </div>
+      ))}
+      <button type="button" onClick={() => {
+        const goods = [...(ups.usmcaCertification?.goods || []), { description: '', hsCode: '', originCriterion: 'A' as const }];
+        set({ usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods, originCriterion: 'A', authorizedSignature: '', date: '' }), goods } });
+      }} style={{ fontSize: 12, marginTop: 4 }}>+ Add good</button>
+
       <div style={upsWarnBox}>
         🟡 NAFTA is obsolete (replaced by USMCA in 2020). Do NOT include the "NAFTA Certification" block in the CI — the USMCA certification goes on a separate document.
       </div>
