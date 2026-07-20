@@ -89,7 +89,7 @@ export function OutputForm({
       <div style={{ marginTop: 16 }}>
         {blockingErrors.length > 0 && (
           <div style={{ background: '#fef2f2', border: '1px solid #dc2626', borderRadius: 8, padding: 12, marginBottom: 8 }}>
-            <strong style={{ color: '#dc2626' }}>🔴 {blockingErrors.length} Bloqueante(s):</strong>
+            <strong style={{ color: '#dc2626' }}>🔴 {blockingErrors.length} Blocking Error(s):</strong>
             <ul style={{ margin: '4px 0 0', paddingLeft: 20, fontSize: 12 }}>
               {blockingErrors.map((e, i) => <li key={i} style={{ color: '#991b1b' }}>{e.message}</li>)}
             </ul>
@@ -97,7 +97,7 @@ export function OutputForm({
         )}
         {warnings.length > 0 && (
           <div style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: 8, padding: 12, marginBottom: 8 }}>
-            <strong style={{ color: '#b45309' }}>🟡 {warnings.length} Advertencia(s):</strong>
+            <strong style={{ color: '#b45309' }}>🟡 {warnings.length} Warning(s):</strong>
             <ul style={{ margin: '4px 0 0', paddingLeft: 20, fontSize: 12 }}>
               {warnings.map((w, i) => <li key={i} style={{ color: '#92400e' }}>{w.message}</li>)}
             </ul>
@@ -115,7 +115,7 @@ export function OutputForm({
           color: 'white', cursor: blockingErrors.length > 0 ? 'not-allowed' : 'pointer',
         }}
       >
-        {blockingErrors.length > 0 ? 'Bloqueado — Corrija errores' : 'Generar PDF / EDI'}
+        {blockingErrors.length > 0 ? 'Blocked — Fix errors' : 'Generate PDF / EDI'}
       </button>
     </div>
   );

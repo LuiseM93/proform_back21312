@@ -233,28 +233,28 @@ export function validateCurrencies(items: LineItem[]): string | null {
   return null;
 }
 
-// FASE 1: Validación ROJO — unitPrice debe ser > 0 (incluso muestras/regalos requieren valor de aduana)
+// FASE 1: RED validation — unitPrice must be > 0 (even samples/gifts require a customs value)
 export function validateLineItems(items: LineItem[]): { field: string; message: string; severity: "error" }[] {
   const errors: { field: string; message: string; severity: "error" }[] = [];
   items.forEach((item, idx) => {
     if (!item.unitPrice || item.unitPrice <= 0) {
       errors.push({
         field: `items[${idx}].unitPrice`,
-        message: `Línea ${idx + 1}: Valor unitario debe ser > 0 (incluso muestras/regalos requieren valor de aduana).`,
+        message: `Line ${idx + 1}: Unit value must be > 0 (even samples/gifts require a customs value).`,
         severity: "error",
       });
     }
     if (!item.hsCode || !/^\d{6,10}$/.test(item.hsCode)) {
       errors.push({
         field: `items[${idx}].hsCode`,
-        message: `Línea ${idx + 1}: HS Code inválido (requerido 6-10 dígitos).`,
+        message: `Line ${idx + 1}: Invalid HS Code (required 6-10 digits).`,
         severity: "error",
       });
     }
     if (!item.countryOfOrigin || item.countryOfOrigin.length !== 2) {
       errors.push({
         field: `items[${idx}].countryOfOrigin`,
-        message: `Línea ${idx + 1}: País de origen requerido (ISO 3166-1 alpha-2).`,
+        message: `Line ${idx + 1}: Country of origin required (ISO 3166-1 alpha-2).`,
         severity: "error",
       });
     }

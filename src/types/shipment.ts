@@ -1,6 +1,6 @@
 // ============================================================================
-// SSOT — Single Source of Truth — Modelo Canónico de Envío (ShipmentData)
-// ProformaFlow · Comercio Internacional · v1.0 (Julio 2026)
+// SSOT — Single Source of Truth — Canonical Shipment Model (ShipmentData)
+// ProformaFlow · International Trade · v1.0 (July 2026)
 // ============================================================================
 
 // ─── Tipos discriminados por DocumentType ───────────────────────────────────
@@ -42,12 +42,12 @@ export interface Party {
 }
 
 export interface Parties {
-  shipper: Party; // Exportador/Vendedor (siempre requerido)
-  consignee: Party; // Consignatario/Receptor (siempre requerido)
+  shipper: Party; // Exporter/Seller (always required)
+  consignee: Party; // Consignee/Receiver (always required)
   buyer?: Party; // UPS: "Sold To Party"
   producer?: Party; // UPS: "Producer Name and Address"
   importerOfRecord?: Party; // DHL: IOR
-  notifyParty?: Party; // PL marítimo
+  notifyParty?: Party; // PL (maritime)
 }
 
 // ─── Product Lines ──────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ export interface ProductLine {
   sku?: string;
   description: string;
   descriptionEs?: string;
-  hsCode: string; // 6-10 dígitos
+  hsCode: string; // 6-10 digits
   hsCodeSource: 'USER' | 'AI_SUGGESTION' | 'CARRIER_TOOL';
   countryOfOrigin: string; // ISO 3166-1 alpha-2
   countryOfOriginName: string;
@@ -171,7 +171,7 @@ export interface USMCACertification {
 
 export interface CarrierSpecificData {
   fedex?: {
-    awbNumber: string; // 12 dígitos
+    awbNumber: string; // 12 digits
     exportReferences?: string;
     customsProcedureCode?: string;
     dutyTaxBilling: 'BILL_RECIPIENT' | 'BILL_SHIPPER';
@@ -190,7 +190,7 @@ export interface CarrierSpecificData {
     usmcaCertification?: USMCACertification;
   };
   dhl?: {
-    awbNumber: string; // 10 dígitos
+    awbNumber: string; // 10 digits
     shipmentReference: string;
     reasonForExport: DHLReasonForExport;
     typeOfExport: DHLTypeOfExport;
@@ -207,7 +207,7 @@ export interface CarrierSpecificData {
     awbBlRef: string;
     notifyParty?: Party;
     incoterm?: IncotermData;
-    packages: PackageDetail[]; // Mínimo 1
+    packages: PackageDetail[]; // Minimum 1
   };
   bundle?: {
     documentNumber: string;

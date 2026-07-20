@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================================
-// PartyForm — Soporta shipper, consignee, buyer, producer, IOR, notifyParty
+// PartyForm — Supports shipper, consignee, buyer, producer, IOR, notifyParty
 // ProformaFlow · FASE 2
 // ============================================================================
 import React from 'react';
@@ -85,7 +85,7 @@ export function PartyForm({ documentType, carrier, value, onChange }: PartyFormP
             style={{ ...inputStyle, gridColumn: 'span 2' }} />
           {key === 'shipper' && (
             <input
-              placeholder="EORI (obligatorio si destino UE) — ej: MX1234567890"
+              placeholder="EORI (mandatory for EU destination) — e.g. MX1234567890"
               value={party.eori || ''}
               onChange={(e) => updatePartyField(key, 'eori', e.target.value.toUpperCase())}
               style={{ ...inputStyle, gridColumn: 'span 2' }}
@@ -93,7 +93,7 @@ export function PartyForm({ documentType, carrier, value, onChange }: PartyFormP
           )}
           {key === 'shipper' && party.address.countryCode === 'MX' && !party.taxId && (
             <div style={warnBox}>
-              🟡 Exportador en México sin RFC. Se recomienda RFC para CFDI 4.0 / comprobante fiscal.
+              🟡 Shipper in Mexico without RFC. RFC is recommended for CFDI 4.0 / fiscal receipt.
             </div>
           )}
           {carrier === 'UPS' && (key === 'buyer' || key === 'producer' || key === 'consignee') && (

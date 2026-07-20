@@ -1,6 +1,6 @@
 // ============================================================================
-// Controlled Vocabularies — NO TEXTO LIBRE
-// ProformaFlow · Comercio Internacional · v1.0
+// Controlled Vocabularies — NO FREE TEXT
+// ProformaFlow · International Trade · v1.0
 // ============================================================================
 import type {
   Incoterm2020, UOM, PackageType, Currency, TaxIdType,
@@ -71,7 +71,7 @@ export const BLACKLISTED_DESCRIPTION_WORDS = [
   'general', 'miscellaneous', 'assorted', 'various'
 ] as const;
 
-// ─── Derivación PaperSize / Orientation ──────────────────────────────────────
+// ─── PaperSize / Orientation Derivation ───────────────────────────────────
 import type { CountryGroup, DocumentType, PaperSize, Orientation } from '@/types/shipment';
 
 export function derivePaperConfig(
@@ -90,8 +90,8 @@ export function derivePaperConfig(
   return { paperSize, orientation };
 }
 
-// ─── Validación de descripción por carrier ──────────────────────────────────
-// FASE 3: separa BLOCKING (largo mínimo, tipo empaque UPS) de WARNING (palabras genéricas)
+// ─── Description validation per carrier ──────────────────────────────────
+// FASE 3: separates BLOCKING (min length, UPS package type) from WARNING (generic words)
 export function validateDescriptionForCarrier(
   carrier: string,
   description: string
@@ -101,21 +101,21 @@ export function validateDescriptionForCarrier(
   const descLower = description.toLowerCase().trim();
 
   if (descLower.length < 20) {
-    errors.push(`Descripción muy corta (mínimo 20 caracteres). Especifique: qué es, material, uso.`);
+    errors.push(`Description too short (minimum 20 characters). Specify: what it is, material, use.`);
   }
 
-  // FASE 1: Blacklist de palabras genéricas = BLOQUEANTE (ROJO), no warning.
-  // Causa #1 de retenciones aduaneras (19 CFR 141.86). Impide generar PDF/EDI.
+  // FASE 1: generic-word blacklist = BLOCKING (RED), not a warning.
+  // #1 cause of customs holds (19 CFR 141.86). Prevents PDF/EDI generation.
   BLACKLISTED_DESCRIPTION_WORDS.forEach((word) => {
     if (descLower.split(/\s+/).includes(word)) {
-      errors.push(`Palabra genérica bloqueante: "${word}". Especifique: qué es, material, uso, marca/modelo.`);
+      errors.push(`Blocking generic word: "${word}". Specify: what it is, material, use, brand/model.`);
     }
   });
 
   if (carrier === 'UPS') {
     const hasPackageType = /\b(box|carton|crate|pallet|drum|bag|bundle)\b/i.test(description);
     if (!hasPackageType) {
-      errors.push('UPS requiere tipo de empaque en descripción (box, carton, pallet, etc.)');
+      errors.push('UPS requires a package type in the description (box, carton, pallet, etc.)');
     }
   }
 

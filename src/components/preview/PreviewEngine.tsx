@@ -1,8 +1,8 @@
 'use client';
 
 // ============================================================================
-// PreviewEngine — Live preview con error highlighting + blocking overlay
-// ProformaFlow · FASE 2 (warnings AMARILLO mapeados por línea + banner regulatorio)
+// PreviewEngine — Live preview with error highlighting + blocking overlay
+// ProformaFlow · FASE 2 (AMBER warnings mapped per line + regulatory banner)
 // ============================================================================
 import React, { useMemo } from 'react';
 import type { ShipmentData, DocumentType } from '@/types/shipment';
@@ -11,17 +11,13 @@ import { runPreGenerationChecks } from '@/validation/pre-generation';
 interface PreviewEngineProps {
   data: ShipmentData;
   activeDocument: DocumentType;
-  validationErrors: { code: string; message: string; field: string; severity: 'ERROR' | 'WARNING'; documentTypes: DocumentType[] }[];
-  onDataChange: (updates: Partial<ShipmentData>) => void;
 }
 
-export function PreviewEngine({ data, activeDocument, validationErrors, onDataChange }: PreviewEngineProps) {
+export function PreviewEngine({ data, activeDocument }: PreviewEngineProps) {
   const preCheck = useMemo(() => runPreGenerationChecks(data), [data]);
   const hasBlocking = preCheck.blockingErrors.length > 0;
 
-  const documentErrors = validationErrors.filter((e) => e.documentTypes.includes(activeDocument));
-
-  // FASE 2: warnings por línea (field empieza con "lines[idx]")
+  // FASE 2: warnings per line (field starts with "lines[idx]")
   const lineWarnings = useMemo(() => {
     const map = new Map<number, string[]>();
     preCheck.warnings.forEach((w) => {
@@ -36,7 +32,7 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
     return map;
   }, [preCheck.warnings]);
 
-  // FASE 2: warnings regulatorios globales (no por línea, con recomendación)
+  // FASE 2: global regulatory warnings (not per line, with recommendation)
   const regulatoryWarnings = useMemo(() => {
     return preCheck.warnings.filter((w) => !w.field.startsWith('lines['));
   }, [preCheck.warnings]);
@@ -45,20 +41,20 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, background: '#fafafa', position: 'relative' }}>
       <h3 style={{ marginTop: 0, fontSize: 14 }}>Live Preview — {activeDocument}</h3>
 
-      {/* Validation Banner — ROJO (Bloqueantes) */}
+      {/* Validation Banner — RED (Blocking) */}
       {preCheck.blockingErrors.length > 0 && (
         <div style={{ background: '#fef2f2', border: '1px solid #dc2626', borderRadius: 6, padding: 8, marginBottom: 12 }}>
-          <strong style={{ color: '#dc2626', fontSize: 12 }}>🔴 {preCheck.blockingErrors.length} Bloqueante(s)</strong>
+          <strong style={{ color: '#dc2626', fontSize: 12 }}>🔴 {preCheck.blockingErrors.length} Blocking Error(s)</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 11 }}>
             {preCheck.blockingErrors.map((e, i) => <li key={i} style={{ color: '#991b1b' }}>{e.message}</li>)}
           </ul>
         </div>
       )}
 
-      {/* FASE 2: Banner AMARILLO — Advertencias regulatorias globales */}
+      {/* FASE 2: Banner AMBER — Global regulatory warnings */}
       {regulatoryWarnings.length > 0 && (
         <div style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: 6, padding: 8, marginBottom: 12 }}>
-          <strong style={{ color: '#b45309', fontSize: 12 }}>🟡 {regulatoryWarnings.length} Advertencia(s) regulatoria(s)</strong>
+          <strong style={{ color: '#b45309', fontSize: 12 }}>🟡 {regulatoryWarnings.length} Regulatory Warning(s)</strong>
           <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 11 }}>
             {regulatoryWarnings.map((w, i) => (
               <li key={i} style={{ color: '#92400e' }}>
@@ -114,13 +110,13 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
                 <td style={tdStyle}>{idx + 1}</td>
                 <td style={tdStyle}>
                   {line.description || <span style={{ color: '#dc2626' }}>MISSING</span>}
-                  {/* FASE 2: badge AMARILLO por línea */}
+                  {/* FASE 2: AMBER badge per line */}
                   {lineWarnings.get(idx) && lineWarnings.get(idx)!.length > 0 && (
                     <span title={lineWarnings.get(idx)!.join(' | ')} style={lineWarnBadge}>
                       🟡
                     </span>
                   )}
-                  {/* Tooltip expandido debajo de la descripción */}
+                  {/* Expanded tooltip below the description */}
                   {lineWarnings.get(idx) && lineWarnings.get(idx)!.length > 0 && (
                     <div style={{ fontSize: 8, color: '#b45309', marginTop: 2 }}>
                       {lineWarnings.get(idx)!.map((w, i) => <div key={i}>⚠ {w}</div>)}
@@ -156,8 +152,8 @@ export function PreviewEngine({ data, activeDocument, validationErrors, onDataCh
         }}>
           <div style={{ background: 'white', padding: 16, borderRadius: 8, border: '1px solid #dc2626', textAlign: 'center' }}>
             <div style={{ fontSize: 32 }}>⛔</div>
-            <strong style={{ color: '#dc2626' }}>Errores Bloqueantes</strong>
-            <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Corrija antes de generar</div>
+              <strong style={{ color: '#dc2626' }}>Blocking Errors</strong>
+              <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Fix before generating</div>
           </div>
         </div>
       )}

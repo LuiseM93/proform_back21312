@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================================
-// CarrierForm — Campos específicos por carrier + validación en vivo
+// CarrierForm — Carrier-specific fields + live validation
 // ProformaFlow · FASE 2
 // ============================================================================
 import React from 'react';
@@ -17,7 +17,7 @@ interface CarrierFormProps {
 
 export function CarrierForm({ documentType, carrier, value, onChange }: CarrierFormProps) {
   if (documentType === 'PROFORMA') {
-    return <div style={{ padding: 16, color: '#666' }}>Proforma no requiere configuración de carrier.</div>;
+    return <div style={{ padding: 16, color: '#666' }}>Proforma does not require carrier configuration.</div>;
   }
 
   return (
@@ -85,10 +85,10 @@ function UpsForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d
       </label>
       <span style={{ fontSize: 11, color: ups.partiesRelationship === 'NOT_RELATED' ? '#666' : '#16a34a' }}>{ups.partiesRelationship === 'RELATED' ? '⚠ Related party — valuation required' : '✓ Not Related (standard valuation)'}</span>
       <div style={upsWarnBox}>
-        🟡 NAFTA está obsoleto (reemplazado por USMCA en 2020). NO incluyas el bloque &quot;NAFTA Certification&quot; en la CI — la certificación USMCA va en documento separado.
+        🟡 NAFTA is obsolete (replaced by USMCA in 2020). Do NOT include the “NAFTA Certification” block in the CI — the USMCA certification goes on a separate document.
       </div>
       <div style={upsWarnBox}>
-        🟡 UPS Paperless: enviar la factura en papel añade un recargo aprox. de $5 USD por envío. Usa formato EDI/Paperless para evitarlo.
+        🟡 UPS Paperless: sending a paper invoice adds a ~$5 USD surcharge per shipment. Use EDI/Paperless format to avoid it.
       </div>
     </div>
   );
@@ -140,7 +140,7 @@ function PlForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d:
       <input style={inputStyle} value={pl.commercialInvoiceRef} onChange={(e) => set({ commercialInvoiceRef: e.target.value })} />
       <label style={labelStyle}>AWB/BL Ref *</label>
       <input style={inputStyle} value={pl.awbBlRef} onChange={(e) => set({ awbBlRef: e.target.value })} />
-      <span style={{ fontSize: 11, color: pl.packages.length >= 1 ? '#16a34a' : '#dc2626' }}>{pl.packages.length >= 1 ? `✓ ${pl.packages.length} bultos` : '⚠ Mínimo 1 bulto requerido'}</span>
+      <span style={{ fontSize: 11, color: pl.packages.length >= 1 ? '#16a34a' : '#dc2626' }}>{pl.packages.length >= 1 ? `✓ ${pl.packages.length} package(s)` : '⚠ Minimum 1 package required'}</span>
     </div>
   );
 }

@@ -65,7 +65,7 @@ function validateCiVsPl(
   if (Math.abs(ci.totals.totalGrossWeightKg - pl.totals.totalGrossWeightKg) > 0.1) {
     errors.push({
       code: 'WEIGHT_MISMATCH_GROSS',
-      message: `Peso bruto total difiere: CI=${ci.totals.totalGrossWeightKg}kg vs PL=${pl.totals.totalGrossWeightKg}kg`,
+      message: `Total gross weight differs: CI=${ci.totals.totalGrossWeightKg}kg vs PL=${pl.totals.totalGrossWeightKg}kg`,
       field: 'totals.totalGrossWeightKg',
       severity: 'ERROR',
       documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -75,7 +75,7 @@ function validateCiVsPl(
   if (Math.abs(ci.totals.totalNetWeightKg - pl.totals.totalNetWeightKg) > 0.1) {
     errors.push({
       code: 'WEIGHT_MISMATCH_NET',
-      message: `Peso neto total difiere: CI=${ci.totals.totalNetWeightKg}kg vs PL=${pl.totals.totalNetWeightKg}kg`,
+      message: `Total net weight differs: CI=${ci.totals.totalNetWeightKg}kg vs PL=${pl.totals.totalNetWeightKg}kg`,
       field: 'totals.totalNetWeightKg',
       severity: 'ERROR',
       documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -85,7 +85,7 @@ function validateCiVsPl(
   if (ci.totals.totalPackages !== pl.totals.totalPackages) {
     errors.push({
       code: 'PACKAGE_COUNT_MISMATCH',
-      message: `Número de bultos difiere: CI=${ci.totals.totalPackages} vs PL=${pl.totals.totalPackages}`,
+      message: `Number of packages differs: CI=${ci.totals.totalPackages} vs PL=${pl.totals.totalPackages}`,
       field: 'totals.totalPackages',
       severity: 'ERROR',
       documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -95,7 +95,7 @@ function validateCiVsPl(
   if (ci.lines.length !== pl.lines.length) {
     errors.push({
       code: 'LINE_COUNT_MISMATCH',
-      message: `Número de líneas difiere: CI=${ci.lines.length} vs PL=${pl.lines.length}`,
+      message: `Number of lines differs: CI=${ci.lines.length} vs PL=${pl.lines.length}`,
       field: 'lines',
       severity: 'ERROR',
       documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -106,7 +106,7 @@ function validateCiVsPl(
       if (ciLine.description !== plLine.description) {
         errors.push({
           code: 'DESCRIPTION_MISMATCH',
-          message: `Línea ${idx + 1}: descripción difiere: CI="${ciLine.description}" vs PL="${plLine.description}"`,
+          message: `Line ${idx + 1}: description differs: CI="${ciLine.description}" vs PL="${plLine.description}"`,
           field: `lines[${idx}].description`,
           severity: 'ERROR',
           documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -115,7 +115,7 @@ function validateCiVsPl(
       if (ciLine.hsCode !== plLine.hsCode) {
         errors.push({
           code: 'HS_CODE_MISMATCH',
-          message: `Línea ${idx + 1}: HS Code difiere: CI="${ciLine.hsCode}" vs PL="${plLine.hsCode}"`,
+          message: `Line ${idx + 1}: HS Code differs: CI="${ciLine.hsCode}" vs PL="${plLine.hsCode}"`,
           field: `lines[${idx}].hsCode`,
           severity: 'ERROR',
           documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -124,7 +124,7 @@ function validateCiVsPl(
       if (ciLine.countryOfOrigin !== plLine.countryOfOrigin) {
         errors.push({
           code: 'COO_MISMATCH',
-          message: `Línea ${idx + 1}: País de origen difiere: CI="${ciLine.countryOfOrigin}" vs PL="${plLine.countryOfOrigin}"`,
+          message: `Line ${idx + 1}: Country of origin differs: CI="${ciLine.countryOfOrigin}" vs PL="${plLine.countryOfOrigin}"`,
           field: `lines[${idx}].countryOfOrigin`,
           severity: 'ERROR',
           documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -138,7 +138,7 @@ function validateCiVsPl(
   if (JSON.stringify(ciMarks.sort()) !== JSON.stringify(plMarks.sort())) {
     errors.push({
       code: 'SHIPPING_MARKS_MISMATCH',
-      message: 'Marcas y números de bultos difieren entre CI y PL',
+      message: 'Shipping marks and package numbers differ between CI and PL',
       field: 'packages.shippingMarks',
       severity: 'ERROR',
       documentTypes: ['CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST'],
@@ -158,7 +158,7 @@ function validateBundleVsComponents(
     if (bundle.lines.length !== ci.lines.length) {
       errors.push({
         code: 'BUNDLE_LINE_COUNT_MISMATCH',
-        message: `Bundle líneas (${bundle.lines.length}) ≠ CI líneas (${ci.lines.length})`,
+        message: `Bundle lines (${bundle.lines.length}) ≠ CI lines (${ci.lines.length})`,
         field: 'lines',
         severity: 'ERROR',
         documentTypes: ['BUNDLE_CIPL', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -170,7 +170,7 @@ function validateBundleVsComponents(
       if (bLine.unitPrice !== ciLine.unitPrice || bLine.lineTotal !== ciLine.lineTotal) {
         errors.push({
           code: 'BUNDLE_FINANCIAL_MISMATCH',
-          message: `Línea ${idx + 1}: valores financieros difieren de CI`,
+          message: `Line ${idx + 1}: financial values differ from CI`,
           field: `lines[${idx}].unitPrice|lineTotal`,
           severity: 'ERROR',
           documentTypes: ['BUNDLE_CIPL', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -183,7 +183,7 @@ function validateBundleVsComponents(
           if (JSON.stringify(bLine.packages) !== JSON.stringify(plPackages)) {
             errors.push({
               code: 'BUNDLE_PHYSICAL_MISMATCH',
-              message: `Línea ${idx + 1}: detalle de bultos difiere de PL`,
+              message: `Line ${idx + 1}: package details differ from PL`,
               field: `lines[${idx}].packages`,
               severity: 'ERROR',
               documentTypes: ['BUNDLE_CIPL', 'PACKING_LIST'],
@@ -217,7 +217,7 @@ function validateProformaVsCi(
   if (proforma.lines.length !== ci.lines.length) {
     warnings.push({
       code: 'PROFORMA_CI_LINE_COUNT_DIFF',
-      message: `Número de líneas difiere: Proforma=${proforma.lines.length} vs CI=${ci.lines.length}`,
+      message: `Number of lines differs: Proforma=${proforma.lines.length} vs CI=${ci.lines.length}`,
       field: 'lines',
       severity: 'WARNING',
       documentTypes: ['PROFORMA', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -228,7 +228,7 @@ function validateProformaVsCi(
       if (pLine.description !== ciLine.description) {
         warnings.push({
           code: 'PROFORMA_CI_DESC_DIFF',
-          message: `Línea ${idx + 1}: descripción cambió de Proforma a CI`,
+          message: `Line ${idx + 1}: description changed from Proforma to CI`,
           field: `lines[${idx}].description`,
           severity: 'WARNING',
           documentTypes: ['PROFORMA', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -237,7 +237,7 @@ function validateProformaVsCi(
       if (pLine.hsCode !== ciLine.hsCode) {
         warnings.push({
           code: 'PROFORMA_CI_HS_DIFF',
-          message: `Línea ${idx + 1}: HS Code cambió de Proforma a CI`,
+          message: `Line ${idx + 1}: HS Code changed from Proforma to CI`,
           field: `lines[${idx}].hsCode`,
           severity: 'WARNING',
           documentTypes: ['PROFORMA', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -246,7 +246,7 @@ function validateProformaVsCi(
       if (pLine.countryOfOrigin !== ciLine.countryOfOrigin) {
         errors.push({
           code: 'PROFORMA_CI_COO_DIFF',
-          message: `Línea ${idx + 1}: País de origen CAMBIÓ (ilegal): Proforma="${pLine.countryOfOrigin}" vs CI="${ciLine.countryOfOrigin}"`,
+          message: `Line ${idx + 1}: Country of origin CHANGED (illegal): Proforma="${pLine.countryOfOrigin}" vs CI="${ciLine.countryOfOrigin}"`,
           field: `lines[${idx}].countryOfOrigin`,
           severity: 'ERROR',
           documentTypes: ['PROFORMA', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -257,7 +257,7 @@ function validateProformaVsCi(
         if (variance > 0.1) {
           warnings.push({
             code: 'PROFORMA_CI_PRICE_VARIANCE',
-            message: `Línea ${idx + 1}: variación de precio ${(variance * 100).toFixed(1)}% (Proforma: ${pLine.unitPrice} → CI: ${ciLine.unitPrice})`,
+            message: `Line ${idx + 1}: price variance ${(variance * 100).toFixed(1)}% (Proforma: ${pLine.unitPrice} → CI: ${ciLine.unitPrice})`,
             field: `lines[${idx}].unitPrice`,
             severity: 'WARNING',
             documentTypes: ['PROFORMA', 'CI_FEDEX', 'CI_UPS', 'CI_DHL'],
@@ -293,7 +293,7 @@ function validateAwbConsistency(
       if (new Set(carriers).size > 1) {
         errors.push({
           code: 'AWB_CARRIER_MISMATCH',
-          message: `AWB ${awb} referenciado en documentos de carriers distintos: ${types.join(', ')}`,
+          message: `AWB ${awb} referenced in documents from different carriers: ${types.join(', ')}`,
           field: 'carrierSpecific.awbNumber',
           severity: 'ERROR',
           documentTypes: types,
@@ -313,7 +313,7 @@ function validateTotalsArithmetic(
     if (Math.abs(calculatedSubtotal - doc.totals.subtotal) > 0.01) {
       errors.push({
         code: 'SUBTOTAL_ARITHMETIC_ERROR',
-        message: `Subtotal (${doc.totals.subtotal}) ≠ suma de líneas (${calculatedSubtotal})`,
+        message: `Subtotal (${doc.totals.subtotal}) ≠ sum of lines (${calculatedSubtotal})`,
         field: 'totals.subtotal',
         severity: 'ERROR',
         documentTypes: [type],
@@ -335,7 +335,7 @@ function validateTotalsArithmetic(
     if (Math.abs(calcGross - doc.totals.totalGrossWeightKg) > 0.1) {
       errors.push({
         code: 'GROSS_WEIGHT_ARITHMETIC_ERROR',
-        message: `Peso bruto total (${doc.totals.totalGrossWeightKg}) ≠ suma líneas (${calcGross})`,
+        message: `Total gross weight (${doc.totals.totalGrossWeightKg}) ≠ sum of lines (${calcGross})`,
         field: 'totals.totalGrossWeightKg',
         severity: 'ERROR',
         documentTypes: [type],

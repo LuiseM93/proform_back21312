@@ -65,89 +65,89 @@ const validOutput = {
   outputFormat: 'PDF' as const,
 };
 
-describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
+describe('Zod Schemas - RED Validation (Blocking)', () => {
   describe('UNIT_PRICE_ZERO - unitPrice debe ser > 0', () => {
-    it('rechaza unitPrice = 0', () => {
+    it('rejects unitPrice = 0', () => {
       const line = { ...validLine, unitPrice: 0, lineTotal: 0 };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
       expect(result.error?.issues.some(i => i.path.includes('unitPrice'))).toBe(true);
     });
 
-    it('rechaza unitPrice negativo', () => {
+    it('rejects negative unitPrice', () => {
       const line = { ...validLine, unitPrice: -5 };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
-    it('acepta unitPrice > 0', () => {
+    it('accepts unitPrice > 0', () => {
       const line = { ...validLine, unitPrice: 10 };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(true);
     });
   });
 
-  describe('HS_CODE_INVALID - HS Code 6-10 dígitos', () => {
-    it('rechaza HS Code < 6 dígitos', () => {
+  describe('HS_CODE_INVALID - HS Code 6-10 digits', () => {
+    it('rejects HS Code < 6 digits', () => {
       const line = { ...validLine, hsCode: '12345' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
-    it('rechaza HS Code > 10 dígitos', () => {
+    it('rejects HS Code > 10 digits', () => {
       const line = { ...validLine, hsCode: '12345678901' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
-    it('rechaza HS Code con letras', () => {
+    it('rejects HS Code with letters', () => {
       const line = { ...validLine, hsCode: 'abc123' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
-    it('acepta HS Code 6-10 dígitos', () => {
+    it('accepts HS Code 6-10 digits', () => {
       expect(ProductLineSchema.safeParse({ ...validLine, hsCode: '610910' }).success).toBe(true);
       expect(ProductLineSchema.safeParse({ ...validLine, hsCode: '61091000' }).success).toBe(true);
       expect(ProductLineSchema.safeParse({ ...validLine, hsCode: '1234567890' }).success).toBe(true);
     });
   });
 
-  describe('COO_MISSING - País de origen ISO-2', () => {
-    it('rechaza countryOfOrigin vacío', () => {
+  describe('COO_MISSING - Country of origin ISO-2', () => {
+    it('rejects empty countryOfOrigin', () => {
       const line = { ...validLine, countryOfOrigin: '' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
-    it('rechaza countryOfOrigin != 2 letras', () => {
+    it('rejects countryOfOrigin != 2 letters', () => {
       const line = { ...validLine, countryOfOrigin: 'USA' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
-    it('acepta ISO-2 válido', () => {
+    it('accepts valid ISO-2', () => {
       expect(ProductLineSchema.safeParse({ ...validLine, countryOfOrigin: 'CN' }).success).toBe(true);
       expect(ProductLineSchema.safeParse({ ...validLine, countryOfOrigin: 'US' }).success).toBe(true);
     });
   });
 
   describe('DESCRIPTION_TOO_GENERIC - Blacklist validado en pre-generation (no Zod)', () => {
-    it('acepta descripción con "goods" (Zod no valida blacklist, lo hace pre-generation)', () => {
+    it('accepts description with "goods" (Zod does not validate blacklist; pre-generation does)', () => {
       const line = { ...validLine, description: 'Test goods description' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(true);
     });
 
-    it('acepta descripción específica sin blacklist', () => {
+    it('accepts specific description without blacklist', () => {
       const line = { ...validLine, description: 'Men shirts, 50% cotton 50% polyester, box' };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(true);
     });
   });
 
-  describe('EORI_MISSING_EU - EORI obligatorio destino EU (validado en refine)', () => {
-    it('requiere EORI en schema refine (test de integración)', () => {
+  describe('EORI_MISSING_EU - EORI required for EU destination (validated in refine)', () => {
+    it('requires EORI in schema refine (integration test)', () => {
       // Los refinements de EORI se validan en CiFedexSchema/CiDhlSchema
       // Este test solo verifica que el schema existe
       expect(CiFedexSchema).toBeDefined();
@@ -155,15 +155,15 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
     });
   });
 
-  describe('INCOTERM_INVALID - Solo 11 términos Incoterms 2020', () => {
-    it('rechaza Incoterm inválido', () => {
+  describe('INCOTERM_INVALID - Only 11 Incoterms 2020 terms', () => {
+    it('rejects invalid Incoterm', () => {
       const line = { ...validLine, incoterm: 'INVALID' as any };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
 
     INCOTERMS_2020.forEach(term => {
-      it(`acepta Incoterm válido: ${term}`, () => {
+      it(`accepts valid Incoterm: ${term}`, () => {
         const line = { ...validLine, incoterm: term };
         const result = ProductLineSchema.safeParse(line);
         expect(result.success).toBe(true);
@@ -172,7 +172,7 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
   });
 
   describe('AWB_FORMAT_INVALID - Formato por carrier', () => {
-    it('rechaza AWB FedEx ≠ 12 dígitos', () => {
+    it('rejects FedEx AWB ≠ 12 digits', () => {
       const result = FedExSpecificSchema.safeParse({
         awbNumber: '12345',
         dutyTaxBilling: 'BILL_RECIPIENT',
@@ -182,7 +182,7 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
       expect(result.success).toBe(false);
     });
 
-    it('rechaza AWB DHL ≠ 10 dígitos', () => {
+    it('rejects DHL AWB ≠ 10 digits', () => {
       const result = DHLSpecificSchema.safeParse({
         awbNumber: '12345',
         shipmentReference: 'REF',
@@ -194,7 +194,7 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
       expect(result.success).toBe(false);
     });
 
-    it('rechaza UPS Invoice ≠ formato 1Z+16', () => {
+    it('rejects UPS Invoice ≠ 1Z+16 format', () => {
       const result = UPSSpecificSchema.safeParse({
         invoiceNumber: 'INVALID',
         invoiceDate: '2026-07-15',
@@ -208,7 +208,7 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
       expect(result.success).toBe(false);
     });
 
-    it('acepta AWB FedEx 12 dígitos', () => {
+    it('accepts FedEx AWB 12 digits', () => {
       const result = FedExSpecificSchema.safeParse({
         awbNumber: '123456789012',
         dutyTaxBilling: 'BILL_RECIPIENT',
@@ -218,7 +218,7 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
       expect(result.success).toBe(true);
     });
 
-    it('acepta UPS 1Z tracking válido', () => {
+    it('accepts valid UPS 1Z tracking', () => {
       const result = UPSSpecificSchema.safeParse({
         invoiceNumber: '1Z999AA10123456784',
         invoiceDate: '2026-07-15',
@@ -233,15 +233,15 @@ describe('Zod Schemas - Validación ROJO (Bloqueantes)', () => {
     });
   });
 
-  describe('PARTIES_RELATIONSHIP_MISSING_UPS - RELATED/NOT_RELATED obligatorio', () => {
+  describe('PARTIES_RELATIONSHIP_MISSING_UPS - RELATED/NOT_RELATED required', () => {
     it('requiere partiesRelationship en schema refine', () => {
       expect(CiUpsSchema).toBeDefined();
     });
   });
 });
 
-describe('Zod Schemas - Validación VERDE (Pasar)', () => {
-  it('ProformaSchema válido completo', () => {
+describe('Zod Schemas - GREEN Validation (Pass)', () => {
+  it('ProformaSchema fully valid', () => {
     const data = {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'PROFORMA' as const,
@@ -260,7 +260,7 @@ describe('Zod Schemas - Validación VERDE (Pasar)', () => {
     expect(result.success).toBe(true);
   });
 
-  it('CiFedexSchema válido completo', () => {
+  it('CiFedexSchema fully valid', () => {
     const data = {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'CI_FEDEX' as const,
@@ -288,7 +288,7 @@ describe('Zod Schemas - Validación VERDE (Pasar)', () => {
     expect(result.success).toBe(true);
   });
 
-  it('CiUpsSchema válido completo', () => {
+  it('CiUpsSchema fully valid', () => {
     const data = {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'CI_UPS' as const,
@@ -317,7 +317,7 @@ describe('Zod Schemas - Validación VERDE (Pasar)', () => {
     expect(result.success).toBe(true);
   });
 
-  it('CiDhlSchema válido completo', () => {
+  it('CiDhlSchema fully valid', () => {
     const data = {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'CI_DHL' as const,
@@ -344,7 +344,7 @@ describe('Zod Schemas - Validación VERDE (Pasar)', () => {
     expect(result.success).toBe(true);
   });
 
-  it('PackingListSchema válido completo', () => {
+  it('PackingListSchema fully valid', () => {
     const data = {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'PACKING_LIST' as const,
@@ -370,7 +370,7 @@ describe('Zod Schemas - Validación VERDE (Pasar)', () => {
     expect(result.success).toBe(true);
   });
 
-  it('BundleSchema válido completo', () => {
+  it('BundleSchema fully valid', () => {
     const data = {
       shipmentId: '123e4567-e89b-12d3-a456-426614174000',
       documentType: 'BUNDLE_CIPL' as const,

@@ -2,7 +2,7 @@
 // PackingListDocument — LANDSCAPE, packages[], shipping marks, PL folio
 // ProformaFlow · FASE 3
 //
-// CBP COMPLIANCE: No precios ni totales monetarios (solo contenido físico)
+// CBP COMPLIANCE: No prices or monetary totals (physical content only)
 // ============================================================================
 import React, { useMemo } from 'react';
 import { Document, Page, View, Text } from '@react-pdf/renderer';

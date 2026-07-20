@@ -14,7 +14,7 @@ export async function getUserContext() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Usar ADMIN CLIENT para bypassear RLS en tablas con políticas restrictivas
+  // Use ADMIN CLIENT to bypass RLS on tables with restrictive policies
   const admin = await createAdminClient();
 
   const [profileRes, companyRes, subRes] = await Promise.all([

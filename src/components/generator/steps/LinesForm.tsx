@@ -1,7 +1,7 @@
 'use client';
 
 // ============================================================================
-// LinesForm — Campos completos por línea
+// LinesForm — Line items with live validation (HS, COO, generic description)
 // ProformaFlow · FASE 2
 // ============================================================================
 import React from 'react';

@@ -83,9 +83,9 @@ const baseValidData: ShipmentData = {
   },
 };
 
-describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
-  describe('DESCRIPTION_BLACKLIST_WORD - blacklist es ERROR (no warning)', () => {
-    it('genera error blocking para blacklist words', () => {
+describe('Pre-Generation Checks - RED (Blocking)', () => {
+  describe('DESCRIPTION_BLACKLIST_WORD - blacklist is an ERROR (not a warning)', () => {
+    it('generates a blocking error for blacklist words', () => {
       const data = {
         ...baseValidData,
         lines: [{ ...baseValidData.lines[0], description: 'Test goods merchandise description' }],
@@ -97,14 +97,14 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('HS_CODE_INVALID', () => {
-    it('bloquea HS Code < 6 dígitos', () => {
+    it('blocks HS Code < 6 digits', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], hsCode: '12345' }] };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
       expect(result.blockingErrors.some(e => e.code === 'HS_CODE_INVALID')).toBe(true);
     });
 
-    it('bloquea HS Code con letras', () => {
+    it('blocks HS Code with letters', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], hsCode: 'abc123' }] };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
@@ -113,7 +113,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('COO_MISSING', () => {
-    it('bloquea país de origen vacío', () => {
+    it('blocks empty country of origin', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], countryOfOrigin: '' }] };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
@@ -125,7 +125,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
     const blacklistWords = ['goods', 'merchandise', 'products', 'items', 'parts', 'samples', 'gifts'] as const;
 
     blacklistWords.forEach(word => {
-      it(`bloquea descripción con "${word}"`, () => {
+      it(`blocks description containing "${word}"`, () => {
         const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], description: `Test ${word} description` }] };
         const result = runPreGenerationChecks(data);
         expect(result.canGenerate).toBe(false);
@@ -133,14 +133,14 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
       });
     });
 
-    it('bloquea descripción muy corta (< 20 chars)', () => {
+    it('blocks description too short (< 20 chars)', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], description: 'Short desc' }] };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
       expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true);
     });
 
-    it('bloquea UPS sin tipo de empaque en descripción', () => {
+    it('blocks UPS without package type in description', () => {
       const data = {
         ...baseValidData,
         carrier: 'UPS' as Carrier,
@@ -166,7 +166,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('EORI_MISSING_EU', () => {
-    it('bloquea destino UE sin EORI importador', () => {
+    it('blocks EU destination without importer EORI', () => {
       const data = {
         ...baseValidData,
         destinationCountryCode: 'DE',
@@ -183,7 +183,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('INCOTERM_INVALID', () => {
-    it('bloquea Incoterm inválido', () => {
+    it('blocks invalid Incoterm', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], incoterm: 'INVALID' as any }] };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
@@ -192,14 +192,14 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('AWB_FORMAT_INVALID', () => {
-    it('bloquea AWB FedEx ≠ 12 dígitos', () => {
+    it('blocks FedEx AWB ≠ 12 digits', () => {
       const data = { ...baseValidData, carrierSpecific: { fedex: { ...baseValidData.carrierSpecific.fedex!, awbNumber: '12345' } } };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
       expect(result.blockingErrors.some(e => e.code === 'AWB_FORMAT_INVALID')).toBe(true);
     });
 
-    it('bloquea AWB DHL ≠ 10 dígitos', () => {
+    it('blocks DHL AWB ≠ 10 digits', () => {
       const data = {
         ...baseValidData,
         documentType: 'CI_DHL' as DocumentType,
@@ -220,7 +220,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
       expect(result.blockingErrors.some(e => e.code === 'AWB_FORMAT_INVALID')).toBe(true);
     });
 
-    it('bloquea UPS tracking 1Z inválido', () => {
+    it('blocks invalid UPS invoice number (not 1Z + 16 alphanumerics)', () => {
       const data = {
         ...baseValidData,
         documentType: 'CI_UPS' as DocumentType,
@@ -240,12 +240,12 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
       };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(false);
-      expect(result.blockingErrors.some(e => e.code === 'AWB_FORMAT_INVALID')).toBe(true);
+      expect(result.blockingErrors.some(e => e.code === 'UPS_INVOICE_NUMBER_INVALID')).toBe(true);
     });
   });
 
   describe('PARTIES_RELATIONSHIP_MISSING_UPS', () => {
-    it('bloquea CI_UPS sin partiesRelationship', () => {
+    it('blocks CI_UPS without partiesRelationship', () => {
       const data = {
         ...baseValidData,
         documentType: 'CI_UPS' as DocumentType,
@@ -270,7 +270,7 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 
   describe('WEIGHT_MISMATCH_BUNDLE', () => {
-    it('bloquea Bundle con peso bruto ≠ suma líneas', () => {
+    it('blocks Bundle with gross weight ≠ sum of lines', () => {
       const data = {
         ...baseValidData,
         documentType: 'BUNDLE_CIPL' as DocumentType,
@@ -300,9 +300,9 @@ describe('Pre-Generation Checks - ROJO (Bloqueantes)', () => {
   });
 });
 
-describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
-  describe('RFC_RECOMMENDED_MX', () => {
-    it('advierte si exportador MX sin RFC válido', () => {
+describe('Pre-Generation Checks - AMBER (Warnings)', () => {
+  describe('RFC_REQUIRED_MX', () => {
+    it('blocks Mexican shipper on CI without a valid RFC', () => {
       const data = {
         ...baseValidData,
         parties: {
@@ -316,13 +316,13 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
         },
       };
       const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(true);
-      expect(result.warnings.some(w => w.code === 'RFC_RECOMMENDED_MX')).toBe(true);
+      expect(result.canGenerate).toBe(false);
+      expect(result.blockingErrors.some(w => w.code === 'RFC_REQUIRED_MX')).toBe(true);
     });
   });
 
   describe('PAPER_INVOICE_SURCHARGE_UPS', () => {
-    it('advierte si UPS sin EDI/Paperless', () => {
+    it('warns when UPS without EDI/Paperless', () => {
       const data = {
         ...baseValidData,
         documentType: 'CI_UPS' as DocumentType,
@@ -346,7 +346,7 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
       expect(result.warnings.some(w => w.code === 'PAPER_INVOICE_SURCHARGE_UPS')).toBe(true);
     });
 
-    it('no advierte si UPS usa EDI_JSON', () => {
+    it('does not warn when UPS uses EDI_JSON', () => {
       const data = {
         ...baseValidData,
         documentType: 'CI_UPS' as DocumentType,
@@ -371,7 +371,7 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
   });
 
   describe('DE_MINIMIS_SUSPENDED_US', () => {
-    it('advierte envío US < $800', () => {
+    it('warns for US shipment < $800', () => {
       const data = { ...baseValidData, destinationCountryCode: 'US', totals: { ...baseValidData.totals, grandTotal: 500 } };
       const result = runPreGenerationChecks(data);
       expect(result.canGenerate).toBe(true);
@@ -380,7 +380,7 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
   });
 
   describe('BUNDLE_NOT_ACCEPTED_DESTINATION', () => {
-    it('advierte si destino LATAM requiere CI+PL separados', () => {
+    it('warns when LATAM destination requires separate CI+PL', () => {
       const data = {
         ...baseValidData,
         documentType: 'BUNDLE_CIPL' as DocumentType,
@@ -406,17 +406,17 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
     });
   });
 
-  describe('PROFORMA_NOT_FOR_CLEARANCE', () => {
-    it('advierte Proforma no válida para despacho', () => {
+  describe('PROFORMA_USED_AS_CI', () => {
+    it('blocks Proforma from being used for customs clearance', () => {
       const data = { ...baseValidData, documentType: 'PROFORMA' as DocumentType, carrier: 'NONE' as Carrier, carrierSpecific: {} };
       const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(true);
-      expect(result.warnings.some(w => w.code === 'PROFORMA_NOT_FOR_CLEARANCE')).toBe(true);
+      expect(result.canGenerate).toBe(false);
+      expect(result.blockingErrors.some(e => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
     });
   });
 
   describe('NAFTA_OBSOLETE_CHECK', () => {
-    it('advierte UPS CI sin USMCA cert', () => {
+    it('warns for UPS CI without USMCA cert', () => {
       const data = {
         ...baseValidData,
         documentType: 'CI_UPS' as DocumentType,
@@ -441,7 +441,7 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
   });
 
   describe('DESCRIPTION_BLACKLIST_WORD (warning level)', () => {
-    it('no genera warning (blacklist es ERROR en bloqueante)', () => {
+    it('does not generate a warning (blacklist is a blocking ERROR)', () => {
       const data = { ...baseValidData, lines: [{ ...baseValidData.lines[0], description: 'Test goods description with box' }] };
       const result = runPreGenerationChecks(data);
       expect(result.blockingErrors.some(e => e.code === 'DESCRIPTION_TOO_GENERIC')).toBe(true);
@@ -451,13 +451,13 @@ describe('Pre-Generation Checks - AMARILLO (Advertencias)', () => {
 });
 
 describe('Pre-Generation Checks - VERDE (Todo pasa)', () => {
-  it('permite generar con datos completamente válidos', () => {
+  it('allows generation with fully valid data', () => {
     const result = runPreGenerationChecks(baseValidData);
     expect(result.canGenerate).toBe(true);
     expect(result.blockingErrors).toHaveLength(0);
   });
 
-  it('permite CI_UPS válido completo', () => {
+  it('allows fully valid CI_UPS', () => {
     const data: ShipmentData = {
       ...baseValidData,
       documentType: 'CI_UPS' as DocumentType,
@@ -479,7 +479,7 @@ describe('Pre-Generation Checks - VERDE (Todo pasa)', () => {
     expect(result.canGenerate).toBe(true);
   });
 
-  it('permite CI_DHL válido completo', () => {
+  it('allows fully valid CI_DHL', () => {
     const data = {
       ...baseValidData,
       documentType: 'CI_DHL' as DocumentType,

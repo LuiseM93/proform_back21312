@@ -1,5 +1,5 @@
 // ============================================================================
-// CiFedexDocument — Commercial Invoice FedEx M-1054 (2 páginas)
+// CiFedexDocument — Commercial Invoice FedEx M-1054 (2 pages)
 // ProformaFlow · FASE 3
 // ============================================================================
 import React, { useMemo } from 'react';

@@ -1,5 +1,5 @@
 // ============================================================================
-// GeneratorForm V2 — 5 pasos: DocType → Parties → Lines → Carrier → Output/Preview
+// GeneratorFormV2 — Single reactive form (no multi-step), live validation
 // ProformaFlow · FASE 2
 // ============================================================================
 'use client';
@@ -19,7 +19,7 @@ import { OutputForm } from './steps/OutputForm';
 import { PreviewEngine } from '@/components/preview/PreviewEngine';
 import { generatePDF, downloadPDF, generateEDI } from '@/components/pdf/generators/pdfFactory';
 
-const STEPS = ['Tipo Documento', 'Partes', 'Líneas', 'Carrier', 'Salida & Preview'] as const;
+const STEPS = ['Document Type', 'Parties', 'Lines', 'Carrier', 'Output & Preview'] as const;
 
 export function GeneratorFormV2({
   planWatermark = false, planAllTypes = true, planCarrierReady = true,
@@ -47,11 +47,11 @@ export function GeneratorFormV2({
     const result = ShipmentSchema.safeParse(data);
     if (!result.success) {
       console.error('Validation failed:', result.error.flatten());
-      alert('Errores de validación. Revise el formulario.');
+      alert('Validation errors. Please review the form.');
       return;
     }
     if (!preCheck.canGenerate) {
-      alert('Errores bloqueantes presentes. No se puede generar.');
+      alert('Blocking errors present. Cannot generate.');
       return;
     }
     try {
@@ -67,10 +67,10 @@ export function GeneratorFormV2({
           downloadPDF(blob, `${activeDoc}_${edi.format}.json`);
         }
       }
-      alert('Documento generado exitosamente.');
+      alert('Document generated successfully.');
     } catch (err) {
       console.error('Generation error:', err);
-      alert('Error al generar: ' + (err as Error).message);
+      alert('Generation error: ' + (err as Error).message);
     }
   }, [data, preCheck, activeDoc]);
 
@@ -93,16 +93,16 @@ export function GeneratorFormV2({
         {/* Plan Banner */}
         <div style={{ marginBottom: 12, padding: '8px 12px', background: planWatermark ? '#fef3c7' : '#eff6ff', borderRadius: 6, fontSize: 12 }}>
           <strong>Plan: {plan.toUpperCase()}</strong>
-          {remainingDocs !== null && <span> · Docs restantes: {remainingDocs}</span>}
-          {!planAllTypes && <span style={{ color: '#dc2626' }}> · Tipos limitados</span>}
-          {!planCarrierReady && <span style={{ color: '#dc2626' }}> · Carriers limitados</span>}
-          {planWatermark && <span style={{ color: '#b45309' }}> · Marca de agua activa</span>}
+          {remainingDocs !== null && <span> · Docs remaining: {remainingDocs}</span>}
+          {!planAllTypes && <span style={{ color: '#dc2626' }}> · Limited types</span>}
+          {!planCarrierReady && <span style={{ color: '#dc2626' }}> · Limited carriers</span>}
+          {planWatermark && <span style={{ color: '#b45309' }}> · Watermark active</span>}
         </div>
 
         {/* Doc Type Selector */}
         {step === 0 && (
           <div>
-            <label style={labelStyle}>Tipo de Documento *</label>
+            <label style={labelStyle}>Document Type *</label>
             <select style={inputStyle} value={activeDoc} onChange={(e) => {
               const newDoc = e.target.value as DocumentType;
               setActiveDoc(newDoc);
@@ -137,7 +137,7 @@ export function GeneratorFormV2({
                 onChange={(e) => update({ validityDays: Number(e.target.value) })} />
             )}
             <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-              <button style={btnPrimary} onClick={() => setStep(1)}>Siguiente →</button>
+              <button style={btnPrimary} onClick={() => setStep(1)}>Next →</button>
             </div>
           </div>
         )}
@@ -182,22 +182,20 @@ export function GeneratorFormV2({
         {/* Navigation */}
         {step > 0 && step < 4 && (
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between' }}>
-            <button style={btnSecondary} onClick={() => setStep(step - 1)}>← Atrás</button>
-            <button style={btnPrimary} onClick={() => setStep(step + 1)}>Siguiente →</button>
+            <button style={btnSecondary} onClick={() => setStep(step - 1)}>← Back</button>
+            <button style={btnPrimary} onClick={() => setStep(step + 1)}>Next →</button>
           </div>
         )}
         {step === 4 && (
           <div style={{ marginTop: 16 }}>
-            <button style={btnSecondary} onClick={() => setStep(3)}>← Atrás</button>
+            <button style={btnSecondary} onClick={() => setStep(3)}>← Back</button>
           </div>
         )}
       </div>
 
       {/* Right: Preview */}
       <div>
-        <PreviewEngine data={data} activeDocument={activeDoc}
-          validationErrors={crossResult.errors}
-          onDataChange={update} />
+        <PreviewEngine data={data} activeDocument={activeDoc} />
       </div>
     </div>
   );

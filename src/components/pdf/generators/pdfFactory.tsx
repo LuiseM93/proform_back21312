@@ -48,7 +48,7 @@ export function generateShipmentBundle(data: ShipmentData): {
   // UPS: USMCA cert separado embebido en CiUpsDocument (ya lo maneja)
   // Bundle: no necesita secundarios (es combinado)
   // Proforma: standalone
-  // CI + PL separados: si usuario quiere ambos, generar PL también
+  // Separate CI + PL: if user wants both, also generate PL
   if (data.documentType !== 'BUNDLE_CIPL' && data.documentType !== 'PACKING_LIST') {
     // Si hay datos de packing list, generar PL como secundario
     const hasPL = data.carrierSpecific.packingList?.plNumber;

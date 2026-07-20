@@ -11,16 +11,16 @@ import {
 // ─── Utilidades ─────────────────────────────────────────────────────────────
 const positiveNumber = z.number().positive('Debe ser mayor a 0');
 const nonNegativeNumber = z.number().nonnegative('No puede ser negativo');
-const nonEmptyString = z.string().min(1, 'Campo requerido');
+const nonEmptyString = z.string().min(1, 'Field is required');
 const isoDateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato YYYY-MM-DD');
-const isoCountryCode = z.string().length(2, 'Código ISO de 2 letras');
-const hsCodeSchema = z.string().regex(/^\d{6,10}$/, 'HS Code: 6-10 dígitos numéricos');
-const awbFedexSchema = z.string().regex(/^\d{12}$/, 'AWB FedEx: 12 dígitos');
-const awbDhlSchema = z.string().regex(/^\d{10}$/, 'AWB DHL: 10 dígitos');
-const eoriSchema = z.string().regex(/^[A-Z]{2}[A-Z0-9]{1,15}$/, 'Formato EORI inválido');
-const rfcSchema = z.string().regex(/^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/, 'RFC inválido');
+const isoCountryCode = z.string().length(2, 'ISO code must be 2 letters');
+const hsCodeSchema = z.string().regex(/^\d{6,10}$/, 'HS Code: 6-10 numeric digits');
+const awbFedexSchema = z.string().regex(/^\d{12}$/, 'FedEx AWB: 12 digits');
+const awbDhlSchema = z.string().regex(/^\d{10}$/, 'DHL AWB: 10 digits');
+const eoriSchema = z.string().regex(/^[A-Z]{2}[A-Z0-9]{1,15}$/, 'Invalid EORI format');
+const rfcSchema = z.string().regex(/^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$/, 'Invalid RFC');
 
-// Exportado para uso en pre-generation.ts (validación RFC México)
+// Exported for use in pre-generation.ts (Mexico RFC validation)
 export { rfcSchema };
 
 // ─── Party ──────────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ export const ProductLineSchema = z.object({
   lineNumber: z.number().int().positive(),
   sku: z.string().max(50).optional(),
   description: nonEmptyString.max(500),
-  // FASE 3: blacklist de palabras genéricas movida a WARNING (pre-generation.ts), no bloquea el schema.
+  // FASE 3: generic-word blacklist moved to WARNING (pre-generation.ts); does not block the schema.
   descriptionEs: z.string().max(500).optional(),
   hsCode: hsCodeSchema,
   hsCodeSource: z.enum(['USER', 'AI_SUGGESTION', 'CARRIER_TOOL']),
@@ -128,7 +128,7 @@ export const AdditionalCostSchema = z.object({
 });
 
 export const UPSSpecificSchema = z.object({
-  invoiceNumber: z.string().regex(/^1Z[A-Z0-9]{16}$/, 'UPS Invoice/Tracking: formato 1Z + 16 alfanuméricos (ej: 1Z999AA10123456784)'),
+  invoiceNumber: z.string().regex(/^1Z[A-Z0-9]{16}$/, 'UPS Invoice/Tracking: format 1Z + 16 alphanumerics (e.g. 1Z999AA10123456784)'),
   invoiceDate: isoDateString,
   currencyOfSale: z.enum(CURRENCIES),
   grossWeightKg: positiveNumber,
@@ -173,7 +173,7 @@ export const PackingListSpecificSchema = z.object({
   awbBlRef: nonEmptyString.max(50),
   notifyParty: PartySchema.optional(),
   incoterm: IncotermDataSchema.optional(),
-  packages: z.array(PackageDetailSchema).min(1, 'Mínimo 1 bulto requerido'),
+  packages: z.array(PackageDetailSchema).min(1, 'At least 1 package required'),
 });
 
 export const BundleSpecificSchema = z.object({
@@ -225,7 +225,7 @@ export const ShipmentBaseSchema = z.object({
   issueDate: isoDateString,
   validityDays: z.number().int().positive().optional(),
   parties: PartiesSchema,
-  lines: z.array(ProductLineSchema).min(1, 'Mínimo 1 línea de producto'),
+  lines: z.array(ProductLineSchema).min(1, 'At least 1 product line required'),
   totals: ShipmentTotalsSchema,
   carrierSpecific: CarrierSpecificSchema,
   output: OutputConfigSchema,
@@ -246,20 +246,20 @@ export const CiFedexSchema = ShipmentBaseSchema.extend({
   carrier: z.literal('FEDEX'),
 }).refine(
   (data) => data.carrierSpecific.fedex !== undefined,
-  { message: 'FedEx: carrierSpecific.fedex requerido', path: ['carrierSpecific', 'fedex'] }
+  { message: 'FedEx: carrierSpecific.fedex is required', path: ['carrierSpecific', 'fedex'] }
 ).refine(
   (data) => data.parties.shipper.address.countryCode !== data.parties.consignee.address.countryCode,
-  { message: 'Envío internacional: shipper y consignee deben ser países distintos', path: ['parties'] }
+  { message: 'International shipment: shipper and consignee must be in different countries', path: ['parties'] }
 ).refine(
   (data) => data.destinationCountryGroup === 'EU'
     ? !!data.parties.consignee.taxId && eoriSchema.safeParse(data.parties.consignee.taxId).success
     : true,
-  { message: 'Destino UE: EORI del importador obligatorio', path: ['parties', 'consignee', 'taxId'] }
+  { message: 'EU destination: importer EORI is required', path: ['parties', 'consignee', 'taxId'] }
 ).refine(
   (data) => data.destinationCountryGroup === 'EU'
     ? !!data.parties.shipper.eori && eoriSchema.safeParse(data.parties.shipper.eori!).success
     : true,
-  { message: 'Destino UE: EORI del exportador (shipper) obligatorio', path: ['parties', 'shipper', 'eori'] }
+  { message: 'EU destination: exporter (shipper) EORI is required', path: ['parties', 'shipper', 'eori'] }
 );
 
 export const CiUpsSchema = ShipmentBaseSchema.extend({
@@ -267,13 +267,13 @@ export const CiUpsSchema = ShipmentBaseSchema.extend({
   carrier: z.literal('UPS'),
 }).refine(
   (data) => data.carrierSpecific.ups !== undefined,
-  { message: 'UPS: carrierSpecific.ups requerido', path: ['carrierSpecific', 'ups'] }
+  { message: 'UPS: carrierSpecific.ups is required', path: ['carrierSpecific', 'ups'] }
 ).refine(
   (data) => data.carrierSpecific.ups?.partiesRelationship !== undefined,
-  { message: 'UPS: partiesRelationship (RELATED/NOT_RELATED) obligatorio', path: ['carrierSpecific', 'ups', 'partiesRelationship'] }
+  { message: 'UPS: partiesRelationship (RELATED/NOT_RELATED) is required', path: ['carrierSpecific', 'ups', 'partiesRelationship'] }
 ).refine(
   (data) => !data.carrierSpecific.ups?.usmcaCertification || data.carrierSpecific.ups.usmcaCertification.certifierRole !== undefined,
-  { message: 'USMCA: certifierRole requerido si se incluye certificación', path: ['carrierSpecific', 'ups', 'usmcaCertification'] }
+  { message: 'USMCA: certifierRole is required when a certification is included', path: ['carrierSpecific', 'ups', 'usmcaCertification'] }
 );
 
 export const CiDhlSchema = ShipmentBaseSchema.extend({
@@ -281,12 +281,12 @@ export const CiDhlSchema = ShipmentBaseSchema.extend({
   carrier: z.literal('DHL'),
 }).refine(
   (data) => data.carrierSpecific.dhl !== undefined,
-  { message: 'DHL: carrierSpecific.dhl requerido', path: ['carrierSpecific', 'dhl'] }
+  { message: 'DHL: carrierSpecific.dhl is required', path: ['carrierSpecific', 'dhl'] }
 ).refine(
   (data) => data.destinationCountryGroup === 'EU'
     ? !!data.parties.importerOfRecord?.taxId && eoriSchema.safeParse(data.parties.importerOfRecord!.taxId).success
     : true,
-  { message: 'Destino UE: EORI del IOR obligatorio', path: ['parties', 'importerOfRecord', 'taxId'] }
+  { message: 'EU destination: IOR EORI is required', path: ['parties', 'importerOfRecord', 'taxId'] }
 );
 
 export const PackingListSchema = ShipmentBaseSchema.extend({
@@ -294,16 +294,16 @@ export const PackingListSchema = ShipmentBaseSchema.extend({
   carrier: z.literal('NONE'),
 }).refine(
   (data) => data.carrierSpecific.packingList !== undefined,
-  { message: 'PL: carrierSpecific.packingList requerido', path: ['carrierSpecific', 'packingList'] }
+  { message: 'PL: carrierSpecific.packingList is required', path: ['carrierSpecific', 'packingList'] }
 ).refine(
   (data) => data.lines.some((l) => l.packages && l.packages.length > 0),
-  { message: 'PL: al menos una línea debe tener detalle de bultos', path: ['lines'] }
+  { message: 'PL: at least one line must have package details', path: ['lines'] }
 ).refine(
   (data) => {
     const totalPackagesFromLines = data.lines.reduce((sum, l) => sum + (l.packages?.length || 0), 0);
     return totalPackagesFromLines === data.carrierSpecific.packingList?.packages.length;
   },
-  { message: 'PL: total de bultos en líneas debe coincidir con carrierSpecific.packingList.packages.length', path: ['carrierSpecific', 'packingList'] }
+  { message: 'PL: total packages in lines must match carrierSpecific.packingList.packages.length', path: ['carrierSpecific', 'packingList'] }
 );
 
 export const BundleSchema = ShipmentBaseSchema.extend({
@@ -311,10 +311,10 @@ export const BundleSchema = ShipmentBaseSchema.extend({
   carrier: z.enum(['FEDEX', 'UPS', 'DHL', 'NONE']),
 }).refine(
   (data) => data.carrierSpecific.bundle !== undefined,
-  { message: 'Bundle: carrierSpecific.bundle requerido', path: ['carrierSpecific', 'bundle'] }
+  { message: 'Bundle: carrierSpecific.bundle is required', path: ['carrierSpecific', 'bundle'] }
 ).refine(
   (data) => data.lines.every((l) => l.packages && l.packages.length > 0),
-  { message: 'Bundle: todas las líneas deben tener packages', path: ['lines'] }
+  { message: 'Bundle: all lines must have packages', path: ['lines'] }
 );
 
 // ─── Union discriminada ─────────────────────────────────────────────────────
