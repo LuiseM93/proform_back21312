@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from 'vitest';
 import { runPreGenerationChecks } from '@/validation/pre-generation';
 import type { ShipmentData, DocumentType, Carrier, CountryGroup, TaxIdType, UOM, Currency, PackageType, Incoterm2020, OutputFormat } from '@/types/shipment';

@@ -2,6 +2,7 @@
 // EDI generation tests (spec §9) — G3
 // ProformaFlow · FASE 3
 // ============================================================================
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from 'vitest';
 import { generateEDI, generateEDIFiltered } from '@/components/pdf/edi/generateEDI';
 import type { ShipmentData } from '@/types/shipment';

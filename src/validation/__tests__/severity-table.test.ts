@@ -3,11 +3,11 @@
 // ProformaFlow · FASE 0 (CIERRA "siguen saliendo errores")
 // These tests are the LAW: if any goes red, the feature does not exist.
 // ============================================================================
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from 'vitest';
-import type { ShipmentData, ProductLine, Parties, Party, CarrierSpecificData, OutputConfig, ShipmentTotals } from '@/types/shipment';
+import type { ShipmentData, ProductLine, Parties, Party, OutputConfig, ShipmentTotals } from '@/types/shipment';
 import { runPreGenerationChecks } from '@/validation/pre-generation';
 import { validateCrossDocumentConsistency } from '@/validation/cross-document';
-import { ShipmentSchema } from '@/validation/schemas';
 
 // ─── Factories ───────────────────────────────────────────────────────────────
 function party(over: Partial<Party> = {}): Party {

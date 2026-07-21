@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect } from 'vitest';
 import {
-  ShipmentSchema,
   ProformaSchema,
   CiFedexSchema,
   CiUpsSchema,
@@ -149,8 +149,6 @@ describe('Zod Schemas - RED Validation (Blocking)', () => {
 
   describe('EORI_MISSING_EU - EORI required for EU destination (validated in refine)', () => {
     it('requires EORI in schema refine (integration test)', () => {
-      // Los refinements de EORI se validan en CiFedexSchema/CiDhlSchema
-      // Este test solo verifica que el schema existe
       expect(CiFedexSchema).toBeDefined();
       expect(CiDhlSchema).toBeDefined();
     });
@@ -158,7 +156,7 @@ describe('Zod Schemas - RED Validation (Blocking)', () => {
 
   describe('INCOTERM_INVALID - Only 11 Incoterms 2020 terms', () => {
     it('rejects invalid Incoterm', () => {
-      const line = { ...validLine, incoterm: 'INVALID' as any };
+      const line = { ...validLine, incoterm: 'INVALID' as unknown as string };
       const result = ProductLineSchema.safeParse(line);
       expect(result.success).toBe(false);
     });
