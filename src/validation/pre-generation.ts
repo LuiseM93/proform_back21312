@@ -85,15 +85,18 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     // FIX P1: blacklist words are now inside descCheck.errors (BLOCKING). No separate warning.
   });
 
-  // 5. EORI_MISSING_EU — EORI mandatory for EU destination
+  // 5. EORI_MISSING_EU — EORI mandatory for EU destination (carrier-aware)
   if (data.destinationCountryGroup === 'EU') {
     const importer = data.parties.consignee;
     const ior = data.parties.importerOfRecord || importer;
-    if (!ior.taxId || !/^[A-Z]{2}[A-Z0-9]{1,15}$/.test(ior.taxId)) {
+    const isDHL = data.carrier === 'DHL';
+    const eoriValue = isDHL ? ior.eori : ior.taxId;
+    const eoriField = isDHL ? 'parties.importerOfRecord.eori / parties.consignee.eori' : 'parties.consignee.taxId';
+    if (!eoriValue || !/^[A-Z]{2}[A-Z0-9]{1,15}$/.test(eoriValue)) {
       blockingErrors.push({
         code: 'EORI_MISSING_EU',
-        message: 'EU destination: Importer EORI is mandatory for customs clearance',
-        field: 'parties.consignee.taxId',
+        message: `EU destination: Importer EORI is mandatory for customs clearance${isDHL ? ' (DHL requires IOR.eori field)' : ''}`,
+        field: eoriField,
         severity: 'BLOCKING',
         regulation: 'EU Customs Code (UCC); DHL/FedEx/UPS EU requirements',
       });
