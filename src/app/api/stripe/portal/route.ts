@@ -19,17 +19,33 @@ export async function POST() {
     }
     const { data: sub } = await admin
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, stripe_subscription_id, plan")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!sub?.stripe_customer_id) {
-      return NextResponse.json({ error: "No billing account found" }, { status: 400 });
+    // Auto-create customer if missing
+    let customerId = sub?.stripe_customer_id;
+    if (!customerId) {
+      const email = user.email;
+      if (!email) {
+        return NextResponse.json({ error: "User has no email" }, { status: 400 });
+      }
+      const customer = await stripe.customers.create({
+        email,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
+
+      // Update subscription record with new customer_id
+      await admin
+        .from("subscriptions")
+        .update({ stripe_customer_id: customerId })
+        .eq("user_id", user.id);
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://proformaflow.app";
     const session = await stripe.billingPortal.sessions.create({
-      customer: sub.stripe_customer_id,
+      customer: customerId,
       return_url: `${siteUrl}/billing`,
     });
 
