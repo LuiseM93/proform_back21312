@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest';
 import type { ShipmentData, ProductLine, Parties, Party, OutputConfig, ShipmentTotals } from '@/types/shipment';
 import { runPreGenerationChecks } from '@/validation/pre-generation';
 import { validateCrossDocumentConsistency } from '@/validation/cross-document';
+import { ShipmentSchema } from '@/validation/schemas';
 
 // ─── Factories ───────────────────────────────────────────────────────────────
 function party(over: Partial<Party> = {}): Party {
