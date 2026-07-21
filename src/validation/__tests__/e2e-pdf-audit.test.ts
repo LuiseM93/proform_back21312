@@ -10,9 +10,9 @@ import type { DocumentType } from '@/types/shipment';
 describe('E2E: PDF Generation Audit', () => {
   const TYPES: DocumentType[] = ['PROFORMA', 'CI_FEDEX', 'CI_UPS', 'CI_DHL', 'PACKING_LIST', 'BUNDLE_CIPL'];
 
-  // FASE 3: Each doc type generates a valid PDF blob (>500 bytes)
+  // FASE 3: Each doc type generates a valid PDF blob (>500 bytes) with real %PDF header
   TYPES.forEach((docType) => {
-    it(`${docType}: generates valid PDF blob`, async () => {
+    it(`${docType}: generates valid PDF blob with %PDF header`, async () => {
       const data = makeFixture(docType);
       const blob = await generatePDF(data);
 
@@ -20,6 +20,11 @@ describe('E2E: PDF Generation Audit', () => {
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.type).toBe('application/pdf');
       expect(blob.size).toBeGreaterThan(500); // Binary PDF valido
+
+      // Verificar header %PDF real
+      const arrayBuffer = await blob.arrayBuffer();
+      const header = new TextDecoder().decode(arrayBuffer.slice(0, 4));
+      expect(header).toBe('%PDF');
     });
   });
 

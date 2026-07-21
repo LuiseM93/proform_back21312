@@ -51,11 +51,15 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
               <Text style={styles.partyLabel}>Shipper</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.legalName || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.address.city || "—"}, {data.parties.shipper?.address.countryName || "—"}</Text>
+              {data.parties.shipper?.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
+              {data.parties.shipper?.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.legalName || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.address.city || "—"}, {data.parties.consignee?.address.countryName || "—"}</Text>
+              {data.parties.consignee?.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
+              {data.parties.consignee?.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
             </View>
           </View>
         </View>

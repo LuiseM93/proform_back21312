@@ -40,6 +40,7 @@ export function CiFedexDocument({ data }: { data: CiFedexData }) {
               <Text style={styles.partyValue}>{data.parties.shipper?.address.city || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.address.countryName || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper?.taxIdType || "—"}: {data.parties.shipper?.taxId || "—"}</Text>
+              {data.parties.shipper?.eori && <Text style={styles.partyValue}>EORI: {data.parties.shipper.eori}</Text>}
               {data.parties.shipper?.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
               {data.parties.shipper?.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
             </View>
@@ -50,6 +51,7 @@ export function CiFedexDocument({ data }: { data: CiFedexData }) {
               <Text style={styles.partyValue}>{data.parties.consignee?.address.city || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.address.countryName || "—"}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee?.taxIdType || "—"}: {data.parties.consignee?.taxId || "—"}</Text>
+              {data.parties.consignee?.eori && <Text style={styles.partyValue}>EORI: {data.parties.consignee.eori}</Text>}
               {data.parties.consignee?.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
               {data.parties.consignee?.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
             </View>
@@ -60,6 +62,7 @@ export function CiFedexDocument({ data }: { data: CiFedexData }) {
               <Text style={styles.partyValue}>{data.parties.buyer.legalName}</Text>
               <Text style={styles.partyValue}>{data.parties.buyer.address.street}, {data.parties.buyer.address.city}, {data.parties.buyer.address.countryName}</Text>
               <Text style={styles.partyValue}>{data.parties.buyer.taxIdType}: {data.parties.buyer.taxId}</Text>
+              {data.parties.buyer.eori && <Text style={styles.partyValue}>EORI: {data.parties.buyer.eori}</Text>}
               {data.parties.buyer.phone && <Text style={styles.partyValue}>Tel: {data.parties.buyer.phone}</Text>}
               {data.parties.buyer.email && <Text style={styles.partyValue}>{data.parties.buyer.email}</Text>}
             </View>

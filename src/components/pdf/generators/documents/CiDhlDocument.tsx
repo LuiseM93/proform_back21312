@@ -43,6 +43,7 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={styles.partyValue}>{data.parties.shipper?.taxIdType || "—"}: {data.parties.shipper?.taxId || "—"}</Text>
               {data.parties.shipper?.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
               {data.parties.shipper?.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
+              {data.parties.shipper?.eori && <Text style={styles.partyValue}>EORI: {data.parties.shipper.eori}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee / Importer</Text>
@@ -52,6 +53,7 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={styles.partyValue}>{data.parties.consignee?.taxIdType || "—"}: {data.parties.consignee?.taxId || "—"}</Text>
               {data.parties.consignee?.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
               {data.parties.consignee?.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
+              {data.parties.consignee?.eori && <Text style={styles.partyValue}>EORI: {data.parties.consignee.eori}</Text>}
             </View>
           </View>
           {data.parties.importerOfRecord && (
@@ -62,6 +64,7 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
               <Text style={styles.partyValue}>{data.parties.importerOfRecord.taxIdType}: {data.parties.importerOfRecord.taxId}</Text>
               {data.parties.importerOfRecord.phone && <Text style={styles.partyValue}>Tel: {data.parties.importerOfRecord.phone}</Text>}
               {data.parties.importerOfRecord.email && <Text style={styles.partyValue}>{data.parties.importerOfRecord.email}</Text>}
+              {data.parties.importerOfRecord.eori && <Text style={styles.partyValue}>EORI: {data.parties.importerOfRecord.eori}</Text>}
             </View>
           )}
         </View>

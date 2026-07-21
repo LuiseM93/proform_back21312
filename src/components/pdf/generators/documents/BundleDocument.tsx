@@ -5,12 +5,21 @@
 import React, { useMemo } from 'react';
 import { Document, Page, View, Text } from '@react-pdf/renderer';
 import type { BundleData } from '@/types/shipment';
-import { createBaseStyles, formatCurrency, formatNumber, registerFonts } from '../BaseDocumentStyles';
+import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
 export function BundleDocument({ data }: { data: BundleData }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, 'LANDSCAPE'), [data.output]);
   const bundle = data.carrierSpecific.bundle!;
+
+  // Derivar Incoterm y AWB del carrier específico
+  const incoterm = data.carrierSpecific.fedex?.reasonForExport || 
+                   data.carrierSpecific.ups?.termsOfSale?.code || 
+                   data.carrierSpecific.dhl?.termsOfTrade?.code;
+  const awbBlRef = data.carrierSpecific.fedex?.awbNumber || 
+                   data.carrierSpecific.ups?.invoiceNumber || 
+                   data.carrierSpecific.dhl?.awbNumber || 
+                   bundle.commercialInvoiceRef;
 
   return (
     <Document>
@@ -24,7 +33,9 @@ export function BundleDocument({ data }: { data: BundleData }) {
             <Text style={{ fontSize: 9, fontWeight: 'bold' }}>Doc: {bundle.documentNumber}</Text>
             <Text style={{ fontSize: 8 }}>CI Ref: {bundle.commercialInvoiceRef}</Text>
             <Text style={{ fontSize: 8 }}>PL Ref: {bundle.packingListRef}</Text>
+            <Text style={{ fontSize: 8 }}>AWB/BL: {awbBlRef}</Text>
             <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
+            {incoterm && <Text style={{ fontSize: 8 }}>Incoterm: {getIncotermDisplay(incoterm as any)}</Text>}
           </View>
         </View>
 
@@ -35,11 +46,15 @@ export function BundleDocument({ data }: { data: BundleData }) {
               <Text style={styles.partyLabel}>Shipper</Text>
               <Text style={styles.partyValue}>{data.parties.shipper.legalName}</Text>
               <Text style={styles.partyValue}>{data.parties.shipper.address.city}, {data.parties.shipper.address.countryName}</Text>
+              {data.parties.shipper.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
+              {data.parties.shipper.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee</Text>
               <Text style={styles.partyValue}>{data.parties.consignee.legalName}</Text>
               <Text style={styles.partyValue}>{data.parties.consignee.address.city}, {data.parties.consignee.address.countryName}</Text>
+              {data.parties.consignee.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
+              {data.parties.consignee.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
             </View>
           </View>
         </View>

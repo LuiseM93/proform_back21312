@@ -39,6 +39,7 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyValue}>{data.parties.shipper?.taxIdType || "—"}: {data.parties.shipper?.taxId || "—"}</Text>
               {data.parties.shipper?.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
               {data.parties.shipper?.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
+              {data.parties.shipper?.eori && <Text style={styles.partyValue}>EORI: {data.parties.shipper.eori}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee / Importer</Text>
@@ -48,6 +49,7 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyValue}>{data.parties.consignee?.taxIdType || "—"}: {data.parties.consignee?.taxId || "—"}</Text>
               {data.parties.consignee?.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
               {data.parties.consignee?.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
+              {data.parties.consignee?.eori && <Text style={styles.partyValue}>EORI: {data.parties.consignee.eori}</Text>}
             </View>
           </View>
           {data.parties.buyer && (
@@ -56,6 +58,7 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyValue}>{data.parties.buyer.legalName} — {data.parties.buyer.address.countryName}</Text>
               <Text style={styles.partyValue}>{data.parties.buyer.address.street}, {data.parties.buyer.address.city}</Text>
               <Text style={styles.partyValue}>{data.parties.buyer.taxIdType}: {data.parties.buyer.taxId}</Text>
+              {data.parties.buyer.eori && <Text style={styles.partyValue}>EORI: {data.parties.buyer.eori}</Text>}
             </View>
           )}
           {data.parties.producer && (
@@ -64,6 +67,7 @@ export function CiUpsDocument({ data }: { data: CiUpsData }) {
               <Text style={styles.partyValue}>{data.parties.producer.legalName} — {data.parties.producer.address.countryName}</Text>
               <Text style={styles.partyValue}>{data.parties.producer.address.street}, {data.parties.producer.address.city}</Text>
               <Text style={styles.partyValue}>{data.parties.producer.taxIdType}: {data.parties.producer.taxId}</Text>
+              {data.parties.producer.eori && <Text style={styles.partyValue}>EORI: {data.parties.producer.eori}</Text>}
             </View>
           )}
           <View style={{ marginTop: 6 }}>
