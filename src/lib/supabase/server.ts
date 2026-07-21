@@ -7,7 +7,19 @@ export async function createClient() {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) {
     // Fallback client that won't talk to DB but won't crash the build
-    return {} as ReturnType<typeof createServerClient>;
+    return {
+      auth: {
+        getUser: async () => ({ data: { user: null }, error: null }),
+        getSession: async () => ({ data: { session: null }, error: null }),
+      },
+      from: () => ({
+        select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+        upsert: async () => ({ error: null }),
+        update: () => ({ eq: () => ({ select: async () => ({ data: null, error: null }) }) }),
+        delete: () => ({ eq: async () => ({ error: null }) }),
+        rpc: async () => ({ data: null, error: null }),
+      }),
+    } as ReturnType<typeof createServerClient>;
   }
 
   const cookieStore = await cookies();
