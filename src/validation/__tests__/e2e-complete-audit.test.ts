@@ -19,7 +19,7 @@ const INFORME_FIELDS: Record<DocumentType, string[]> = {
 };
 
 // Helper: field path exists on the data object (undefined is ok for optional fields)
-function fieldExists(obj: Record<string, unknown>, path: string): boolean {
+function fieldExists(obj: unknown, path: string): boolean {
   const segments = path.split('.');
   let cur: unknown = obj;
   for (const seg of segments) {

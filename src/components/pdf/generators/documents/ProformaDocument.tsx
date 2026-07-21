@@ -15,6 +15,7 @@ export function ProformaDocument({ data }: { data: ProformaData }) {
   const validityStr = validityDate.toISOString().split('T')[0];
 
   // Payment terms dinámico (si no hay, usar default)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const paymentTerms = (data as any).paymentTerms || '30% advance, 70% against shipping documents';
 
   return (

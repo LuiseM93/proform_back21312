@@ -3,7 +3,7 @@
 // ProformaFlow · FASE 3
 // ============================================================================
 import { StyleSheet, Font } from '@react-pdf/renderer';
-import type { PaperSize, Orientation, Party } from '@/types/shipment';
+import type { PaperSize, Orientation, Party, Incoterm2020 } from '@/types/shipment';
 
 // Registrar fuentes una sola vez
 let fontsRegistered = false;
@@ -84,8 +84,10 @@ export function formatNumber(num: number, decimals = 2): string {
   return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
-export function getIncotermDisplay(incoterm: { code: string; place: string }): string {
-  return `${incoterm.code} ${incoterm.place} (Incoterms® 2020)`;
+export function getIncotermDisplay(code: Incoterm2020 | { code: string; place: string }): string {
+  const c = typeof code === 'string' ? code : code.code;
+  const p = typeof code === 'string' ? '' : code.place;
+  return `${c} ${p} (Incoterms® 2020)`.trim();
 }
 
 // Render de party block reutilizable

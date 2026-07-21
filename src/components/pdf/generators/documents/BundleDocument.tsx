@@ -4,8 +4,12 @@
 // ============================================================================
 import React, { useMemo } from 'react';
 import { Document, Page, View, Text } from '@react-pdf/renderer';
-import type { BundleData } from '@/types/shipment';
+import type { BundleData, Incoterm2020, PackageDetail } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
+
+interface PackageWithFallback extends Partial<PackageDetail> {
+  shippingMarks?: string;
+}
 
 export function BundleDocument({ data }: { data: BundleData }) {
   registerFonts();
@@ -21,6 +25,10 @@ export function BundleDocument({ data }: { data: BundleData }) {
                    data.carrierSpecific.dhl?.awbNumber || 
                    bundle.commercialInvoiceRef;
 
+  // Type guard for incoterm display
+  const isValidIncoterm = (val: unknown): val is Incoterm2020 =>
+    ['EXW','FCA','CPT','CIP','DAP','DPU','DDP','FAS','FOB','CFR','CIF'].includes(val as string);
+
   return (
     <Document>
       <Page size={data.output.paperSize === 'LETTER' ? [792, 612] : [841.89, 595.28]} orientation={'landscape' as const} style={styles.page}>
@@ -35,7 +43,7 @@ export function BundleDocument({ data }: { data: BundleData }) {
             <Text style={{ fontSize: 8 }}>PL Ref: {bundle.packingListRef}</Text>
             <Text style={{ fontSize: 8 }}>AWB/BL: {awbBlRef}</Text>
             <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
-            {incoterm && <Text style={{ fontSize: 8 }}>Incoterm: {getIncotermDisplay(incoterm as any)}</Text>}
+            {incoterm && isValidIncoterm(incoterm) && <Text style={{ fontSize: 8 }}>Incoterm: {getIncotermDisplay(incoterm)}</Text>}
           </View>
         </View>
 
@@ -78,18 +86,18 @@ export function BundleDocument({ data }: { data: BundleData }) {
             <Text style={[styles.tableCellHeader, { width: '15%' }]}>Marks</Text>
           </View>
           {data.lines.flatMap((line, li) =>
-            (line.packages && line.packages.length > 0 ? line.packages : [{ packageType: '—', quantity: line.quantity, netWeightKg: line.netWeightKg, grossWeightKg: line.grossWeightKg, dimensions: line.dimensions, shippingMarks: '—' } as any]).map((pkg: any, pi: number) => (
+            (line.packages && line.packages.length > 0 ? line.packages : [{ packageType: 'BOX' as const, quantity: line.quantity, netWeightKg: line.netWeightKg ?? 0, grossWeightKg: line.grossWeightKg ?? 0, shippingMarks: '—' } as PackageWithFallback]).map((pkg: PackageWithFallback, pi: number) => (
               <View key={`${li}-${pi}`} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '4%' }]}>{li + 1}.{pi + 1}</Text>
                 <Text style={[styles.tableCell, { width: '18%' }]}>{line.description}</Text>
                 <Text style={[styles.tableCell, { width: '7%' }]}>{line.hsCode}</Text>
                 <Text style={[styles.tableCell, { width: '5%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
-                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.quantity, 0)}</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.quantity ?? line.quantity, 0)}</Text>
                 <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
                 <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
                 <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
-                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.netWeightKg, 2)}</Text>
-                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.grossWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.netWeightKg ?? line.netWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(pkg.grossWeightKg ?? line.grossWeightKg, 2)}</Text>
                 <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>1</Text>
                 <Text style={[styles.tableCell, { width: '8%', textAlign: 'center' }]}>
                   {pkg.dimensions ? `${pkg.dimensions.lengthCm}×${pkg.dimensions.widthCm}×${pkg.dimensions.heightCm}` : '—'}

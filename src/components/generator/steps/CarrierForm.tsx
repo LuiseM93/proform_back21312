@@ -61,7 +61,7 @@ function usmcaSet(value: CarrierSpecificData, onChange: (d: CarrierSpecificData)
     termsOfSale: { code: 'DAP' as Incoterm2020, place: '', version: '2020' as const }, brokerageDutyBilling: 'CONSIGNEE' as const, additionalCosts: [],
     partiesRelationship: 'NOT_RELATED' as const,
   };
-  onChange({ ...value, ups: { ...ups, usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods: [], originCriterion: 'A', authorizedSignature: '', date: '' }), ...patch } } });
+  onChange({ ...value, ups: { ...ups, usmcaCertification: { ...(ups.usmcaCertification || { certifierRole: 'EXPORTER', certifier: emptyParty(), importer: emptyParty(), goods: [], originCriterion: 'A', authorizedSignature: '', date: '', certifierTitle: '', certifierTel: '', certifierEmail: '' }), ...patch } } });
 }
 
 function UpsForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d: CarrierSpecificData) => void }) {
@@ -139,7 +139,7 @@ function UpsForm({ value, onChange }: { value: CarrierSpecificData; onChange: (d
       <button type="button" onClick={() => { const goods = [...(ups.usmcaCertification?.goods || []), { description: '', hsCode: '', originCriterion: 'A' as const }]; usmcaSet(value, onChange, { goods }); }} style={{ fontSize: 12, marginTop: 4 }}>+ Add good</button>
 
       <div style={upsWarnBox}>
-        🟡 NAFTA is obsolete (replaced by USMCA in 2020). Do NOT include the "NAFTA Certification" block in the CI — the USMCA certification goes on a separate document.
+        🟡 NAFTA is obsolete (replaced by USMCA in 2020). Do NOT include the &quot;NAFTA Certification&quot; block in the CI — USMCA certification goes on a separate document.
       </div>
       <div style={upsWarnBox}>
         🟡 UPS Paperless: sending a paper invoice adds a ~$5 USD surcharge per shipment. Use EDI/Paperless format to avoid it.

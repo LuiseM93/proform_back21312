@@ -1,9 +1,10 @@
 // ============================================================================
 // Shipment fixtures — valid test data aligned to Informe specs (July 2026)
 // ============================================================================
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   ShipmentData, DocumentType, Carrier, CountryGroup, Parties, ProductLine,
-  CarrierSpecificData, OutputConfig, Incoterm2020, Currency, UOM,
+  OutputConfig,
 } from '@/types/shipment';
 
 const baseParties = (overrides: Partial<Parties> = {}): Parties => ({

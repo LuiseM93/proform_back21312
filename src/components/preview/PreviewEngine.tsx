@@ -2,7 +2,7 @@
 // PreviewEngine — Live preview with actual PDF rendering + validation banners
 // ProformaFlow · FASE 2
 // ============================================================================
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import type { ShipmentData, DocumentType } from '@/types/shipment';
 import { runPreGenerationChecks } from '@/validation/pre-generation';
 import { ShipmentSchema } from '@/validation/schemas';
@@ -17,6 +17,7 @@ interface PreviewEngineProps {
 export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: PreviewEngineProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const prevHasBlocking = useRef(false);
 
   // Run validation (same as handleGenerate)
   const preCheck = useMemo(() => runPreGenerationChecks(data), [data]);
@@ -34,24 +35,40 @@ export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: Prev
     return [...base, ...crossWarnings.filter((w: { field: string }) => !w.field.startsWith('lines['))];
   }, [preCheck.warnings, crossWarnings]);
 
-  // Generate ACTUAL PDF blob (not simulated preview)
+  // Clear preview when blocking changes
   useEffect(() => {
-    if (!hasBlocking) {
-      generatePDF(data)
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
-          setPdfUrl(url);
-          setPdfError(null);
-          return () => URL.revokeObjectURL(url);
-        })
-        .catch(() => {
-          setPdfError('Preview unavailable — check data validity');
-        });
-    } else {
+    if (hasBlocking && !prevHasBlocking.current) {
       setPdfUrl(null);
       setPdfError(null);
     }
+    prevHasBlocking.current = hasBlocking;
+  }, [hasBlocking]);
+
+  // Generate ACTUAL PDF blob (not simulated preview)
+  useEffect(() => {
+    let revoked = false;
+    if (!hasBlocking) {
+      generatePDF(data)
+        .then((blob) => {
+          if (revoked) return;
+          const url = URL.createObjectURL(blob);
+          setPdfUrl(url);
+          setPdfError(null);
+        })
+        .catch(() => {
+          if (revoked) return;
+          setPdfError('Preview unavailable — check data validity');
+        });
+    }
+    return () => { revoked = true; };
   }, [data, hasBlocking]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+  }, [pdfUrl]);
 
   return (
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, background: '#fafafa' }}>
