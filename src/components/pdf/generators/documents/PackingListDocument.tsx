@@ -5,11 +5,11 @@
 // CBP COMPLIANCE: No prices or monetary totals (physical content only)
 // ============================================================================
 import React, { useMemo } from 'react';
-import { Document, Page, View, Text } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import type { PackingListData } from '@/types/shipment';
 import { createBaseStyles, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
-export function PackingListDocument({ data }: { data: PackingListData }) {
+export function PackingListDocument({ data, logoUrl }: { data: PackingListData; logoUrl?: string | null }) {
   registerFonts();
   const { styles } = useMemo(() => createBaseStyles(data.output.paperSize, 'LANDSCAPE'), [data.output]);
   const pl = data.carrierSpecific.packingList!;
@@ -41,8 +41,13 @@ export function PackingListDocument({ data }: { data: PackingListData }) {
             <Text style={{ fontSize: 9, fontWeight: 'bold' }}>Date: {pl.plDate}</Text>
             <Text style={{ fontSize: 8 }}>CI Ref: {pl.commercialInvoiceRef}</Text>
             <Text style={{ fontSize: 8 }}>AWB/BL: {pl.awbBlRef}</Text>
-          </View>
-        </View>
+                      </View>
+                      {logoUrl && logoUrl.length > 0 && (
+                        <View style={styles.logoContainer}>
+                          <Image src={logoUrl} style={styles.logo} />
+                        </View>
+                      )}
+                    </View>
 
         {/* PARTIES */}
         <View style={styles.section}>

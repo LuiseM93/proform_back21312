@@ -12,9 +12,10 @@ interface PreviewEngineProps {
   data: ShipmentData;
   activeDocument: DocumentType;
   crossWarnings?: { code: string; message: string; field: string; recommendation?: string }[];
+  logoUrl?: string | null;
 }
 
-export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: PreviewEngineProps) {
+export function PreviewEngine({ data, activeDocument, crossWarnings = [], logoUrl }: PreviewEngineProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const prevHasBlocking = useRef(false);
@@ -45,23 +46,23 @@ export function PreviewEngine({ data, activeDocument, crossWarnings = [] }: Prev
   }, [hasBlocking]);
 
   // Generate ACTUAL PDF blob (not simulated preview)
-  useEffect(() => {
-    let revoked = false;
-    if (!hasBlocking) {
-      generatePDF(data)
-        .then((blob) => {
-          if (revoked) return;
-          const url = URL.createObjectURL(blob);
-          setPdfUrl(url);
-          setPdfError(null);
-        })
-        .catch(() => {
-          if (revoked) return;
-          setPdfError('Preview unavailable — check data validity');
-        });
-    }
-    return () => { revoked = true; };
-  }, [data, hasBlocking]);
+    useEffect(() => {
+      let revoked = false;
+      if (!hasBlocking) {
+        generatePDF(data, logoUrl)
+          .then((blob) => {
+            if (revoked) return;
+            const url = URL.createObjectURL(blob);
+            setPdfUrl(url);
+            setPdfError(null);
+          })
+          .catch(() => {
+            if (revoked) return;
+            setPdfError('Preview unavailable — check data validity');
+          });
+      }
+      return () => { revoked = true; };
+    }, [data, hasBlocking, logoUrl]);
 
   // Cleanup blob URL on unmount
   useEffect(() => {

@@ -3,11 +3,11 @@
 // ProformaFlow · FASE 3
 // ============================================================================
 import React, { useMemo } from 'react';
-import { Document, Page, View, Text } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import type { CiDhlData } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
-export function CiDhlDocument({ data }: { data: CiDhlData }) {
+export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: string | null }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
   const dhl = data.carrierSpecific.dhl!;
@@ -29,6 +29,11 @@ export function CiDhlDocument({ data }: { data: CiDhlData }) {
             <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
             {dhl.mydhlGenerated && <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold' }}>✓ via MyDHL+</Text>}
           </View>
+          {logoUrl && logoUrl.length > 0 && (
+            <View style={styles.logoContainer}>
+              <Image src={logoUrl} style={styles.logo} />
+            </View>
+          )}
         </View>
 
         {/* PARTIES */}

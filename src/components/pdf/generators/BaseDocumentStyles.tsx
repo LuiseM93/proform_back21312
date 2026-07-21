@@ -65,6 +65,9 @@ export function createBaseStyles(paperSize: PaperSize, orientation: Orientation)
     errorHighlight: { backgroundColor: '#fff3cd', borderWidth: 1, borderColor: '#ffc107' },
     errorCritical: { backgroundColor: '#f8d7da', borderWidth: 1, borderColor: '#dc3545' },
     disclaimer: { fontSize: 7, lineHeight: 1.3, color: '#666' },
+    // Logo styles
+    logoContainer: { position: 'absolute', top: 8, right: 8, width: 80, height: 40 },
+    logo: { width: '100%', height: '100%', resizeMode: 'contain' },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

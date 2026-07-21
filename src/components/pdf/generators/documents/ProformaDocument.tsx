@@ -3,11 +3,11 @@
 // ProformaFlow · FASE 3
 // ============================================================================
 import React, { useMemo } from 'react';
-import { Document, Page, View, Text } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import type { ProformaData } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, registerFonts } from '../BaseDocumentStyles';
 
-export function ProformaDocument({ data }: { data: ProformaData }) {
+export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUrl?: string | null }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
   const validityDate = new Date(data.issueDate);
@@ -37,6 +37,11 @@ export function ProformaDocument({ data }: { data: ProformaData }) {
             <Text style={{ fontSize: 8 }}>Valid Until: {validityStr}</Text>
             <Text style={{ fontSize: 8 }}>Validity: {data.validityDays || 30} days</Text>
           </View>
+          {logoUrl && logoUrl.length > 0 && (
+            <View style={styles.logoContainer}>
+              <Image src={logoUrl} style={styles.logo} />
+            </View>
+          )}
         </View>
 
         {/* PARTIES */}
