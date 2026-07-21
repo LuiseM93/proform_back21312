@@ -14,6 +14,9 @@ export async function POST() {
 
     // Use admin client for database query (bypasses RLS)
     const admin = await createAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Service temporarily unavailable" }, { status: 503 });
+    }
     const { data: sub } = await admin
       .from("subscriptions")
       .select("stripe_customer_id")

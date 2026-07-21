@@ -45,6 +45,10 @@ export async function POST(req: Request) {
   }
 
   const supabase = createAdminClient();
+  if (!supabase) {
+    console.error("[Webhook] Supabase admin client not configured");
+    return new NextResponse("Service unavailable", { status: 503 });
+  }
 
   // IDEMPOTENCY: Check if we've already processed this event
   const { data: existingEvent, error: eventCheckError } = await supabase
@@ -188,114 +192,114 @@ export async function POST(req: Request) {
       }
 
       case "customer.subscription.deleted": {
-              const subscription = event.data.object as Stripe.Subscription;
-              console.log("[Webhook] subscription.deleted:", subscription.id);
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log("[Webhook] subscription.deleted:", subscription.id);
 
-              // Use the first subscription item's current_period_end
-              const periodEnd = new Date(subscription.items.data[0]?.current_period_end * 1000);
-              const now = new Date();
+        // Use the first subscription item's current_period_end
+        const periodEnd = new Date(subscription.items.data[0]?.current_period_end * 1000);
+        const now = new Date();
 
-              // Resolve plan from the price_id of the deleted subscription
-              const priceId = subscription.items.data[0]?.price.id;
-              const currentPlan = priceId ? planFromPriceId(priceId) : "professional";
+        // Resolve plan from the price_id of the deleted subscription
+        const priceId = subscription.items.data[0]?.price.id;
+        const currentPlan = priceId ? planFromPriceId(priceId) : "professional";
 
-              // CHECK FOR IMMEDIATE CANCELLATION (invoice_now=true)
-              // If subscription was canceled immediately, canceled_at will be set and < now
-              // Or if cancel_at_period_end is false but status is canceled and no period end in future
-              const canceledAt = subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null;
-              const isImmediateCancel = canceledAt && canceledAt <= now;
+        // CHECK FOR IMMEDIATE CANCELLATION (invoice_now=true)
+        // If subscription was canceled immediately, canceled_at will be set and < now
+        // Or if cancel_at_period_end is false but status is canceled and no period end in future
+        const canceledAt = subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null;
+        const isImmediateCancel = canceledAt && canceledAt <= now;
 
-              // If periodEnd is in the future AND not immediate cancellation, keep plan active until periodEnd expires
-              // Only downgrade to starter when periodEnd has already passed OR it was immediate cancellation
-              const newPlan = (periodEnd > now && !isImmediateCancel) ? currentPlan : "starter";
-              const newStatus = (periodEnd > now && !isImmediateCancel) ? "active" : "canceled";
+        // If periodEnd is in the future AND not immediate cancellation, keep plan active until periodEnd expires
+        // Only downgrade to starter when periodEnd has already passed OR it was immediate cancellation
+        const newPlan = (periodEnd > now && !isImmediateCancel) ? currentPlan : "starter";
+        const newStatus = (periodEnd > now && !isImmediateCancel) ? "active" : "canceled";
 
-              if (isImmediateCancel) {
-                console.log("[Webhook] IMMEDIATE CANCELLATION detected (invoice_now=true) - downgrading to starter immediately");
-              } else if (periodEnd > now) {
-                console.log("[Webhook] Period-end cancellation - keeping", currentPlan, "until", periodEnd.toISOString());
-              } else {
-                console.log("[Webhook] Period already ended - downgrading to starter");
-              }
+        if (isImmediateCancel) {
+          console.log("[Webhook] IMMEDIATE CANCELLATION detected (invoice_now=true) - downgrading to starter immediately");
+        } else if (periodEnd > now) {
+          console.log("[Webhook] Period-end cancellation - keeping", currentPlan, "until", periodEnd.toISOString());
+        } else {
+          console.log("[Webhook] Period already ended - downgrading to starter");
+        }
 
-              // Try to find by stripe_subscription_id first (since stripe_customer_id might be null)
-              let error: Error | null = null;
-              const { data } = await supabase
-                .from("subscriptions")
-                .update({
-                  plan: newPlan,
-                  status: newStatus,
-                  cancel_at_period_end: false,
-                  current_period_end: periodEnd.toISOString(),
-                  updated_at: new Date().toISOString(),
-                })
-                .eq("stripe_subscription_id", subscription.id)
-                .select("id");
+        // Try to find by stripe_subscription_id first (since stripe_customer_id might be null)
+        let error: Error | null = null;
+        const { data } = await supabase
+          .from("subscriptions")
+          .update({
+            plan: newPlan,
+            status: newStatus,
+            cancel_at_period_end: false,
+            current_period_end: periodEnd.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_subscription_id", subscription.id)
+          .select("id");
 
-              // If no rows updated, try fallback 1
-              if (!data || data.length === 0) {
-                console.log("[Webhook] No rows updated by stripe_subscription_id, trying fallback 1");
-                error = new Error("No rows updated");
-              }
+        // If no rows updated, try fallback 1
+        if (!data || data.length === 0) {
+          console.log("[Webhook] No rows updated by stripe_subscription_id, trying fallback 1");
+          error = new Error("No rows updated");
+        }
 
-              // Fallback 1: try by stripe_customer_id
-              if (error && subscription.customer) {
-                console.log("[Webhook] Fallback to stripe_customer_id:", subscription.customer);
-                const { error: fallbackError, data: fallbackData } = await supabase
-                  .from("subscriptions")
-                  .update({
-                    plan: newPlan,
-                    status: newStatus,
-                    cancel_at_period_end: false,
-                    current_period_end: periodEnd.toISOString(),
-                    updated_at: new Date().toISOString(),
-                  })
-                  .eq("stripe_customer_id", subscription.customer as string)
-                  .select("id");
+        // Fallback 1: try by stripe_customer_id
+        if (error && subscription.customer) {
+          console.log("[Webhook] Fallback to stripe_customer_id:", subscription.customer);
+          const { error: fallbackError, data: fallbackData } = await supabase
+            .from("subscriptions")
+            .update({
+              plan: newPlan,
+              status: newStatus,
+              cancel_at_period_end: false,
+              current_period_end: periodEnd.toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_customer_id", subscription.customer as string)
+            .select("id");
 
-                if (fallbackData && fallbackData.length > 0) {
-                  error = null; // Success on fallback
-                } else if (fallbackError) {
-                  error = fallbackError;
-                }
-              }
+          if (fallbackData && fallbackData.length > 0) {
+            error = null; // Success on fallback
+          } else if (fallbackError) {
+            error = fallbackError;
+          }
+        }
 
-              // Fallback 2: try by user_id from subscription metadata
-              if (error && subscription.metadata?.supabase_user_id) {
-                console.log("[Webhook] Fallback to metadata.supabase_user_id:", subscription.metadata.supabase_user_id);
-                const { error: fallbackError, data: fallbackData } = await supabase
-                  .from("subscriptions")
-                  .update({
-                    plan: newPlan,
-                    status: newStatus,
-                    cancel_at_period_end: false,
-                    current_period_end: periodEnd.toISOString(),
-                    updated_at: new Date().toISOString(),
-                  })
-                  .eq("user_id", subscription.metadata.supabase_user_id)
-                  .select("id");
+        // Fallback 2: try by user_id from subscription metadata
+        if (error && subscription.metadata?.supabase_user_id) {
+          console.log("[Webhook] Fallback to metadata.supabase_user_id:", subscription.metadata.supabase_user_id);
+          const { error: fallbackError, data: fallbackData } = await supabase
+            .from("subscriptions")
+            .update({
+              plan: newPlan,
+              status: newStatus,
+              cancel_at_period_end: false,
+              current_period_end: periodEnd.toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("user_id", subscription.metadata.supabase_user_id)
+            .select("id");
 
-                if (fallbackData && fallbackData.length > 0) {
-                  error = null; // Success on fallback
-                } else if (fallbackError) {
-                  error = fallbackError;
-                }
-              }
+          if (fallbackData && fallbackData.length > 0) {
+            error = null; // Success on fallback
+          } else if (fallbackError) {
+            error = fallbackError;
+          }
+        }
 
-              if (error) {
-                console.error("[Webhook] Delete update error:", error);
-                throw error;
-              }
-              console.log(
-                "[Webhook] Subscription deleted handled. Plan:",
-                newPlan,
-                "Status:",
-                newStatus,
-                "Period ends:",
-                periodEnd.toISOString()
-              );
-              break;
-            }
+        if (error) {
+          console.error("[Webhook] Delete update error:", error);
+          throw error;
+        }
+        console.log(
+          "[Webhook] Subscription deleted handled. Plan:",
+          newPlan,
+          "Status:",
+          newStatus,
+          "Period ends:",
+          periodEnd.toISOString()
+        );
+        break;
+      }
 
       default:
         console.log("[Webhook] Unhandled event type:", event.type);
@@ -317,7 +321,7 @@ export async function POST(req: Request) {
 
     return new NextResponse("Webhook processed", { status: 200 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : (typeof err === 'string' ? err : JSON.stringify(err));
+    const message = err instanceof Error ? err.message : (typeof err === "string" ? err : JSON.stringify(err));
     console.error("[Webhook] Processing error:", message, err);
     return new NextResponse(`Webhook Error: ${message}`, { status: 500 });
   }

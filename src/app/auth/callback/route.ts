@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
 
       // Check if this is a new signup (profile created in the last 30 seconds)
       const admin = createAdminClient();
+      if (!admin) {
+        return NextResponse.redirect(`${origin}${redirectPath}`);
+      }
       const { data: profile } = await admin
         .from("profiles")
         .select("created_at, full_name")

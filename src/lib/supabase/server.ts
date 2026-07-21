@@ -29,9 +29,9 @@ export async function createClient() {
 
 export function createAdminClient() {
   // Service-role client for privileged server-only operations (webhooks, cron).
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
+  // Lazy init to avoid build-time errors when env vars missing
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null as ReturnType<typeof createSupabaseClient> | null;
+  return createSupabaseClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }

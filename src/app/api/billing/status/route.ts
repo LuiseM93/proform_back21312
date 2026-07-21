@@ -3,6 +3,9 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export async function GET() {
   const supabase = await createAdminClient();
+  if (!supabase) {
+    return NextResponse.json({ plan: "starter", status: "inactive" });
+  }
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {

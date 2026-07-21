@@ -16,6 +16,10 @@ export async function getUserContext() {
 
   // Use ADMIN CLIENT to bypass RLS on tables with restrictive policies
   const admin = await createAdminClient();
+  if (!admin) {
+    // Fallback: return basic context without subscriptions/profiles data
+    return { user, profile: null, company: null, subscription: null, usage: { documents_generated: 0 } };
+  }
 
   const [profileRes, companyRes, subRes] = await Promise.all([
     admin.from("profiles").select("*").eq("id", user.id).maybeSingle(),

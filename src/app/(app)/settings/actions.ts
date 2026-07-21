@@ -57,6 +57,7 @@ export async function deleteAccount() {
   if (!user) return { error: "Not authenticated" };
 
   const admin = createAdminClient();
+  if (!admin) return { error: "Service temporarily unavailable" };
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) return { error: error.message };
 

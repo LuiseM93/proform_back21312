@@ -12,6 +12,7 @@ export async function createTemplate(formData: FormData) {
 
   // Get user's plan and enforce template limits server-side
   const admin = await createAdminClient();
+  if (!admin) return { error: "Service unavailable" };
   const { data: sub } = await admin
     .from("subscriptions")
     .select("plan, status")
