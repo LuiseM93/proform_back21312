@@ -5,7 +5,7 @@ import Image from "next/image";
 import { updateCompanySettings, updateNotificationPreferences, deleteAccount } from "./actions";
 import { useRouter } from "next/navigation";
 
-const TABS = ["General", "Document Defaults", "Notifications", "Integrations", "Danger Zone"] as const;
+const TABS = ["General", "Document Defaults", "Notifications", "Danger Zone"] as const;
 
 interface Company {
   company_name?: string | null;
@@ -271,37 +271,17 @@ export function SettingsClient({
           </button>
         </form>
       )}
-
-      {tab === "Notifications" && (
-        <form action={handleNotifSave} className="border border-outline p-6 rounded bg-surface-container-lowest space-y-6">
-          <ToggleRow name="document_downloaded" label="Document Downloaded" description="Get notified when a document is downloaded." defaultChecked={notifPrefs?.document_downloaded ?? true} />
-          <ToggleRow name="document_sent" label="Document Sent" description="Receive confirmation when a document is generated." defaultChecked={notifPrefs?.document_sent ?? true} />
-          <ToggleRow name="weekly_summary" label="Weekly Summary" description="A summary of your document activity." defaultChecked={notifPrefs?.weekly_summary ?? false} />
-          <ToggleRow name="marketing_updates" label="Marketing & Updates" description="News about product updates and features." defaultChecked={notifPrefs?.marketing_updates ?? false} />
+      {/* ... */}
+            {tab === "Notifications" && (
+              <form action={handleNotifSave} className="border border-outline p-6 rounded bg-surface-container-lowest space-y-6">
+                <ToggleRow name="document_downloaded" label="Document Downloaded" description="Get notified when a document is downloaded." defaultChecked={notifPrefs?.document_downloaded ?? false} />
+                <ToggleRow name="document_sent" label="Document Sent" description="Receive confirmation when a document is generated." defaultChecked={notifPrefs?.document_sent ?? false} />
+                <ToggleRow name="weekly_summary" label="Weekly Summary" description="A summary of your document activity." defaultChecked={notifPrefs?.weekly_summary ?? false} />
+                <ToggleRow name="marketing_updates" label="Marketing & Updates" description="News about product updates and features." defaultChecked={notifPrefs?.marketing_updates ?? false} />
           <button type="submit" disabled={saving} className="bg-primary text-on-primary font-label-md py-2 px-6 rounded">
             {saving ? "Saving..." : "Save Preferences"}
           </button>
         </form>
-      )}
-
-      {tab === "Integrations" && (
-        <section className="border border-outline p-6 rounded bg-surface-container-lowest">
-          <div className="flex items-center gap-2 mb-6 border-b border-outline-variant pb-2">
-            <h3 className="font-headline-sm text-primary">API &amp; Webhooks</h3>
-            <span className="bg-primary text-on-primary text-[10px] uppercase font-bold px-2 py-1 rounded tracking-wider">
-              Business Plan
-            </span>
-          </div>
-          {plan === "business" ? (
-            <p className="font-body-md text-on-surface-variant">
-              Contact support to enable webhook delivery for your account.
-            </p>
-          ) : (
-            <p className="font-body-md text-on-surface-variant">
-              Upgrade to the Business plan to unlock API access and webhooks.
-            </p>
-          )}
-        </section>
       )}
 
       {tab === "Danger Zone" && (
