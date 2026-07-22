@@ -114,6 +114,13 @@ export function OutputForm({
         )}
       </div>
 
+      {/* Customs Disclaimer - Step 5 Review */}
+      <div style={{ marginTop: 16, padding: 12, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: '#475569' }}>
+          <strong style={{ color: '#dc2626' }}>⚠️ Customs Notice:</strong> This preview is an automated representation based on the data entered. Verify that all information complies with the customs regulations of your country of origin and destination before exporting. The exporter is solely legally responsible for the content of this document.
+        </p>
+      </div>
+
       <button
         type="button"
         onClick={onGenerate}

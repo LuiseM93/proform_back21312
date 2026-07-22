@@ -75,6 +75,13 @@ export function PreviewEngine({ data, activeDocument, crossWarnings = [], logoUr
     <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, background: '#fafafa' }}>
       <h3 style={{ marginTop: 0, fontSize: 14 }}>Live Preview — {activeDocument}</h3>
 
+      {/* Customs Disclaimer - Top of Preview */}
+      <div style={{ marginBottom: 12, padding: 10, background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 8 }}>
+        <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5, color: '#92400e' }}>
+          <strong>⚠️ Customs Notice:</strong> This preview is an automated representation based on the data entered. Verify that all information complies with the customs regulations of your country of origin and destination before exporting. The exporter is solely legally responsible for the content of this document.
+        </p>
+      </div>
+
       {/* ROJO banner (blocking) */}
       {hasBlocking && (
         <div style={{ background: '#fef2f2', border: '1px solid #dc2626', borderRadius: 6, padding: 8, marginBottom: 12 }}>

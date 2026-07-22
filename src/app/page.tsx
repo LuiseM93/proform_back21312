@@ -102,7 +102,39 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Carrier Badge Strip */}
+        {/* NEW SECTION: Navigation pills + disclaimer (from HTML design) */}
+        <section className="bg-background border-b brutal-border-bottom py-4 px-margin-lg">
+          <div className="max-w-7xl mx-auto flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/samples"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-surface brutal-border rounded-full font-label-md text-label-md text-primary hover:bg-surface-variant transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">description</span>
+                View Sample PDFs (9 Formats)
+              </Link>
+              <Link
+                href="/compliance"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-surface brutal-border rounded-full font-label-md text-label-md text-primary hover:bg-surface-variant transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">settings</span>
+                Compliance Standards
+              </Link>
+              <Link
+                href="/resources/technical-audit"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-surface brutal-border rounded-full font-label-md text-label-md text-primary hover:bg-surface-variant transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">shield</span>
+                Technical Audit Report
+              </Link>
+            </div>
+            <p className="text-center text-[10px] leading-tight text-on-surface-variant/60 max-w-3xl mx-auto font-body-md">
+              Disclaimer: All sample PDFs and audit reports are provided for technical demonstration and structural reference only. They do not constitute legal, customs, or brokerage advice. Final customs clearance remains the sole responsibility of the shipper and the carrier.
+            </p>
+          </div>
+        </section>
+
+        {/* Carrier Badge Strip (EXISTING - unchanged) */}
         <section className="border-b brutal-border-bottom bg-surface-container-lowest py-6 px-4 md:px-margin-lg overflow-hidden">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="font-label-md text-sm text-on-surface-variant uppercase tracking-widest shrink-0">
@@ -121,7 +153,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Feature Grid (Bento Style) */}
+        {/* Feature Grid (Bento Style) - EXISTING */}
         <section className="py-32 px-4 md:px-margin-lg bg-surface-bright">
           <div className="max-w-7xl mx-auto">
             <div className="mb-16">
@@ -136,7 +168,7 @@ export default function LandingPage() {
                 <div className="w-12 h-12 bg-primary text-on-primary flex items-center justify-center rounded-sm brutal-border mb-6">
                   <span className="material-symbols-outlined">gavel</span>
                 </div>
-                <h3 className="font-headline-sm mb-3">Incoterms &amp; HS Code built-in</h3>
+                <h3 className="font-headline-sm mb-3">Incoterms & HS Code built-in</h3>
                 <p className="font-body-md text-on-surface-variant max-w-md">
                   Ensure compliance with international trade standards. Automated field validation
                   for Harmonized System codes and Incoterms 2020 rules reduces customs holds.
@@ -196,7 +228,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing Summary */}
+        {/* Pricing Summary - EXISTING */}
         <section className="py-32 px-4 md:px-margin-lg bg-background border-t brutal-border-top border-b brutal-border-bottom relative">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 max-w-2xl mx-auto">
@@ -312,7 +344,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Privacy Statement */}
+        {/* Privacy Statement - EXISTING */}
         <section className="py-24 px-4 md:px-margin-lg bg-surface-container-highest">
           <div className="max-w-5xl mx-auto text-center">
             <div className="inline-flex items-center justify-center gap-2 mb-8">

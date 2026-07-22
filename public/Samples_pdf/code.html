@@ -1,0 +1,353 @@
+<!DOCTYPE html><html lang="en" class="light"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Output Gallery - ProformaFlow</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#1b1c1c",
+                      "on-primary-fixed-variant": "#474746",
+                      "on-secondary": "#ffffff",
+                      "surface-container-highest": "#e4e2e2",
+                      "on-primary-container": "#858383",
+                      "surface": "#fbf9f8",
+                      "surface-bright": "#fbf9f8",
+                      "surface-container": "#efeded",
+                      "tertiary": "#000000",
+                      "on-secondary-container": "#fffbff",
+                      "outline": "#747878",
+                      "on-tertiary-fixed-variant": "#0039b3",
+                      "primary": "#000000",
+                      "inverse-primary": "#c8c6c5",
+                      "secondary": "#b71511",
+                      "inverse-on-surface": "#f2f0f0",
+                      "surface-dim": "#dbd9d9",
+                      "primary-fixed-dim": "#c8c6c5",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed-dim": "#b6c4ff",
+                      "on-primary": "#ffffff",
+                      "surface-tint": "#5f5e5e",
+                      "on-surface-variant": "#444748",
+                      "surface-variant": "#e4e2e2",
+                      "surface-container-low": "#f5f3f3",
+                      "primary-fixed": "#e5e2e1",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed": "#410001",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-high": "#eae8e7",
+                      "error-container": "#ffdad6",
+                      "secondary-fixed": "#ffdad5",
+                      "on-tertiary-fixed": "#001551",
+                      "background": "#fbf9f8",
+                      "on-tertiary": "#ffffff",
+                      "outline-variant": "#c4c7c7",
+                      "inverse-surface": "#303030",
+                      "secondary-container": "#db3327",
+                      "on-primary-fixed": "#1c1b1b",
+                      "secondary-fixed-dim": "#ffb4a9",
+                      "tertiary-fixed": "#dce1ff",
+                      "on-secondary-fixed-variant": "#930004",
+                      "tertiary-container": "#001551",
+                      "on-tertiary-container": "#537aff",
+                      "on-error-container": "#93000a",
+                      "primary-container": "#1c1b1b",
+                      "on-surface": "#1b1c1c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "8px",
+                      "margin-sm": "16px",
+                      "margin-md": "32px",
+                      "margin-lg": "48px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Space Grotesk"
+                      ],
+                      "label-md": [
+                              "Space Grotesk"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Space Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "Space Grotesk"
+                      ],
+                      "headline-lg": [
+                              "Space Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "40px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="w-full sticky top-0 z-50 bg-surface dark:bg-on-background border-b border-outline dark:border-on-primary-container">
+<div class="flex justify-between items-center max-w-7xl mx-auto px-margin-md h-16">
+<div class="flex items-center gap-gutter">
+<a href="/" class="font-headline-sm text-headline-sm font-bold tracking-tighter text-on-background dark:text-surface">
+                    TRADELYTICS
+                </a>
+<div class="hidden md:flex gap-gutter ml-margin-md">
+<a href="#" class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface transition-colors">Platform</a>
+<a href="#" class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface transition-colors">Solutions</a>
+<a href="#" class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface transition-colors">Pricing</a>
+<a href="#" class="font-label-md text-label-md uppercase tracking-wider text-primary dark:text-surface font-bold border-b-2 border-primary dark:border-surface pb-1">Resources</a>
+</div>
+</div>
+<div class="flex items-center gap-gutter">
+<button class="hidden md:block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface transition-colors cursor-pointer active:scale-95 transition-transform hover:opacity-80 transition-opacity duration-200">Log In</button>
+<button class="bg-primary text-on-primary dark:bg-inverse-primary dark:text-on-background font-label-md text-label-md uppercase tracking-wider px-4 py-2 rounded cursor-pointer active:scale-95 transition-transform hover:opacity-80 transition-opacity duration-200">Get Started</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow max-w-7xl mx-auto w-full px-margin-sm md:px-margin-md py-margin-lg">
+<!-- Header Section -->
+<header class="mb-margin-lg text-center md:text-left max-w-3xl">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg mb-unit text-primary">Sample Output Gallery</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Explore our collection of industry-standard document outputs, engineered for global compliance and seamless logistics integration.</p>
+</header>
+<!-- Grid Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-margin-lg">
+<!-- Card 1 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Proforma Invoice</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Standard quotation format with estimated pricing and validity terms. (US to International)</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="01-proforma-invoice.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Commercial Invoice — FedEx (US to MX)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Standard M-1054 2-page format with Mexico RFC compliance.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="02-ci-fedex-us-mx.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Commercial Invoice — FedEx (US to EU)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">EU destination format including recipient EORI number verification.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="03-ci-fedex-us-de-eu.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Commercial Invoice — UPS (US to MX + USMCA)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Formatted with Related/Not Related parties and USMCA origin rules.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="04-ci-ups-us-mx-usmca.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Commercial Invoice — UPS (Domestic/Standard US)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Standard UPS Commercial Invoice configuration for domestic or general trade.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="05-ci-ups-us-us.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Commercial Invoice — DHL (US to EU + IOR)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">DHL Express 10-digit AWB format featuring Importer of Record (IOR) details.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="06-ci-dhl-us-de-ior.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 7 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Commercial Invoice — DHL (US to China)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Formatted for East Asia trade lanes with permanent export configuration.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="07-ci-dhl-us-cn.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Packing List (Multi-Package)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Detailed physical inventory with package numbers, dimensions, and shipping marks.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="08-packing-list.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+<!-- Card 9 -->
+<div class="border border-outline bg-surface rounded flex flex-col transition-all hover:border-primary group">
+<div class="p-margin-sm flex-grow">
+<div class="mb-4 text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-unit">Bundle (Commercial Invoice + Packing List)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Combined CIPL format featuring 13 financial and physical columns.</p>
+</div>
+<div class="p-margin-sm border-t border-outline bg-surface-container-lowest">
+<a href="09-bundle-cipl.pdf" target="_blank" class="flex items-center justify-center w-full py-2 px-4 border border-primary text-primary font-label-md text-label-md uppercase tracking-wider rounded hover:bg-primary hover:text-on-primary transition-colors">
+                        Download Sample (PDF)
+                    </a>
+</div>
+</div>
+</div>
+<!-- Legal Disclaimer -->
+<div class="border-t border-outline pt-margin-sm mt-margin-md">
+<p class="font-body-md text-[12px] text-outline text-center md:text-left">
+                Disclaimer: All sample PDFs are provided for technical demonstration and structural reference only. They do not constitute legal, customs, or brokerage advice.
+            </p>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full bottom-0 bg-surface dark:bg-on-background border-t border-outline dark:border-on-primary-container mt-auto">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter max-w-7xl mx-auto px-margin-md py-margin-lg">
+<div class="flex flex-col gap-unit">
+<div class="font-headline-sm text-headline-sm font-bold text-on-background dark:text-surface mb-2">TRADELYTICS</div>
+<p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant text-sm">
+                    © 2024 Tradelytics Global Inc. All rights reserved.
+                </p>
+</div>
+<div class="flex flex-col gap-unit">
+<a href="#" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface hover:underline transition-all">Privacy Policy</a>
+<a href="#" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface hover:underline transition-all">Terms of Service</a>
+</div>
+<div class="flex flex-col gap-unit">
+<a href="#" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface hover:underline transition-all">Security</a>
+<a href="#" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface hover:underline transition-all">Cookie Settings</a>
+</div>
+<div class="flex flex-col gap-unit">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface hover:underline transition-all" href="#">Contact Sales</a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-surface hover:underline transition-all" href="#">Support</a>
+</div>
+</div>
+</footer>
+</body></html>
