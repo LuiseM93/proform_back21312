@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local test artifacts
+generated-docs/
+src/__tests__/generate-all-docs.test.ts
