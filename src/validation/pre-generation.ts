@@ -166,17 +166,16 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     });
   }
 
-  // 10. PROFORMA_USED_AS_CI — A Proforma Invoice is NOT a Commercial Invoice (WARNING)
+  // 10. PROFORMA_USED_AS_CI — A Proforma Invoice is NOT a Commercial Invoice (BLOCKING)
   // 19 CFR 141.86: only a formal Commercial Invoice is accepted for customs clearance.
-  // The Proforma itself is a VALID quotation document and MUST be generable. We warn (not block)
-  // so the user knows it cannot be used for clearance — but we do NOT prevent generation.
+  // The Proforma itself is a VALID quotation document but MUST NOT be used for clearance.
   if (data.documentType === 'PROFORMA') {
-    warnings.push({
+    blockingErrors.push({
       code: 'PROFORMA_USED_AS_CI',
-      message: 'A PROFORMA INVOICE is NOT valid for customs clearance. Generate a formal Commercial Invoice for the actual shipment.',
+      message: 'A PROFORMA INVOICE is NOT valid for customs clearance. Generate a formal Commercial Invoice (CI_FEDEX/CI_UPS/CI_DHL) for the actual shipment.',
       field: 'documentType',
-      severity: 'WARNING',
-      recommendation: 'Use a Commercial Invoice (CI_FEDEX/CI_UPS/CI_DHL) for actual shipment and customs clearance.',
+      severity: 'BLOCKING',
+      regulation: '19 CFR 141.86; FedEx/DHL/UPS policy',
     });
   }
 
@@ -540,13 +539,22 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     });
   }
 
-  // 16. BUNDLE_NOT_ACCEPTED_DESTINATION — Some countries require separate CI+PL (AMBER)
+  // 16. BUNDLE_NOT_ACCEPTED_DESTINATION — Some countries/banks/transport modes require separate CI+PL (AMBER)
   if (data.documentType === 'BUNDLE_CIPL') {
-    const requiresSeparate = ['BR', 'AR', 'CL', 'PE', 'CO']; // Common Latin American countries
-    if (requiresSeparate.includes(data.destinationCountryCode)) {
+    const requiresSeparate = [
+      'BR', 'AR', 'CL', 'PE', 'CO',  // LATAM
+      'CN', 'IN', 'ID', 'VN', 'TH',  // Asia - often require separate docs
+      'SA', 'AE', 'EG', 'NG', 'ZA',  // Middle East/Africa
+    ];
+    const isMaritimeLCL = data.carrierSpecific.fedex?.customsProcedureCode?.startsWith('LCL') ||
+                          data.carrierSpecific.ups?.additionalCosts?.some(c => c.type === 'FREIGHT' && c.description.toLowerCase().includes('ocean')) ||
+                          data.carrierSpecific.dhl?.typeOfExport === 'TEMPORARY';
+    // Note: LC/bank involvement typically indicated by payment terms or separate flag
+    // For now, warn on known countries + maritime LCL
+    if (requiresSeparate.includes(data.destinationCountryCode) || isMaritimeLCL) {
       warnings.push({
         code: 'BUNDLE_NOT_ACCEPTED_DESTINATION',
-        message: `Destination ${data.destinationCountryCode} may require separate CI and PL (not a combined CIPL). Verify country/bank requirements.`,
+        message: `Destination ${data.destinationCountryCode} or transport mode may require separate CI and PL (not a combined CIPL). Verify with broker/bank.`,
         field: 'documentType',
         severity: 'WARNING',
         recommendation: 'Generate separate Commercial Invoice + Packing List for this destination',

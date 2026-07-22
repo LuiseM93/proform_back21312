@@ -82,7 +82,7 @@ describe('Audit: PreviewEngine data flow', () => {
   });
 
   // PROFORMA warning que no bloquea
-  it('PROFORMA_USED_AS_CI is WARNING (not BLOCKING) for PROFORMA document', () => {
+  it('PROFORMA_USED_AS_CI is BLOCKING for PROFORMA document', () => {
     const data = makeFixture('PROFORMA');
     // Los errores de description/units no importan aquí - el warning de proforma existe
     // Pero si el data está incompleto, bloqueará por DESCRIPTION_TOO_GENERIC u otros
@@ -95,9 +95,9 @@ describe('Audit: PreviewEngine data flow', () => {
     data.totals.grandTotal = 100;
 
     const result = validateShipment(data, new Map([['PROFORMA', data]]));
-    const proformaWarning = result.warnings.some(w => w.code === 'PROFORMA_USED_AS_CI');
-    expect(proformaWarning).toBe(true);
-    // No debe haber errores bloqueantes SOLO por ser proforma
-    expect(result.blocking.filter(e => e.field === 'documentType').length).toBe(0);
+    const proformaBlocking = result.blocking.some(w => w.code === 'PROFORMA_USED_AS_CI');
+    expect(proformaBlocking).toBe(true);
+    // No debe haber warnings SOLO por ser proforma
+    expect(result.warnings.filter(e => e.code === 'PROFORMA_USED_AS_CI').length).toBe(0);
   });
 });

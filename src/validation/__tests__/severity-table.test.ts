@@ -64,7 +64,7 @@ function totals(over: Partial<ShipmentTotals> = {}): ShipmentTotals {
 function output(over: Partial<OutputConfig> = {}): OutputConfig {
   return {
     paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN',
-    includeSignature: false, outputFormat: 'PDF',
+    includeSignature: false, outputFormat: 'PDF', includeLogo: false,
     ...over,
   };
 }
@@ -170,11 +170,11 @@ describe('§8 RED — Blocking errors', () => {
     expect(r.blockingErrors.some((e) => e.code === 'PARTIES_RELATIONSHIP_MISSING_UPS')).toBe(true);
   });
 
-  it('PROFORMA_USED_AS_CI — warns (AMBER) when Proforma selected, still generable', () => {
+  it('PROFORMA_USED_AS_CI — blocks (RED) when Proforma selected, NOT generable for customs', () => {
     const r = runPreGenerationChecks(baseShipment({ documentType: 'PROFORMA', carrier: 'NONE', validityDays: 30 }));
-    expect(r.blockingErrors.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(false);
-    expect(r.warnings.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
-    expect(r.canGenerate).toBe(true);
+    expect(r.blockingErrors.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
+    expect(r.warnings.some((e) => e.code === 'PROFORMA_USED_AS_CI')).toBe(false);
+    expect(r.canGenerate).toBe(false);
   });
 
   it('NAFTA_OBSOLETE_EMBEDDED — blocks UPS CI with legacy NAFTA block', () => {

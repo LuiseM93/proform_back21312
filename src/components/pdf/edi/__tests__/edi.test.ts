@@ -38,7 +38,7 @@ describe('generateEDI', () => {
       parties: { shipper: party(), consignee: party() },
       lines: [line()], totals: totals(),
       carrierSpecific: { fedex: { awbNumber: '123456789012', dutyTaxBilling: 'BILL_RECIPIENT', reasonForExport: 'SALE', etdEnabled: true } },
-      output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF' },
+      output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF', includeLogo: false },
     } as ShipmentData;
     const r = generateEDI(data);
     expect(r.format).toBe('FEDEX_ETD');
@@ -57,7 +57,7 @@ describe('generateEDI', () => {
         termsOfSale: { code: 'DAP', place: 'Austin', version: '2020' }, brokerageDutyBilling: 'CONSIGNEE',
         additionalCosts: [], partiesRelationship: 'NOT_RELATED',
       } },
-      output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF' },
+      output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF', includeLogo: false },
     } as ShipmentData;
     const r = generateEDI(data);
     expect(r.format).toBe('UPS_PAPERLESS');
@@ -74,7 +74,7 @@ describe('generateEDI', () => {
         awbNumber: '1234567890', shipmentReference: 'REF1', reasonForExport: 'SALE',
         typeOfExport: 'PERMANENT', termsOfTrade: { code: 'DAP', place: 'Berlin', version: '2020' }, mydhlGenerated: true,
       } },
-      output: { paperSize: 'A4', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF' },
+      output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF', includeLogo: false },
     } as ShipmentData;
     const r = generateEDI(data);
     expect(r.format).toBe('DHL_MYDHL_PLUS');
@@ -87,7 +87,7 @@ describe('generateEDI', () => {
       destinationCountryCode: 'US', destinationCountryGroup: 'US_CA', issueDate: '2026-07-19', validityDays: 30,
       parties: { shipper: party(), consignee: party() },
       lines: [line()], totals: totals(),
-      carrierSpecific: {}, output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF' },
+      output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF', includeLogo: false },
     } as ShipmentData;
     expect(generateEDIFiltered(data, 'PROFORMA')).toBeNull();
   });

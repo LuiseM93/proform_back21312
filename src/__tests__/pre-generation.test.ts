@@ -87,13 +87,14 @@ const baseValidData: ShipmentData = {
     },
   },
   output: {
-    paperSize: 'LETTER' as const,
-    orientation: 'PORTRAIT' as const,
-    language: 'EN' as const,
-    includeSignature: false,
-    outputFormat: 'PDF' as OutputFormat,
-  },
-};
+      paperSize: 'LETTER' as const,
+      orientation: 'PORTRAIT' as const,
+      language: 'EN' as const,
+      includeSignature: false,
+      outputFormat: 'PDF' as OutputFormat,
+      includeLogo: false,
+    },
+  };
 
 describe('Pre-Generation Checks - RED (Blocking)', () => {
   describe('DESCRIPTION_BLACKLIST_WORD - blacklist is an ERROR (not a warning)', () => {
@@ -433,13 +434,13 @@ describe('Pre-Generation Checks - AMBER (Warnings)', () => {
   });
 
   describe('PROFORMA_USED_AS_CI', () => {
-    it('warns (not blocks) Proforma from being used for customs clearance — Proforma IS generable', () => {
-      const data = { ...baseValidData, documentType: 'PROFORMA' as DocumentType, carrier: 'NONE' as Carrier, carrierSpecific: {} };
-      const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(true);
-      expect(result.warnings.some(e => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
+      it('blocks (RED) Proforma from being used for customs clearance — Proforma NOT generable', () => {
+        const data = { ...baseValidData, documentType: 'PROFORMA' as DocumentType, carrier: 'NONE' as Carrier, carrierSpecific: {} };
+        const result = runPreGenerationChecks(data);
+        expect(result.canGenerate).toBe(false);
+        expect(result.blockingErrors.some(e => e.code === 'PROFORMA_USED_AS_CI')).toBe(true);
+      });
     });
-  });
 
   describe('NAFTA_OBSOLETE_CHECK', () => {
     it('warns for UPS CI without USMCA cert', () => {
