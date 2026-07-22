@@ -254,7 +254,7 @@ export default function CompliancePage() {
                       <span className="font-label-md text-label-md text-primary">Download the 9 Sample PDF Outputs (FedEx, UPS, DHL, Proforma, Bundle)</span>
                     </Link>
                     <Link
-                      href="/technical-audit"
+                      href="/resources/technical-audit"
                       className="flex items-center gap-3 p-4 border border-outline bg-surface hover:border-primary transition-colors group"
                     >
                       <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary">verified_user</span>
