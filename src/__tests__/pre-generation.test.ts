@@ -53,6 +53,16 @@ const baseValidData: ShipmentData = {
       lineTotal: 1550,
       netWeightKg: 50,
       grossWeightKg: 55,
+      incoterm: 'DAP' as Incoterm2020,
+      packages: [{
+        packageNumber: 1,
+        packageType: 'BOX' as PackageType,
+        quantity: 100,
+        netWeightKg: 50,
+        grossWeightKg: 55,
+        dimensions: { lengthCm: 30, widthCm: 20, heightCm: 15 },
+        shippingMarks: 'TEST-001',
+      }],
     },
   ],
   totals: {
@@ -70,6 +80,7 @@ const baseValidData: ShipmentData = {
   carrierSpecific: {
     fedex: {
       awbNumber: '123456789012',
+      exportReferences: 'PO-12345',
       dutyTaxBilling: 'BILL_RECIPIENT' as const,
       reasonForExport: 'SALE' as const,
       etdEnabled: true,
@@ -372,13 +383,27 @@ describe('Pre-Generation Checks - AMBER (Warnings)', () => {
   });
 
   describe('DE_MINIMIS_SUSPENDED_US', () => {
-    it('warns for US shipment < $800', () => {
-      const data = { ...baseValidData, destinationCountryCode: 'US', totals: { ...baseValidData.totals, grandTotal: 500 } };
-      const result = runPreGenerationChecks(data);
-      expect(result.canGenerate).toBe(true);
-      expect(result.warnings.some(w => w.code === 'DE_MINIMIS_SUSPENDED_US')).toBe(true);
+      it('warns for US shipment < $800', () => {
+        const data = { 
+          ...baseValidData, 
+          destinationCountryCode: 'US', 
+          lines: [{
+            ...baseValidData.lines[0],
+            unitPrice: 4,
+            lineTotal: 400,
+          }],
+          totals: { 
+            ...baseValidData.totals, 
+            subtotal: 400,
+            totalAdditionalCosts: 0,
+            grandTotal: 400 
+          } 
+        };
+        const result = runPreGenerationChecks(data);
+        expect(result.canGenerate).toBe(true);
+        expect(result.warnings.some(w => w.code === 'DE_MINIMIS_SUSPENDED_US')).toBe(true);
+      });
     });
-  });
 
   describe('BUNDLE_NOT_ACCEPTED_DESTINATION', () => {
     it('warns when LATAM destination requires separate CI+PL', () => {

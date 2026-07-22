@@ -78,12 +78,15 @@ function baseShipment(over: Partial<ShipmentData> = {}): ShipmentData {
     destinationCountryGroup: 'US_CA',
     issueDate: '2026-07-19',
     parties: parties(),
-    lines: [line()],
+    lines: [line({ incoterm: 'DAP' })],
     totals: totals(),
     carrierSpecific: {
       fedex: {
-        awbNumber: '123456789012', dutyTaxBilling: 'BILL_RECIPIENT',
-        reasonForExport: 'SALE', etdEnabled: false,
+        awbNumber: '123456789012',
+        exportReferences: 'PO-12345',
+        dutyTaxBilling: 'BILL_RECIPIENT',
+        reasonForExport: 'SALE',
+        etdEnabled: false,
       },
     },
     output: output(),

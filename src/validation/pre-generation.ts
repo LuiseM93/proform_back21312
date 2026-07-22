@@ -253,6 +253,271 @@ export function runPreGenerationChecks(data: ShipmentData): PreGenerationCheckRe
     });
   }
 
+  // ============================================================================
+  // NEW BLOCKING VALIDATIONS — Informe Doc 2-6 compliance
+  // ============================================================================
+
+  // 14. REASON_FOR_EXPORT_MISSING — FedEx/DHL requieren motivo
+  if (data.documentType === 'CI_FEDEX') {
+    const reason = data.carrierSpecific.fedex?.reasonForExport;
+    if (!reason || !['SALE', 'SAMPLE', 'GIFT', 'REPAIR', 'RETURN', 'PERSONAL_USE'].includes(reason)) {
+      blockingErrors.push({
+        code: 'REASON_FOR_EXPORT_MISSING',
+        message: 'FedEx: Reason for Export is mandatory (SALE, SAMPLE, GIFT, REPAIR, RETURN, PERSONAL_USE)',
+        field: 'carrierSpecific.fedex.reasonForExport',
+        severity: 'BLOCKING',
+        regulation: 'FedEx M-1054; 19 CFR 141.86',
+      });
+    }
+  }
+  if (data.documentType === 'CI_DHL') {
+    const reason = data.carrierSpecific.dhl?.reasonForExport;
+    if (!reason || !['SALE', 'SAMPLE', 'REPAIR', 'RETURN', 'PERSONAL_USE', 'GIFT', 'POST_REPAIR'].includes(reason)) {
+      blockingErrors.push({
+        code: 'REASON_FOR_EXPORT_MISSING',
+        message: 'DHL: Reason for Export is mandatory (SALE, SAMPLE, REPAIR, RETURN, PERSONAL_USE, GIFT, POST_REPAIR)',
+        field: 'carrierSpecific.dhl.reasonForExport',
+        severity: 'BLOCKING',
+        regulation: 'DHL MyDHL+ requirements',
+      });
+    }
+  }
+
+  // 15. DHL_TYPE_OF_EXPORT_MISSING
+  if (data.documentType === 'CI_DHL') {
+    const typeOfExport = data.carrierSpecific.dhl?.typeOfExport;
+    if (!typeOfExport || !['PERMANENT', 'TEMPORARY', 'REPAIR_AND_RETURN'].includes(typeOfExport)) {
+      blockingErrors.push({
+        code: 'DHL_TYPE_OF_EXPORT_MISSING',
+        message: 'DHL: Type of Export is mandatory (PERMANENT, TEMPORARY, REPAIR_AND_RETURN)',
+        field: 'carrierSpecific.dhl.typeOfExport',
+        severity: 'BLOCKING',
+        regulation: 'DHL MyDHL+ requirements',
+      });
+    }
+  }
+
+  // 16. LINE_TOTAL_ARITHMETIC — quantity × unitPrice = lineTotal por línea
+  data.lines.forEach((line, idx) => {
+    const expected = line.quantity * line.unitPrice;
+    if (Math.abs(line.lineTotal - expected) > 0.01) {
+      blockingErrors.push({
+        code: 'LINE_TOTAL_ARITHMETIC',
+        message: `Line ${idx + 1}: lineTotal (${line.lineTotal}) ≠ quantity × unitPrice (${expected})`,
+        field: `lines[${idx}].lineTotal`,
+        severity: 'BLOCKING',
+        regulation: 'Arithmetic consistency; 19 CFR 141.86(a)(5)-(6)',
+      });
+    }
+  });
+
+  // 17. GRAND_TOTAL_ARITHMETIC — subtotal + additionalCosts = grandTotal
+  const expectedGrand = data.totals.subtotal + data.totals.totalAdditionalCosts;
+  if (Math.abs(data.totals.grandTotal - expectedGrand) > 0.01) {
+    blockingErrors.push({
+      code: 'GRAND_TOTAL_ARITHMETIC',
+      message: `grandTotal (${data.totals.grandTotal}) ≠ subtotal + additionalCosts (${expectedGrand})`,
+      field: 'totals.grandTotal',
+      severity: 'BLOCKING',
+      regulation: 'Arithmetic consistency; Invoice total verification',
+    });
+  }
+
+  // 18. TOTAL_PACKAGES_POSITIVE
+  if (data.totals.totalPackages <= 0) {
+    blockingErrors.push({
+      code: 'TOTAL_PACKAGES_POSITIVE',
+      message: 'Total packages must be > 0 (carrier requires at least 1 package)',
+      field: 'totals.totalPackages',
+      severity: 'BLOCKING',
+      regulation: 'Carrier manifest requirements; UPS/FedEx/DHL package count',
+    });
+  }
+
+  // 19. CARRIER_REFERENCE_MISSING — Invoice/Reference obligatorio por carrier
+  if (data.documentType === 'CI_FEDEX') {
+    const ref = data.carrierSpecific.fedex?.exportReferences?.trim();
+    const awb = data.carrierSpecific.fedex?.awbNumber?.trim();
+    if (!ref && !awb) {
+      blockingErrors.push({
+        code: 'CARRIER_REFERENCE_MISSING',
+        message: 'FedEx: Export References or AWB Number is required',
+        field: 'carrierSpecific.fedex.exportReferences / awbNumber',
+        severity: 'BLOCKING',
+        regulation: 'FedEx M-1054 field 2',
+      });
+    }
+  }
+  if (data.documentType === 'CI_UPS') {
+    const inv = data.carrierSpecific.ups?.invoiceNumber?.trim();
+    if (!inv) {
+      blockingErrors.push({
+        code: 'CARRIER_REFERENCE_MISSING',
+        message: 'UPS: Invoice Number is required',
+        field: 'carrierSpecific.ups.invoiceNumber',
+        severity: 'BLOCKING',
+        regulation: 'UPS Commercial Invoice field 9',
+      });
+    }
+  }
+  if (data.documentType === 'CI_DHL') {
+    const awb = data.carrierSpecific.dhl?.awbNumber?.trim();
+    const ref = data.carrierSpecific.dhl?.shipmentReference?.trim();
+    if (!awb || !ref) {
+      blockingErrors.push({
+        code: 'CARRIER_REFERENCE_MISSING',
+        message: 'DHL: AWB Number (10 digits) and Shipment Reference are required',
+        field: 'carrierSpecific.dhl.awbNumber / shipmentReference',
+        severity: 'BLOCKING',
+        regulation: 'DHL MyDHL+ Block 1',
+      });
+    }
+  }
+
+  // 20. PARTIES_REQUIRED_FIELDS — Shipper/Consignee campos obligatorios
+  ['shipper', 'consignee'].forEach((role) => {
+    const party = data.parties[role as keyof typeof data.parties];
+    if (!party) {
+      blockingErrors.push({
+        code: 'PARTIES_REQUIRED_FIELDS',
+        message: `${role} is required`,
+        field: `parties.${role}`,
+        severity: 'BLOCKING',
+        regulation: '19 CFR 141.86(j)',
+      });
+      return;
+    }
+    if (!party.legalName?.trim()) {
+      blockingErrors.push({
+        code: 'PARTIES_REQUIRED_FIELDS',
+        message: `${role}: legalName is required`,
+        field: `parties.${role}.legalName`,
+        severity: 'BLOCKING',
+        regulation: '19 CFR 141.86(j)',
+      });
+    }
+    if (!party.address?.street?.trim() || !party.address?.city?.trim() || !party.address?.countryCode?.trim()) {
+      blockingErrors.push({
+        code: 'PARTIES_REQUIRED_FIELDS',
+        message: `${role}: complete address (street, city, countryCode) is required`,
+        field: `parties.${role}.address`,
+        severity: 'BLOCKING',
+        regulation: '19 CFR 141.86(a)(1)-(3)',
+      });
+    }
+    if (!party.taxId?.trim()) {
+      blockingErrors.push({
+        code: 'PARTIES_REQUIRED_FIELDS',
+        message: `${role}: taxId is required`,
+        field: `parties.${role}.taxId`,
+        severity: 'BLOCKING',
+        regulation: '19 CFR 141.86(j); EU EORI; SAT RFC',
+      });
+    }
+  });
+
+  // 21. INCOTERM_REQUIRED — Obligatorio en CI + Proforma
+  const isCI = ['CI_FEDEX', 'CI_UPS', 'CI_DHL'].includes(data.documentType);
+  const isProforma = data.documentType === 'PROFORMA';
+  if (isCI || isProforma) {
+    // Buscar incoterm en lines[0] O en carrierSpecific
+    const lineIncoterm = data.lines[0]?.incoterm;
+    const carrierIncoterm = data.carrierSpecific.ups?.termsOfSale?.code ||
+                            data.carrierSpecific.dhl?.termsOfTrade?.code;
+    const incoterm = lineIncoterm || carrierIncoterm;
+    if (!incoterm) {
+      blockingErrors.push({
+        code: 'INCOTERM_REQUIRED',
+        message: 'Incoterms® 2020 is mandatory for Commercial Invoice and Proforma',
+        field: isCI ? 'carrierSpecific.<carrier>.termsOfSale/termsOfTrade' : 'lines[0].incoterm',
+        severity: 'BLOCKING',
+        regulation: 'ICC Incoterms® 2020; 19 CFR 141.86; Informe checklist',
+      });
+    } else if (!['EXW','FCA','CPT','CIP','DAP','DPU','DDP','FAS','FOB','CFR','CIF'].includes(incoterm)) {
+      blockingErrors.push({
+        code: 'INCOTERM_INVALID',
+        message: `Incoterm "${incoterm}" is not valid. Use Incoterms® 2020 (11 terms)`,
+        field: 'incoterm',
+        severity: 'BLOCKING',
+        regulation: 'ICC Incoterms® 2020',
+      });
+    }
+  }
+
+  // 22. CURRENCY_CONSISTENCY — Todas las líneas misma moneda = totales misma moneda
+  const lineCurrencies = [...new Set(data.lines.map(l => l.currency))];
+  if (lineCurrencies.length > 1) {
+    blockingErrors.push({
+      code: 'CURRENCY_CONSISTENCY',
+      message: `Multiple currencies in lines: ${lineCurrencies.join(', ')}. All lines must use the same currency.`,
+      field: 'lines[*].currency',
+      severity: 'BLOCKING',
+      regulation: 'Invoice monetary consistency; Customs valuation single currency',
+    });
+  }
+  if (lineCurrencies[0] && data.totals.currency !== lineCurrencies[0]) {
+    blockingErrors.push({
+      code: 'CURRENCY_CONSISTENCY',
+      message: `Totals currency (${data.totals.currency}) ≠ lines currency (${lineCurrencies[0]})`,
+      field: 'totals.currency',
+      severity: 'BLOCKING',
+      regulation: 'Invoice monetary consistency',
+    });
+  }
+
+  // 23. UOM_PACKAGE_TYPE_CATALOG — Validar contra catálogos controlados
+  const validUOM = ['PCS','KG','LB','M','M2','M3','L','MT','PR','SET','DOZ','GRO','THD','HUND','RL','BX','CS','CT','PK','EA'];
+  const validPkgTypes = ['BOX','PALLET','CRATE','DRUM','BAG','ROLL','BUNDLE','CARTON','CASE','CONTAINER','OTHER'];
+  data.lines.forEach((line, idx) => {
+    if (!validUOM.includes(line.uom)) {
+      blockingErrors.push({
+        code: 'UOM_INVALID',
+        message: `Line ${idx + 1}: UOM "${line.uom}" not in controlled catalog`,
+        field: `lines[${idx}].uom`,
+        severity: 'BLOCKING',
+        regulation: 'Controlled vocabularies (UN/CEFACT Recommendation 20)',
+      });
+    }
+    line.packages?.forEach((pkg, pi) => {
+      if (pkg.packageType && !validPkgTypes.includes(pkg.packageType)) {
+        blockingErrors.push({
+          code: 'PACKAGE_TYPE_INVALID',
+          message: `Line ${idx + 1} pkg ${pi + 1}: packageType "${pkg.packageType}" not in catalog`,
+          field: `lines[${idx}].packages[${pi}].packageType`,
+          severity: 'BLOCKING',
+          regulation: 'Controlled vocabularies (UN/CEFACT)',
+        });
+      }
+    });
+  });
+
+  // 24. CROSS_DOCUMENT_CONSISTENCY_CI_PL — Packages con shippingMarks obligatorios
+  if (data.documentType === 'BUNDLE_CIPL' || data.documentType === 'PACKING_LIST') {
+    data.lines.forEach((line, idx) => {
+      if (!line.packages || line.packages.length === 0) {
+        blockingErrors.push({
+          code: 'CROSS_DOCUMENT_CONSISTENCY',
+          message: `Line ${idx + 1}: Packing List requires at least 1 package with shippingMarks per line`,
+          field: `lines[${idx}].packages`,
+          severity: 'BLOCKING',
+          regulation: '19 CFR 141.86(e); Marks & numbers mandatory for customs verification',
+        });
+      } else {
+        line.packages.forEach((pkg, pi) => {
+          if (!pkg.shippingMarks?.trim()) {
+            blockingErrors.push({
+              code: 'CROSS_DOCUMENT_CONSISTENCY',
+              message: `Line ${idx + 1} pkg ${pi + 1}: shippingMarks required (must match physical boxes)`,
+              field: `lines[${idx}].packages[${pi}].shippingMarks`,
+              severity: 'BLOCKING',
+              regulation: '19 CFR 141.86(a)(3); Cross-doc consistency (CI ↔ PL)',
+            });
+          }
+        });
+      }
+    });
+  }
+
   // 14. PAPER_INVOICE_SURCHARGE_UPS — Warning if UPS paper invoice (AMBER)
   if (data.carrier === 'UPS' && (data.output.outputFormat === 'PDF' || data.output.outputFormat === 'BOTH')) {
     warnings.push({
