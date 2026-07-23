@@ -21,7 +21,7 @@ export default function TermsPage() {
             <h2 className="font-headline-sm text-secondary mb-4">LIMITATION OF LIABILITY & DISCLAIMER</h2>
             <div className="font-mono text-xs md:text-sm leading-relaxed space-y-3 text-on-secondary-fixed-variant">
               <p>
-                The software is provided <strong>"as is"</strong> and <strong>"as available"</strong>, without warranties of any kind, whether express, implied, statutory, or otherwise. ProformaFlow makes no warranties, representations, or guarantees regarding the accuracy, completeness, reliability, fitness for a particular purpose, or non-infringement of the software, generated documents, or any output produced.
+                The software is provided <strong>{"as is"}</strong> and <strong>{"as available"}</strong>, without warranties of any kind, whether express, implied, statutory, or otherwise. ProformaFlow makes no warranties, representations, or guarantees regarding the accuracy, completeness, reliability, fitness for a particular purpose, or non-infringement of the software, generated documents, or any output produced.
               </p>
               <p>
                 ProformaFlow is a <strong>document formatting and data-mapping automation tool</strong>. It does <strong>not</strong> provide legal advice, customs brokerage services, international trade consulting, or any professional advisory services. The software merely structures user-provided data into standardized document layouts aligned with common carrier and customs formats.
@@ -93,7 +93,7 @@ export default function TermsPage() {
             <h2 className="font-headline-sm text-secondary mb-4">LIMITATION OF LIABILITY & DISCLAIMER (REPEATED FOR EMPHASIS)</h2>
             <div className="font-mono text-xs md:text-sm leading-relaxed space-y-3 text-on-secondary-fixed-variant">
               <p>
-                ProformaFlow is provided <strong>"as is"</strong> without warranties of any kind. ProformaFlow does not provide legal, customs, or trade advisory services. The user bears <strong>sole and absolute responsibility</strong> for all data entered and documents generated.
+                ProformaFlow is provided <strong>{"as is"}</strong> without warranties of any kind. ProformaFlow does not provide legal, customs, or trade advisory services. The user bears <strong>sole and absolute responsibility</strong> for all data entered and documents generated.
               </p>
               <p>
                 ProformaFlow accepts <strong>no liability whatsoever</strong> for financial loss, cargo detention, fines, penalties, or any damages arising from use of generated documents. Customs clearance is at the sole discretion of border authorities. ProformaFlow cannot guarantee or certify successful customs entry.

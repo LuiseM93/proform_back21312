@@ -147,7 +147,7 @@ export default function CompliancePage() {
                   <ul className="font-body-md text-[14px] text-on-background space-y-3 flex-1">
                     <li className="flex items-start gap-2">
                       <span className="material-symbols-outlined text-[16px] text-primary mt-0.5">deployed_code</span>
-                      <span>ICC Incoterms® 2020 terminology alignment.</span>
+                      <span>ICC Incoterms 2020 terminology alignment.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="material-symbols-outlined text-[16px] text-primary mt-0.5">deployed_code</span>
@@ -186,7 +186,7 @@ export default function CompliancePage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-white mb-1">Semantic Description Filter</h4>
-                    <p className="text-on-primary-container leading-relaxed">Cross-references against generic terms (e.g., "goods", "merchandise") to map against 19 CFR 141.86 specificity standards.</p>
+                    <p className="text-on-primary-container leading-relaxed">Cross-references against generic terms (e.g. goods, merchandise) to map against 19 CFR 141.86 specificity standards.</p>
                   </div>
                 </div>
                 {/* Step 2 */}
@@ -270,7 +270,7 @@ export default function CompliancePage() {
                     href="/pricing"
                     className="bg-primary text-on-primary font-label-md text-label-md px-8 py-4 rounded-sm hover:bg-primary/90 transition-colors w-full md:w-auto"
                   >
-                    Start Free — Generate in 60s
+                    Start Free - Generate in 60s
                   </Link>
                 </div>
               </div>
@@ -286,7 +286,7 @@ export default function CompliancePage() {
           <div className="text-xs md:text-sm text-on-surface-variant leading-relaxed space-y-2 font-mono">
             <p className="font-bold text-on-background">Technical Liability Disclaimer</p>
             <p className="">
-              ProformaFlow operates solely as a "technological assistance tool" designed for document structural formatting and data-mapping automation.
+              ProformaFlow operates solely as a technological assistance tool designed for document structural formatting and data-mapping automation.
             </p>
             <p className="">
               This software does <span className="underline decoration-secondary">not</span> provide legal advice, customs brokerage services, or regulatory consulting. The user retains sole and complete responsibility for the accuracy, legality, and regulatory fulfillment of all data entered into the system.
