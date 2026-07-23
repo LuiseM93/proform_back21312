@@ -196,33 +196,33 @@ export function BillingClient({
       </div>
 
       {plan === "starter" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border border-outline-variant rounded p-6 bg-surface">
-            <h4 className="font-headline-sm mb-2">Professional — $24/mo</h4>
-            <p className="font-body-md text-on-surface-variant mb-4">Unlimited docs, carrier-ready PDFs.</p>
-            <div className="flex gap-2">
-              <button onClick={() => handleUpgrade("professional", "month")} className="flex-1 bg-primary text-on-primary py-2 rounded font-label-md">
-                Monthly
-              </button>
-              <button onClick={() => handleUpgrade("professional", "year")} className="flex-1 border border-primary text-primary py-2 rounded font-label-md">
-                Yearly (-20%)
-              </button>
-            </div>
-          </div>
-          <div className="border border-outline-variant rounded p-6 bg-surface">
-            <h4 className="font-headline-sm mb-2">Business — $79/mo</h4>
-            <p className="font-body-md text-on-surface-variant mb-4">Everything in Pro + 20+ currencies.</p>
-            <div className="flex gap-2">
-              <button onClick={() => handleUpgrade("business", "month")} className="flex-1 bg-primary text-on-primary py-2 rounded font-label-md">
-                Monthly
-              </button>
-              <button onClick={() => handleUpgrade("business", "year")} className="flex-1 border border-primary text-primary py-2 rounded font-label-md">
-                Yearly (-20%)
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-outline-variant rounded p-6 bg-surface">
+                  <h4 className="font-headline-sm mb-2">Professional — $49/mo</h4>
+                  <p className="font-body-md text-on-surface-variant mb-4">Unlimited docs, carrier-ready PDFs.</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleUpgrade("professional", "month")} className="flex-1 bg-primary text-on-primary py-2 rounded font-label-md">
+                      Monthly
+                    </button>
+                    <button onClick={() => handleUpgrade("professional", "year")} className="flex-1 border border-primary text-primary py-2 rounded font-label-md">
+                      Yearly (-20%)
+                    </button>
+                  </div>
+                </div>
+                <div className="border border-outline-variant rounded p-6 bg-surface">
+                  <h4 className="font-headline-sm mb-2">Business — $149/mo</h4>
+                  <p className="font-body-md text-on-surface-variant mb-4">Everything in Pro + 20+ currencies.</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleUpgrade("business", "month")} className="flex-1 bg-primary text-on-primary py-2 rounded font-label-md">
+                      Monthly
+                    </button>
+                    <button onClick={() => handleUpgrade("business", "year")} className="flex-1 border border-primary text-primary py-2 rounded font-label-md">
+                      Yearly (-20%)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
     </div>
   );
 }

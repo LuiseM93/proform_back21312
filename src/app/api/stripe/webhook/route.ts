@@ -14,10 +14,10 @@ if (webhookSecret?.startsWith("whsec_test_")) {
 }
 
 function planFromPriceId(priceId: string): string {
-  if (priceId === process.env.STRIPE_PRICE_BUSINESS_MONTHLY || priceId === process.env.STRIPE_PRICE_BUSINESS_YEARLY) {
+  if (priceId === process.env.STRIPE_BIZ_MONTHLY_PRICE_ID || priceId === process.env.STRIPE_BIZ_YEARLY_PRICE_ID) {
     return "business";
   }
-  if (priceId === process.env.STRIPE_PRICE_PRO_MONTHLY || priceId === process.env.STRIPE_PRICE_PRO_YEARLY) {
+  if (priceId === process.env.STRIPE_PRO_MONTHLY_PRICE_ID || priceId === process.env.STRIPE_PRO_YEARLY_PRICE_ID) {
     return "professional";
   }
   return "starter";

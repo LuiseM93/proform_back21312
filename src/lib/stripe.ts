@@ -6,14 +6,12 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export const PRICE_IDS = {
   professional: {
-    month: process.env.STRIPE_PRICE_PRO_MONTHLY!,
-    year: process.env.STRIPE_PRICE_PRO_YEARLY!,
+    month: process.env.STRIPE_PRO_MONTHLY_PRICE_ID!,
+    year: process.env.STRIPE_PRO_YEARLY_PRICE_ID!,
   },
   business: {
-    month: process.env.STRIPE_PRICE_BUSINESS_MONTHLY!,
-    year: process.env.STRIPE_PRICE_BUSINESS_YEARLY!,
+    month: process.env.STRIPE_BIZ_MONTHLY_PRICE_ID!,
+    year: process.env.STRIPE_BIZ_YEARLY_PRICE_ID!,
   },
-  extraDocument: process.env.STRIPE_PRICE_EXTRA_DOC!,
 } as const;
-
 export type PlanKey = keyof typeof PRICE_IDS extends infer K ? Exclude<K, "extraDocument"> : never;

@@ -6,15 +6,34 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const PLANS = {
-  monthly: { pro: 24, biz: 79, proSuffix: "/mo", bizSuffix: "/mo" },
-  annual: { pro: 19, biz: 63, proSuffix: "/mo", bizSuffix: "/mo" },
+  pro: 49,
+  proSuffix: "/mes",
+  biz: 149,
+  bizSuffix: "/mes",
+  proAnnual: 470,
+  bizAnnual: 1430,
+  proMonthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!,
+  proYearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID!,
+  bizMonthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_BIZ_MONTHLY_PRICE_ID!,
+  bizYearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_BIZ_YEARLY_PRICE_ID!,
 };
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
-  const plan = annual ? PLANS.annual : PLANS.monthly;
+  const plan = {
+            pro: PLANS.pro,
+            biz: PLANS.biz,
+            proSuffix: PLANS.proSuffix,
+            bizSuffix: PLANS.bizSuffix,
+            proAnnual: PLANS.proAnnual,
+            bizAnnual: PLANS.bizAnnual,
+            proMonthlyPriceId: PLANS.proMonthlyPriceId,
+            proYearlyPriceId: PLANS.proYearlyPriceId,
+            bizMonthlyPriceId: PLANS.bizMonthlyPriceId,
+            bizYearlyPriceId: PLANS.bizYearlyPriceId,
+          };
 
   useEffect(() => {
     const supabase = createClient();
@@ -95,13 +114,13 @@ export default function PricingPage() {
           <div className="border-2 border-primary p-8 flex flex-col rounded bg-surface relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:-translate-y-2">
             <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 font-label-md text-xs font-bold rounded-bl">Popular</div>
             <div className="mb-4">
-              <h3 className="font-headline-sm mb-1">Professional</h3>
-              <div className="font-headline-md mb-2">
-                ${plan.pro}<span className="font-body-md text-on-surface-variant">{plan.proSuffix}</span>
-                {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $228 yearly</div>}
-              </div>
-              <p className="font-body-md text-on-surface-variant h-12">For growing businesses needing carrier integration.</p>
-            </div>
+                          <h3 className="font-headline-sm mb-1">Professional</h3>
+                          <div className="font-headline-md mb-2">
+                            ${plan.pro}<span className="font-body-md text-on-surface-variant">{plan.proSuffix}</span>
+                            {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $470 yearly</div>}
+                          </div>
+                          <p className="font-body-md text-on-surface-variant h-12">For growing businesses needing carrier integration.</p>
+                        </div>
             <ul className="flex-grow space-y-3 mb-8">
               {["Unlimited docs", "No watermark", "All document types", "Carrier-ready PDFs (FedEx/UPS/DHL)", "5 currencies", "Email support"].map(f => (
                 <li key={f} className="flex items-start gap-2"><span className="material-symbols-outlined text-primary text-sm">check</span><span className="font-body-md font-medium">{f}</span></li>
@@ -115,13 +134,13 @@ export default function PricingPage() {
           {/* Business */}
           <div className="border border-outline-variant p-8 flex flex-col rounded bg-surface h-full">
             <div className="mb-4">
-              <h3 className="font-headline-sm mb-1">Business</h3>
-              <div className="font-headline-md mb-2">
-                ${plan.biz}<span className="font-body-md text-on-surface-variant">{plan.bizSuffix}</span>
-                {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $758 yearly</div>}
-              </div>
-              <p className="font-body-md text-on-surface-variant h-12">Advanced features for high-volume operations.</p>
-            </div>
+                          <h3 className="font-headline-sm mb-1">Business</h3>
+                          <div className="font-headline-md mb-2">
+                            ${plan.biz}<span className="font-body-md text-on-surface-variant">{plan.bizSuffix}</span>
+                            {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $1,430 yearly</div>}
+                          </div>
+                          <p className="font-body-md text-on-surface-variant h-12">Advanced features for high-volume operations.</p>
+                        </div>
             <ul className="flex-grow space-y-3 mb-8">
               {["All Pro features", "Unlimited templates", "20+ currencies"].map(f => (
                 <li key={f} className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md font-medium">{f}</span></li>

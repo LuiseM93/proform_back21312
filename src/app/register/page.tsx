@@ -6,8 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { sendMagicLink } from "@/app/auth/actions";
 
 const PLAN_LABELS: Record<string, string> = {
-  professional: "You're signing up for Professional — $24/mo",
-  business: "You're signing up for Business — $79/mo",
+  professional: "You're signing up for Professional — $49/mo",
+  business: "You're signing up for Business — $149/mo",
   starter: "You're signing up for Starter — Free",
 };
 

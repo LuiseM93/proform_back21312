@@ -275,7 +275,7 @@ export default function LandingPage() {
                   Professional
                 </div>
                 <div className="font-headline-lg mb-4 flex items-end gap-1">
-                  $24 <span className="font-body-md text-sm text-on-primary-container mb-2">/mo</span>
+                  $49 <span className="font-body-md text-sm text-on-primary-container mb-2">/mo</span>
                 </div>
                 <p className="font-body-md text-on-primary-container mb-8 h-12">
                   Advanced features for growing exporters.
@@ -310,7 +310,7 @@ export default function LandingPage() {
                   Business
                 </div>
                 <div className="font-headline-lg mb-4 flex items-end gap-1">
-                  $79 <span className="font-body-md text-sm text-on-surface-variant mb-2">/mo</span>
+                  $149 <span className="font-body-md text-sm text-on-surface-variant mb-2">/mo</span>
                 </div>
                 <p className="font-body-md text-on-surface-variant mb-8 h-12">
                   High-volume enterprise trade operations.
