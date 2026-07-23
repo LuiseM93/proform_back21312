@@ -87,13 +87,12 @@ const baseValidData: ShipmentData = {
     },
   },
   output: {
-      paperSize: 'LETTER' as const,
-      orientation: 'PORTRAIT' as const,
-      language: 'EN' as const,
-      includeSignature: false,
-      outputFormat: 'PDF' as OutputFormat,
-      includeLogo: false,
-    },
+        paperSize: 'LETTER' as const,
+        orientation: 'PORTRAIT' as const,
+        language: 'EN' as const,
+        includeSignature: false,
+        outputFormat: 'PDF' as OutputFormat,
+      },
   };
 
 describe('Pre-Generation Checks - RED (Blocking)', () => {

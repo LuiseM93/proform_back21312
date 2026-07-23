@@ -7,7 +7,7 @@ import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import type { CiDhlData } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
-export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: string | null }) {
+export function CiDhlDocument({ data }: { data: CiDhlData }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
   const dhl = data.carrierSpecific.dhl!;
@@ -19,21 +19,16 @@ export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: st
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.title, { fontSize: 16 }]}>COMMERCIAL INVOICE</Text>
-            <Text style={{ fontSize: 8, marginTop: 2 }}>DHL Express — MyDHL+ Compatible</Text>
+            <Text style={{ fontSize: 8, marginTop: 4 }}>DHL Express — MyDHL+ Compatible</Text>
           </View>
           {/* SAFE ZONE: 10-digit AWB top-right, no overlap */}
           <View style={{ textAlign: 'right', width: '35%', paddingTop: 4 }}>
             <Text style={{ fontSize: 12, fontWeight: 'bold', letterSpacing: 1 }}>{dhl.awbNumber}</Text>
-            <Text style={{ fontSize: 7, color: '#666' }}>AWB (10 digits) — DHL Zone</Text>
-            <Text style={{ fontSize: 8 }}>Ref: {dhl.shipmentReference || 'N/A'}</Text>
-            <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
-            {dhl.mydhlGenerated && <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold' }}>✓ via MyDHL+</Text>}
+            <Text style={{ fontSize: 7, color: '#666', marginTop: 4 }}>AWB (10 digits) — DHL Zone</Text>
+            <Text style={{ fontSize: 8, marginTop: 2 }}>Ref: {dhl.shipmentReference || 'N/A'}</Text>
+            <Text style={{ fontSize: 8, marginTop: 2 }}>Date: {data.issueDate}</Text>
+            {dhl.mydhlGenerated && <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold', marginTop: 4 }}>✓ via MyDHL+</Text>}
           </View>
-          {logoUrl && logoUrl.length > 0 && (
-            <View style={styles.logoContainer}>
-              <Image src={logoUrl} style={styles.logo} />
-            </View>
-          )}
         </View>
 
         {/* PARTIES */}
@@ -116,7 +111,7 @@ export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: st
           <Text style={styles.sectionTitle}>Commodity Description</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableCellHeader, { width: '5%' }]}>#</Text>
-            <Text style={[styles.tableCellHeader, { width: '35%' }]}>Description</Text>
+            <Text style={[styles.tableCellHeader, { width: '33%' }]}>Description</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>HS Code</Text>
             <Text style={[styles.tableCellHeader, { width: '8%' }]}>Origin</Text>
             <Text style={[styles.tableCellHeader, { width: '7%' }]}>Qty</Text>
@@ -125,13 +120,13 @@ export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: st
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Total</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Net kg</Text>
             <Text style={[styles.tableCellHeader, { width: '9%' }]}>Gross kg</Text>
-            <Text style={[styles.tableCellHeader, { width: '11%' }]}>Marks & Numbers</Text>
+            <Text style={[styles.tableCellHeader, { width: '13%' }]}>Marks & Numbers</Text>
           </View>
           {data.lines.map((line, idx) => (
             <View key={idx} style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: '5%' }]}>{idx + 1}</Text>
-              <Text style={[styles.tableCell, { width: '35%' }]}>{line.description}</Text>
-              {line.descriptionEs && <Text style={[styles.tableCell, { width: '35%', fontSize: 6, color: '#666' }]}>{line.descriptionEs}</Text>}
+              <Text style={[styles.tableCell, { width: '33%' }]}>{line.description}</Text>
+              {line.descriptionEs && <Text style={[styles.tableCell, { width: '33%', fontSize: 7, color: '#666' }]}>{line.descriptionEs}</Text>}
               <Text style={[styles.tableCell, { width: '10%' }]}>{line.hsCode}</Text>
               <Text style={[styles.tableCell, { width: '8%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
               <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
@@ -140,12 +135,12 @@ export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: st
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
               <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
-              <Text style={[styles.tableCell, { width: '11%', fontSize: 6 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
+              <Text style={[styles.tableCell, { width: '13%', fontSize: 7 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
             </View>
           ))}
           <View style={[styles.totalsRow, styles.tableRow]}>
             <Text style={[styles.tableCell, { width: '5%' }]} />
-            <Text style={[styles.tableCell, { width: '35%', fontWeight: 'bold' }]}>TOTAL</Text>
+            <Text style={[styles.tableCell, { width: '33%', fontWeight: 'bold' }]}>TOTAL</Text>
             <Text style={[styles.tableCell, { width: '10%' }]} />
             <Text style={[styles.tableCell, { width: '8%' }]} />
             <Text style={[styles.tableCell, { width: '7%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalQuantity, 0)}</Text>
@@ -154,19 +149,19 @@ export function CiDhlDocument({ data, logoUrl }: { data: CiDhlData; logoUrl?: st
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
             <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
-            <Text style={[styles.tableCell, { width: '11%' }]} />
+            <Text style={[styles.tableCell, { width: '13%' }]} />
           </View>
         </View>
 
         {/* DECLARATION */}
-        <View style={[styles.section, { marginTop: 'auto', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#000' }]}>
+        <View style={[styles.section, { marginTop: 'auto', paddingTop: 14, borderTopWidth: 1, borderTopColor: '#000' }]}>
           <Text style={styles.sectionTitle}>Declaration</Text>
-          <Text style={{ fontSize: 7, marginBottom: 8 }}>
+          <Text style={{ fontSize: 8, marginBottom: 8, lineHeight: 1.4 }}>
             I declare that the information on this invoice is true and correct. Goods comply with DHL Express terms and applicable customs regulations.
           </Text>
           {data.output.includeSignature && (
-            <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 6 }}>Date: {data.issueDate}</Text></View>
+            <View style={{...styles.signatureBlock, marginTop: 16}}>
+              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 7 }}>Date: {data.issueDate}</Text></View>
               <View style={styles.signatureLine}><Text>Name / Title</Text></View>
               <View style={styles.signatureLine}><Text>{data.parties.shipper.legalName}</Text></View>
             </View>

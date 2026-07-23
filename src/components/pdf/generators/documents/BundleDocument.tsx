@@ -3,26 +3,26 @@
 // ProformaFlow · FASE 3
 // ============================================================================
 import React, { useMemo } from 'react';
-import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
+import { Document, Page, View, Text } from '@react-pdf/renderer';
 import type { BundleData, Incoterm2020, PackageDetail } from '@/types/shipment';
-import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
+import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts, renderPartyAddress } from '../BaseDocumentStyles';
 
 interface PackageWithFallback extends Partial<PackageDetail> {
   shippingMarks?: string;
 }
 
-export function BundleDocument({ data, logoUrl }: { data: BundleData; logoUrl?: string | null }) {
+export function BundleDocument({ data }: { data: BundleData }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, 'LANDSCAPE'), [data.output]);
   const bundle = data.carrierSpecific.bundle!;
 
-  // Derivar Incoterm y AWB del carrier específico
-  const incoterm = data.carrierSpecific.fedex?.reasonForExport || 
-                   data.carrierSpecific.ups?.termsOfSale?.code || 
+  // Derivar Incoterm y AWB del carrier específico — FIX: usar termsOfSale/termsOfTrade.code
+  const incoterm = data.carrierSpecific.fedex?.reasonForExport ||
+                   data.carrierSpecific.ups?.termsOfSale?.code ||
                    data.carrierSpecific.dhl?.termsOfTrade?.code;
-  const awbBlRef = data.carrierSpecific.fedex?.awbNumber || 
-                   data.carrierSpecific.ups?.invoiceNumber || 
-                   data.carrierSpecific.dhl?.awbNumber || 
+  const awbBlRef = data.carrierSpecific.fedex?.awbNumber ||
+                   data.carrierSpecific.ups?.invoiceNumber ||
+                   data.carrierSpecific.dhl?.awbNumber ||
                    bundle.commercialInvoiceRef;
 
   // Type guard for incoterm display
@@ -35,39 +35,38 @@ export function BundleDocument({ data, logoUrl }: { data: BundleData; logoUrl?: 
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.title, { fontSize: 14 }]}>COMMERCIAL INVOICE + PACKING LIST</Text>
-            <Text style={{ fontSize: 8, marginTop: 2 }}>Combined Document (Bundle)</Text>
+            <Text style={{ fontSize: 8, marginTop: 4 }}>Combined Document (Bundle)</Text>
           </View>
           <View style={{ textAlign: 'right', width: '35%' }}>
             <Text style={{ fontSize: 9, fontWeight: 'bold' }}>Doc: {bundle.documentNumber}</Text>
-            <Text style={{ fontSize: 8 }}>CI Ref: {bundle.commercialInvoiceRef}</Text>
-            <Text style={{ fontSize: 8 }}>PL Ref: {bundle.packingListRef}</Text>
-            <Text style={{ fontSize: 8 }}>AWB/BL: {awbBlRef}</Text>
-            <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
-            {incoterm && isValidIncoterm(incoterm) && <Text style={{ fontSize: 8 }}>Incoterm: {getIncotermDisplay(incoterm)}</Text>}
+            <Text style={{ fontSize: 8, marginTop: 2 }}>CI Ref: {bundle.commercialInvoiceRef}</Text>
+            <Text style={{ fontSize: 8, marginTop: 2 }}>PL Ref: {bundle.packingListRef}</Text>
+            <Text style={{ fontSize: 8, marginTop: 2 }}>AWB/BL: {awbBlRef}</Text>
+            <Text style={{ fontSize: 8, marginTop: 2 }}>Date: {data.issueDate}</Text>
+            {incoterm && isValidIncoterm(incoterm) && <Text style={{ fontSize: 8, marginTop: 2 }}>Incoterm: {getIncotermDisplay(incoterm)}</Text>}
           </View>
-          {logoUrl && logoUrl.length > 0 && (
-            <View style={styles.logoContainer}>
-              <Image src={logoUrl} style={styles.logo} />
-            </View>
-          )}
         </View>
 
-        {/* PARTIES */}
+        {/* PARTIES - usando renderPartyAddress para dirección completa */}
         <View style={styles.section}>
           <View style={styles.partyBlock}>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Shipper</Text>
-              <Text style={styles.partyValue}>{data.parties.shipper.legalName}</Text>
-              <Text style={styles.partyValue}>{data.parties.shipper.address.city}, {data.parties.shipper.address.countryName}</Text>
+              {renderPartyAddress(data.parties.shipper).map((line, i) => (
+                <Text key={i} style={styles.partyValue}>{line}</Text>
+              ))}
               {data.parties.shipper.phone && <Text style={styles.partyValue}>Tel: {data.parties.shipper.phone}</Text>}
               {data.parties.shipper.email && <Text style={styles.partyValue}>{data.parties.shipper.email}</Text>}
+              {data.parties.shipper.eori && <Text style={styles.partyValue}>EORI: {data.parties.shipper.eori}</Text>}
             </View>
             <View style={styles.partyColumn}>
               <Text style={styles.partyLabel}>Consignee</Text>
-              <Text style={styles.partyValue}>{data.parties.consignee.legalName}</Text>
-              <Text style={styles.partyValue}>{data.parties.consignee.address.city}, {data.parties.consignee.address.countryName}</Text>
+              {renderPartyAddress(data.parties.consignee).map((line, i) => (
+                <Text key={i} style={styles.partyValue}>{line}</Text>
+              ))}
               {data.parties.consignee.phone && <Text style={styles.partyValue}>Tel: {data.parties.consignee.phone}</Text>}
               {data.parties.consignee.email && <Text style={styles.partyValue}>{data.parties.consignee.email}</Text>}
+              {data.parties.consignee.eori && <Text style={styles.partyValue}>EORI: {data.parties.consignee.eori}</Text>}
             </View>
           </View>
         </View>
@@ -107,10 +106,9 @@ export function BundleDocument({ data, logoUrl }: { data: BundleData; logoUrl?: 
                 <Text style={[styles.tableCell, { width: '8%', textAlign: 'center' }]}>
                   {pkg.dimensions ? `${pkg.dimensions.lengthCm}×${pkg.dimensions.widthCm}×${pkg.dimensions.heightCm}` : '—'}
                 </Text>
-                <Text style={[styles.tableCell, { width: '15%', fontSize: 6 }]}>{pkg.shippingMarks || '—'}</Text>
+                <Text style={[styles.tableCell, { width: '15%', fontSize: 7 }]}>{pkg.shippingMarks || '—'}</Text>
               </View>
-            ))
-          )}
+            )))}
           <View style={[styles.totalsRow, styles.tableRow]}>
             <Text style={[styles.tableCell, { width: '4%' }]} />
             <Text style={[styles.tableCell, { width: '18%', fontWeight: 'bold' }]}>TOTALS</Text>
@@ -129,21 +127,21 @@ export function BundleDocument({ data, logoUrl }: { data: BundleData; logoUrl?: 
         </View>
 
         {/* DUAL DECLARATIONS */}
-        <View style={[styles.section, { marginTop: 'auto', paddingTop: 8 }]}>
+        <View style={[styles.section, { marginTop: 'auto', paddingTop: 14 }]}>
           <View style={styles.flexRow}>
             <View style={{ width: '50%', borderRightWidth: 1, borderRightColor: '#000', paddingRight: 8 }}>
               <Text style={styles.sectionTitle}>Invoice Declaration</Text>
-              <Text style={{ fontSize: 6, lineHeight: 1.3 }}>
+              <Text style={{ fontSize: 7.5, lineHeight: 1.4 }}>
                 I declare the invoice info true and correct per customs regulations. Goods classified and valued as stated.
               </Text>
-              {data.output.includeSignature && <Text style={{ fontSize: 6, marginTop: 4 }}>Signature: {data.parties.shipper.legalName}</Text>}
+              {data.output.includeSignature && <Text style={{ fontSize: 7, marginTop: 6 }}>Signature: {data.parties.shipper.legalName}</Text>}
             </View>
             <View style={{ width: '50%', paddingLeft: 8 }}>
               <Text style={styles.sectionTitle}>Packing Declaration</Text>
-              <Text style={{ fontSize: 6, lineHeight: 1.3 }}>
+              <Text style={{ fontSize: 7.5, lineHeight: 1.4 }}>
                 I certify packages listed reflect actual contents, weights, and dimensions. Marks correspond to external labels.
               </Text>
-              {data.output.includeSignature && <Text style={{ fontSize: 6, marginTop: 4 }}>Signature: {data.parties.shipper.legalName}</Text>}
+              {data.output.includeSignature && <Text style={{ fontSize: 7, marginTop: 6 }}>Signature: {data.parties.shipper.legalName}</Text>}
             </View>
           </View>
         </View>

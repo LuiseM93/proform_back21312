@@ -16,12 +16,10 @@ interface OutputFormProps {
   blockingErrors: { code: string; message: string; field: string }[];
   warnings: { code: string; message: string; field: string; recommendation?: string }[];
   onGenerate: () => void;
-  logoUrl?: string | null;
 }
 
 export function OutputForm({
   documentType, destinationCountryGroup, value, onChange, blockingErrors, warnings, onGenerate,
-  logoUrl,
 }: OutputFormProps) {
   const paper = derivePaperConfig(destinationCountryGroup, documentType);
   const autoPaper = paper.paperSize;
@@ -80,21 +78,14 @@ export function OutputForm({
       </label>
 
       {value.includeSignature && (
-              <div style={{ marginTop: 8 }}>
-                <label style={labelStyle}>Signature Image URL (opt)</label>
-                <input style={inputStyle} value={value.signatureImageUrl || ''}
-                  onChange={(e) => set({ signatureImageUrl: e.target.value })} placeholder="https://... or base64" />
-              </div>
-            )}
+                    <div style={{ marginTop: 8 }}>
+                      <label style={labelStyle}>Signature Image URL (opt)</label>
+                      <input style={inputStyle} value={value.signatureImageUrl || ''}
+                        onChange={(e) => set({ signatureImageUrl: e.target.value })} placeholder="https://... or base64" />
+                    </div>
+                  )}
 
-            {logoUrl && (
-              <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-                <input type="checkbox" checked={value.includeLogo} onChange={(e) => set({ includeLogo: e.target.checked })} />
-                Include Company Logo
-              </label>
-            )}
-
-            {/* Validation Banner */}
+                  {/* Validation Banner */}
       <div style={{ marginTop: 16 }}>
         {blockingErrors.length > 0 && (
           <div style={{ background: '#fef2f2', border: '1px solid #dc2626', borderRadius: 8, padding: 12, marginBottom: 8 }}>

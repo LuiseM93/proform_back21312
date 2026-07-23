@@ -7,30 +7,25 @@ import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import type { CiUpsData } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
-export function CiUpsDocument({ data, logoUrl }: { data: CiUpsData; logoUrl?: string | null }) {
+export function CiUpsDocument({ data }: { data: CiUpsData }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
   const ups = data.carrierSpecific.ups!;
 
   return (
-    <Document>
-      <Page size={data.output.paperSize === 'LETTER' ? 'LETTER' : 'A4'} orientation={data.output.orientation === 'LANDSCAPE' ? 'landscape' : 'portrait'} style={styles.page}>
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { fontSize: 16 }]}>COMMERCIAL INVOICE</Text>
-            <Text style={{ fontSize: 8, marginTop: 2 }}>UPS International</Text>
-          </View>
-          <View style={{ textAlign: 'right', width: '35%' }}>
-            <Text style={{ fontSize: 9, fontWeight: 'bold' }}>Invoice: {ups.invoiceNumber}</Text>
-            <Text style={{ fontSize: 8 }}>Date: {ups.invoiceDate}</Text>
-            <Text style={{ fontSize: 8 }}>Currency: {ups.currencyOfSale}</Text>
-          </View>
-          {logoUrl && logoUrl.length > 0 && (
-            <View style={styles.logoContainer}>
-              <Image src={logoUrl} style={styles.logo} />
+      <Document>
+        <Page size={data.output.paperSize === 'LETTER' ? 'LETTER' : 'A4'} orientation={data.output.orientation === 'LANDSCAPE' ? 'landscape' : 'portrait'} style={styles.page}>
+          <View style={styles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.title, { fontSize: 16 }]}>COMMERCIAL INVOICE</Text>
+              <Text style={{ fontSize: 8, marginTop: 4 }}>UPS International</Text>
             </View>
-          )}
-        </View>
+            <View style={{ textAlign: 'right', width: '35%' }}>
+              <Text style={{ fontSize: 9, fontWeight: 'bold' }}>Invoice: {ups.invoiceNumber}</Text>
+              <Text style={{ fontSize: 8, marginTop: 4 }}>Date: {ups.invoiceDate}</Text>
+              <Text style={{ fontSize: 8, marginTop: 4 }}>Currency: {ups.currencyOfSale}</Text>
+            </View>
+          </View>
 
         {/* 3-PARTY LAYOUT */}
         <View style={styles.section}>
@@ -107,7 +102,7 @@ export function CiUpsDocument({ data, logoUrl }: { data: CiUpsData; logoUrl?: st
           <Text style={styles.sectionTitle}>Commodity Description</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableCellHeader, { width: '5%' }]}>#</Text>
-            <Text style={[styles.tableCellHeader, { width: '35%' }]}>Description</Text>
+            <Text style={[styles.tableCellHeader, { width: '33%' }]}>Description</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>HS Code</Text>
             <Text style={[styles.tableCellHeader, { width: '8%' }]}>Origin</Text>
             <Text style={[styles.tableCellHeader, { width: '7%' }]}>Qty</Text>
@@ -116,13 +111,13 @@ export function CiUpsDocument({ data, logoUrl }: { data: CiUpsData; logoUrl?: st
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Total</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Net kg</Text>
             <Text style={[styles.tableCellHeader, { width: '9%' }]}>Gross kg</Text>
-            <Text style={[styles.tableCellHeader, { width: '10%' }]}>Marks & Numbers</Text>
+            <Text style={[styles.tableCellHeader, { width: '12%' }]}>Marks & Numbers</Text>
           </View>
           {data.lines.map((line, idx) => (
             <View key={idx} style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: '5%' }]}>{idx + 1}</Text>
-              <Text style={[styles.tableCell, { width: '35%' }]}>{line.description}</Text>
-              {line.descriptionEs && <Text style={[styles.tableCell, { width: '35%', fontSize: 6, color: '#666' }]}>{line.descriptionEs}</Text>}
+              <Text style={[styles.tableCell, { width: '33%' }]}>{line.description}</Text>
+              {line.descriptionEs && <Text style={[styles.tableCell, { width: '33%', fontSize: 7, color: '#666' }]}>{line.descriptionEs}</Text>}
               <Text style={[styles.tableCell, { width: '10%' }]}>{line.hsCode}</Text>
               <Text style={[styles.tableCell, { width: '8%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
               <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.quantity, 0)}</Text>
@@ -131,12 +126,12 @@ export function CiUpsDocument({ data, logoUrl }: { data: CiUpsData; logoUrl?: st
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
               <Text style={[styles.tableCell, { width: '10%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
               <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
-              <Text style={[styles.tableCell, { width: '10%', fontSize: 6 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
+              <Text style={[styles.tableCell, { width: '12%', fontSize: 7 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
             </View>
           ))}
           <View style={[styles.totalsRow, styles.tableRow]}>
             <Text style={[styles.tableCell, { width: '5%' }]} />
-            <Text style={[styles.tableCell, { width: '35%', fontWeight: 'bold' }]}>TOTAL</Text>
+            <Text style={[styles.tableCell, { width: '33%', fontWeight: 'bold' }]}>TOTAL</Text>
             <Text style={[styles.tableCell, { width: '10%' }]} />
             <Text style={[styles.tableCell, { width: '8%' }]} />
             <Text style={[styles.tableCell, { width: '7%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalQuantity, 0)}</Text>
@@ -145,7 +140,7 @@ export function CiUpsDocument({ data, logoUrl }: { data: CiUpsData; logoUrl?: st
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
             <Text style={[styles.tableCell, { width: '10%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
             <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
-            <Text style={[styles.tableCell, { width: '10%' }]} />
+            <Text style={[styles.tableCell, { width: '12%' }]} />
           </View>
         </View>
 
@@ -154,24 +149,24 @@ export function CiUpsDocument({ data, logoUrl }: { data: CiUpsData; logoUrl?: st
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Additional Costs</Text>
             {ups.additionalCosts.map((c, i) => (
-              <View key={i} style={styles.flexRow}>
-                <Text style={[styles.partyValue, { width: '20%' }]}>{c.type}</Text>
-                <Text style={[styles.partyValue, { width: '60%' }]}>{c.description}</Text>
-                <Text style={[styles.partyValue, { width: '20%', textAlign: 'right' }]}>{formatCurrency(c.amount, c.currency)}</Text>
+              <View key={i} style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                <Text style={{ ...styles.partyValue, width: '20%', marginBottom: 2 }}>{c.type}</Text>
+                <Text style={{ ...styles.partyValue, width: '60%', marginBottom: 2 }}>{c.description}</Text>
+                <Text style={{ ...styles.partyValue, width: '20%', textAlign: 'right', marginBottom: 2 }}>{formatCurrency(c.amount, c.currency)}</Text>
               </View>
             ))}
           </View>
         )}
 
         {/* DECLARATION */}
-        <View style={[styles.section, { marginTop: 'auto', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#000' }]}>
+        <View style={[styles.section, { marginTop: 'auto', paddingTop: 14, borderTopWidth: 1, borderTopColor: '#000' }]}>
           <Text style={styles.sectionTitle}>Declaration</Text>
-          <Text style={{ fontSize: 7, marginBottom: 8 }}>
+          <Text style={{ fontSize: 8, marginBottom: 8, lineHeight: 1.4 }}>
             I declare the above is true and correct. {ups.partiesRelationship === 'RELATED' && 'Parties are related; valuation per 19 CFR 152.103.'}
           </Text>
           {data.output.includeSignature && (
-            <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 6 }}>Date: {data.issueDate}</Text></View>
+            <View style={{...styles.signatureBlock, marginTop: 16}}>
+              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 7 }}>Date: {data.issueDate}</Text></View>
               <View style={styles.signatureLine}><Text>Name / Title</Text></View>
               <View style={styles.signatureLine}><Text>{data.parties.shipper.legalName}</Text></View>
             </View>

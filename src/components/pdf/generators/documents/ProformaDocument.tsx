@@ -7,7 +7,7 @@ import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
 import type { ProformaData } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, registerFonts } from '../BaseDocumentStyles';
 
-export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUrl?: string | null }) {
+export function ProformaDocument({ data }: { data: ProformaData }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
   const validityDate = new Date(data.issueDate);
@@ -25,10 +25,10 @@ export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUr
         <View style={styles.header}>
           <View style={{ flex: 1, textAlign: 'center' }}>
             <Text style={[styles.title, { fontSize: 18, color: '#dc3545' }]}>PROFORMA INVOICE</Text>
-            <Text style={{ fontSize: 9, color: '#dc3545', fontWeight: 'bold' }}>
+            <Text style={{ fontSize: 9, color: '#dc3545', fontWeight: 'bold', marginTop: 6 }}>
               THIS IS NOT A COMMERCIAL INVOICE — FOR QUOTATION PURPOSES ONLY
             </Text>
-            <Text style={{ fontSize: 8, marginTop: 2 }}>
+            <Text style={{ fontSize: 8, marginTop: 4 }}>
               {data.carrierSpecific.bundle?.documentNumber || `PF-${data.issueDate.replace(/-/g, '')}-${data.shipmentId.slice(0, 6).toUpperCase()}`}
             </Text>
           </View>
@@ -37,11 +37,6 @@ export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUr
             <Text style={{ fontSize: 8 }}>Valid Until: {validityStr}</Text>
             <Text style={{ fontSize: 8 }}>Validity: {data.validityDays || 30} days</Text>
           </View>
-          {logoUrl && logoUrl.length > 0 && (
-            <View style={styles.logoContainer}>
-              <Image src={logoUrl} style={styles.logo} />
-            </View>
-          )}
         </View>
 
         {/* PARTIES */}
@@ -95,15 +90,15 @@ export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUr
           <Text style={styles.sectionTitle}>Proposed Commodities</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableCellHeader, { width: '4%' }]}>#</Text>
-            <Text style={[styles.tableCellHeader, { width: '28%' }]}>Description</Text>
+            <Text style={[styles.tableCellHeader, { width: '26%' }]}>Description</Text>
             <Text style={[styles.tableCellHeader, { width: '9%' }]}>HS Code</Text>
             <Text style={[styles.tableCellHeader, { width: '7%' }]}>Origin</Text>
             <Text style={[styles.tableCellHeader, { width: '6%' }]}>Qty</Text>
             <Text style={[styles.tableCellHeader, { width: '4%' }]}>UOM</Text>
             <Text style={[styles.tableCellHeader, { width: '9%' }]}>Unit (Est)</Text>
             <Text style={[styles.tableCellHeader, { width: '9%' }]}>Total (Est)</Text>
-            <Text style={[styles.tableCellHeader, { width: '6%' }]}>Net kg</Text>
-            <Text style={[styles.tableCellHeader, { width: '6%' }]}>Gross kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '7%' }]}>Net kg</Text>
+            <Text style={[styles.tableCellHeader, { width: '7%' }]}>Gross kg</Text>
             <Text style={[styles.tableCellHeader, { width: '10%' }]}>Dims cm</Text>
           </View>
           {data.lines.map((line, idx) => {
@@ -111,9 +106,9 @@ export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUr
             return (
               <View key={idx} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '4%' }]}>{idx + 1}</Text>
-                <View style={[styles.tableCell, { width: '28%' }]}>
+                <View style={[styles.tableCell, { width: '26%' }]}>
                   <Text style={{ fontWeight: 'bold' }}>{line.description}</Text>
-                  {line.descriptionEs && <Text style={{ fontSize: 6, color: '#666' }}>{line.descriptionEs}</Text>}
+                  {line.descriptionEs && <Text style={{ fontSize: 7, color: '#666' }}>{line.descriptionEs}</Text>}
                 </View>
                 <Text style={[styles.tableCell, { width: '9%' }]}>{line.hsCode}</Text>
                 <Text style={[styles.tableCell, { width: '7%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
@@ -121,30 +116,30 @@ export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUr
                 <Text style={[styles.tableCell, { width: '4%' }]}>{line.uom}</Text>
                 <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatCurrency(line.unitPrice, line.currency)}</Text>
                 <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
-                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
-                <Text style={[styles.tableCell, { width: '6%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg || 0, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
+                <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg || 0, 2)}</Text>
                 <Text style={[styles.tableCell, { width: '10%', textAlign: 'center' }]}>{dims}</Text>
               </View>
             );
           })}
           <View style={[styles.totalsRow, styles.tableRow]}>
             <Text style={[styles.tableCell, { width: '4%' }]} />
-            <Text style={[styles.tableCell, { width: '28%', fontWeight: 'bold' }]}>ESTIMATED TOTAL</Text>
+            <Text style={[styles.tableCell, { width: '26%', fontWeight: 'bold' }]}>ESTIMATED TOTAL</Text>
             <Text style={[styles.tableCell, { width: '9%' }]} />
             <Text style={[styles.tableCell, { width: '7%' }]} />
             <Text style={[styles.tableCell, { width: '6%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalQuantity, 0)}</Text>
             <Text style={[styles.tableCell, { width: '4%' }]} />
             <Text style={[styles.tableCell, { width: '9%' }]} />
             <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
-            <Text style={[styles.tableCell, { width: '6%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
-            <Text style={[styles.tableCell, { width: '6%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '7%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
+            <Text style={[styles.tableCell, { width: '7%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
             <Text style={[styles.tableCell, { width: '10%' }]} />
           </View>
         </View>
 
         {/* DISCLAIMER */}
-        <View style={[styles.section, { marginTop: 'auto', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#000' }]}>
-          <Text style={{ fontSize: 8, fontWeight: 'bold', marginBottom: 4, color: '#dc3545' }}>IMPORTANT NOTICE</Text>
+        <View style={[styles.section, { marginTop: 'auto', paddingTop: 14, borderTopWidth: 1, borderTopColor: '#000' }]}>
+          <Text style={{ fontSize: 8.5, fontWeight: 'bold', marginBottom: 6, color: '#dc3545' }}>IMPORTANT NOTICE</Text>
           <Text style={styles.disclaimer}>
             This Proforma Invoice is issued for quotation / customs valuation / import permit purposes only. It does not constitute a demand for payment,
             a commercial invoice, or a customs declaration document. The values, quantities, and specifications herein are estimates subject to change upon
@@ -155,8 +150,8 @@ export function ProformaDocument({ data, logoUrl }: { data: ProformaData; logoUr
 
         {/* SIGNATURE */}
         {data.output.includeSignature && (
-          <View style={styles.signatureBlock}>
-            <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 6 }}>Date: {data.issueDate}</Text></View>
+          <View style={{...styles.signatureBlock, marginTop: 16}}>
+            <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 7 }}>{data.issueDate}</Text></View>
             <View style={styles.signatureLine}><Text>Name / Title</Text></View>
             <View style={styles.signatureLine}><Text>{data.parties.shipper.legalName}</Text></View>
           </View>

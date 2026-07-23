@@ -64,7 +64,7 @@ function totals(over: Partial<ShipmentTotals> = {}): ShipmentTotals {
 function output(over: Partial<OutputConfig> = {}): OutputConfig {
   return {
     paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN',
-    includeSignature: false, outputFormat: 'PDF', includeLogo: false,
+    includeSignature: false, outputFormat: 'PDF',
     ...over,
   };
 }

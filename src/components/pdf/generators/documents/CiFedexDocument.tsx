@@ -3,11 +3,11 @@
 // ProformaFlow · FASE 3
 // ============================================================================
 import React, { useMemo } from 'react';
-import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
+import { Document, Page, View, Text } from '@react-pdf/renderer';
 import type { CiFedexData } from '@/types/shipment';
 import { createBaseStyles, formatCurrency, formatNumber, getIncotermDisplay, registerFonts } from '../BaseDocumentStyles';
 
-export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?: string | null }) {
+export function CiFedexDocument({ data }: { data: CiFedexData }) {
   registerFonts();
   const { styles, orientation } = useMemo(() => createBaseStyles(data.output.paperSize, data.output.orientation), [data.output]);
   const fedex = data.carrierSpecific.fedex!;
@@ -16,22 +16,18 @@ export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?
     <Document>
       {/* PAGE 1 */}
       <Page size={data.output.paperSize === 'LETTER' ? 'LETTER' : 'A4'} orientation={orientation} style={styles.page}>
+        {/* HEADER */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.title, { fontSize: 16 }]}>COMMERCIAL INVOICE</Text>
-            <Text style={{ fontSize: 8, marginTop: 2 }}>FedEx International — M-1054 Format</Text>
+            <Text style={{ fontSize: 8, marginTop: 4 }}>FedEx International — M-1054 Format</Text>
           </View>
           <View style={{ textAlign: 'right', width: '35%' }}>
             <Text style={{ fontSize: 9, fontWeight: 'bold' }}>AWB: {fedex.awbNumber}</Text>
-            <Text style={{ fontSize: 8 }}>Date: {data.issueDate}</Text>
-            <Text style={{ fontSize: 8 }}>Ref: {fedex.exportReferences || 'N/A'}</Text>
-            {fedex.etdEnabled && <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold' }}>✓ ETD ENABLED — No physical copies required</Text>}
+            <Text style={{ fontSize: 8, marginTop: 4 }}>Date: {data.issueDate}</Text>
+            <Text style={{ fontSize: 8, marginTop: 4 }}>Ref: {fedex.exportReferences || 'N/A'}</Text>
+            {fedex.etdEnabled && <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold', marginTop: 6 }}>✓ ETD ENABLED — No physical copies required</Text>}
           </View>
-          {logoUrl && logoUrl.length > 0 && (
-                      <View style={styles.logoContainer}>
-                        <Image src={logoUrl} style={styles.logo} />
-                      </View>
-                    )}
         </View>
 
         {/* PARTIES */}
@@ -102,7 +98,7 @@ export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?
           <Text style={styles.sectionTitle}>Commodity Description (19 CFR § 141.86)</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableCellHeader, { width: '4%' }]}>#</Text>
-            <Text style={[styles.tableCellHeader, { width: '28%' }]}>Description</Text>
+            <Text style={[styles.tableCellHeader, { width: '26%' }]}>Description</Text>
             <Text style={[styles.tableCellHeader, { width: '8%' }]}>HS Code</Text>
             <Text style={[styles.tableCellHeader, { width: '6%' }]}>Origin</Text>
             <Text style={[styles.tableCellHeader, { width: '6%' }]}>Qty</Text>
@@ -111,16 +107,16 @@ export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?
             <Text style={[styles.tableCellHeader, { width: '9%' }]}>Total</Text>
             <Text style={[styles.tableCellHeader, { width: '7%' }]}>Net kg</Text>
             <Text style={[styles.tableCellHeader, { width: '8%' }]}>Gross kg</Text>
-            <Text style={[styles.tableCellHeader, { width: '11%' }]}>Marks & Numbers</Text>
+            <Text style={[styles.tableCellHeader, { width: '13%' }]}>Marks & Numbers</Text>
           </View>
           {data.lines.map((line, idx) => {
             const marks = line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A';
             return (
               <View key={idx} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { width: '4%' }]}>{idx + 1}</Text>
-                <View style={[styles.tableCell, { width: '28%' }]}>
+                <View style={[styles.tableCell, { width: '26%' }]}>
                   <Text style={{ fontWeight: 'bold' }}>{line.description}</Text>
-                  {line.descriptionEs && <Text style={{ fontSize: 6, color: '#666' }}>{line.descriptionEs}</Text>}
+                  {line.descriptionEs && <Text style={{ fontSize: 7, color: '#666' }}>{line.descriptionEs}</Text>}
                 </View>
                 <Text style={[styles.tableCell, { width: '8%' }]}>{line.hsCode}</Text>
                 <Text style={[styles.tableCell, { width: '6%' }]}>{line.countryOfOrigin} ({line.countryOfOriginName})</Text>
@@ -130,13 +126,13 @@ export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?
                 <Text style={[styles.tableCell, { width: '9%', textAlign: 'right' }]}>{formatCurrency(line.lineTotal, line.currency)}</Text>
                 <Text style={[styles.tableCell, { width: '7%', textAlign: 'right' }]}>{formatNumber(line.netWeightKg, 2)}</Text>
                 <Text style={[styles.tableCell, { width: '8%', textAlign: 'right' }]}>{formatNumber(line.grossWeightKg, 2)}</Text>
-                <Text style={[styles.tableCell, { width: '11%', fontSize: 6 }]}>{marks}</Text>
+                <Text style={[styles.tableCell, { width: '13%', fontSize: 7 }]}>{line.packages?.map((p) => p.shippingMarks).join(', ') || 'N/A'}</Text>
               </View>
             );
           })}
           <View style={[styles.totalsRow, styles.tableRow]}>
             <Text style={[styles.tableCell, { width: '4%' }]} />
-            <Text style={[styles.tableCell, { width: '28%', fontWeight: 'bold' }]}>TOTAL</Text>
+            <Text style={[styles.tableCell, { width: '26%', fontWeight: 'bold' }]}>TOTAL</Text>
             <Text style={[styles.tableCell, { width: '8%' }]} />
             <Text style={[styles.tableCell, { width: '6%' }]} />
             <Text style={[styles.tableCell, { width: '6%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalQuantity, 0)}</Text>
@@ -145,7 +141,7 @@ export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?
             <Text style={[styles.tableCell, { width: '9%', textAlign: 'right', fontWeight: 'bold' }]}>{formatCurrency(data.totals.subtotal, data.totals.currency)}</Text>
             <Text style={[styles.tableCell, { width: '7%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalNetWeightKg, 2)}</Text>
             <Text style={[styles.tableCell, { width: '8%', textAlign: 'right', fontWeight: 'bold' }]}>{formatNumber(data.totals.totalGrossWeightKg, 2)}</Text>
-            <Text style={[styles.tableCell, { width: '11%' }]} />
+            <Text style={[styles.tableCell, { width: '13%' }]} />
           </View>
         </View>
 
@@ -169,25 +165,21 @@ export function CiFedexDocument({ data, logoUrl }: { data: CiFedexData; logoUrl?
         )}
 
         {/* DECLARATION */}
-        <View style={[styles.section, { marginTop: 'auto', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#000' }]}>
+        <View style={[styles.section, { marginTop: 'auto', paddingTop: 14, borderTopWidth: 1, borderTopColor: '#000' }]}>
           <Text style={styles.sectionTitle}>Declaration</Text>
-          <Text style={{ fontSize: 7, marginBottom: 8, lineHeight: 1.3 }}>
+          <Text style={{ fontSize: 8, marginBottom: 8, lineHeight: 1.4 }}>
             I, the undersigned, declare that the information on this invoice is true and correct, and that the goods described above are of the origin,
             value, and classification stated. I understand that false statements may result in penalties under 19 CFR § 141.86 and applicable customs laws.
           </Text>
           {data.output.includeSignature ? (
-            <View style={styles.signatureBlock}>
-              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 6 }}>Date: {data.issueDate}</Text></View>
+            <View style={{...styles.signatureBlock, marginTop: 16}}>
+              <View style={styles.signatureLine}><Text>Authorized Signature</Text><Text style={{ fontSize: 7 }}>Date: {data.issueDate}</Text></View>
               <View style={styles.signatureLine}><Text>Printed Name / Title</Text></View>
               <View style={styles.signatureLine}><Text>{data.parties.shipper.legalName}</Text></View>
             </View>
-          ) : fedex.etdEnabled && (
-            <View style={{ textAlign: 'center', marginTop: 8, padding: 8, backgroundColor: '#e8f5e9', borderWidth: 0.5, borderColor: '#28a745' }}>
-              <Text style={{ fontSize: 7, color: '#28a745', fontWeight: 'bold' }}>ELECTRONICALLY TRANSMITTED VIA FEDEX ETD — NO PHYSICAL SIGNATURE REQUIRED</Text>
-            </View>
-          )}
+          ) : null}
+          <Text style={{ position: 'absolute', bottom: 20, right: 36, fontSize: 7 }}>CI FedEx — Page 1</Text>
         </View>
-        <Text style={{ position: 'absolute', bottom: 20, right: 36, fontSize: 7 }}>CI FedEx — Page 1</Text>
       </Page>
 
       {/* PAGE 2 */}

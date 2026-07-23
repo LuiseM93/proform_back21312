@@ -23,11 +23,9 @@ const STEPS = ['Document Type', 'Parties', 'Lines', 'Carrier', 'Output & Preview
 export function GeneratorFormV2({
   planWatermark = false, planAllTypes = true, planCarrierReady = true,
   remainingDocs = null, plan = 'starter',
-  companyLogoUrl = null,
 }: {
   planWatermark?: boolean; planAllTypes?: boolean; planCarrierReady?: boolean;
   remainingDocs?: number | null; plan?: string;
-  companyLogoUrl?: string | null;
 }) {
   const [activeDoc, setActiveDoc] = useState<DocumentType>('CI_FEDEX');
   const [step, setStep] = useState(0);
@@ -47,35 +45,35 @@ export function GeneratorFormV2({
   );
 
   const handleGenerate = useCallback(async () => {
-      const result = ShipmentSchema.safeParse(data);
-      if (!result.success) {
-        console.error('Validation failed:', result.error.flatten());
-        alert('Validation errors. Please review the form.');
-        return;
-      }
-      if (!validation.canGenerate) {
-        alert('Blocking errors present. Cannot generate.');
-        return;
-      }
-      try {
-        if (data.output.outputFormat === 'PDF' || data.output.outputFormat === 'BOTH') {
-          const blob = await generatePDF(data, companyLogoUrl);
-          const filename = `${activeDoc}_${data.issueDate}.pdf`;
-          downloadPDF(blob, filename);
+        const result = ShipmentSchema.safeParse(data);
+        if (!result.success) {
+          console.error('Validation failed:', result.error.flatten());
+          alert('Validation errors. Please review the form.');
+          return;
         }
-        if (data.output.outputFormat === 'EDI_JSON' || data.output.outputFormat === 'BOTH') {
-          const edi = generateEDI(data);
-          if (edi) {
-            const blob = new Blob([JSON.stringify(edi.payload, null, 2)], { type: 'application/json' });
-            downloadPDF(blob, `${activeDoc}_${edi.format}.json`);
+        if (!validation.canGenerate) {
+          alert('Blocking errors present. Cannot generate.');
+          return;
+        }
+        try {
+          if (data.output.outputFormat === 'PDF' || data.output.outputFormat === 'BOTH') {
+            const blob = await generatePDF(data);
+            const filename = `${activeDoc}_${data.issueDate}.pdf`;
+            downloadPDF(blob, filename);
           }
-        }
-        alert('Document generated successfully.');
-      } catch (err) {
-      console.error('Generation error:', err);
-      alert('Generation error: ' + (err as Error).message);
-    }
-  }, [data, validation, activeDoc]);
+          if (data.output.outputFormat === 'EDI_JSON' || data.output.outputFormat === 'BOTH') {
+            const edi = generateEDI(data);
+            if (edi) {
+              const blob = new Blob([JSON.stringify(edi.payload, null, 2)], { type: 'application/json' });
+              downloadPDF(blob, `${activeDoc}_${edi.format}.json`);
+            }
+          }
+          alert('Document generated successfully.');
+        } catch (err) {
+        console.error('Generation error:', err);
+        alert('Generation error: ' + (err as Error).message);
+      }
+    }, [data, validation, activeDoc]);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 16 }}>
@@ -175,13 +173,13 @@ export function GeneratorFormV2({
             onChange={(carrierSpecific: CarrierSpecificData) => update({ carrierSpecific })} />
         )}
         {step === 4 && (
-                  <OutputForm documentType={activeDoc} destinationCountryGroup={data.destinationCountryGroup}
-                      value={data.output} onChange={(output: OutputConfig) => update({ output })}
-                      blockingErrors={validation.blocking.map((i) => ({ code: i.code, message: i.message, field: i.field }))}
-                      warnings={validation.warnings.map((i) => ({ code: i.code, message: i.message, field: i.field, recommendation: i.recommendation }))}
-                      onGenerate={handleGenerate}
-                      logoUrl={companyLogoUrl} />
-                )}
+                          <OutputForm documentType={activeDoc} destinationCountryGroup={data.destinationCountryGroup}
+                              value={data.output} onChange={(output: OutputConfig) => update({ output })}
+                              blockingErrors={validation.blocking.map((i) => ({ code: i.code, message: i.message, field: i.field }))}
+                              warnings={validation.warnings.map((i) => ({ code: i.code, message: i.message, field: i.field, recommendation: i.recommendation }))}
+                              onGenerate={handleGenerate}
+                          /> 
+                        )}
 
         {/* Navigation */}
         {step > 0 && step < 4 && (
@@ -200,11 +198,10 @@ export function GeneratorFormV2({
       {/* Right: Preview */}
             <div>
               <PreviewEngine
-                data={data}
-                activeDocument={activeDoc}
-                crossWarnings={validation.warnings.map((i) => ({ code: i.code, message: i.message, field: i.field, recommendation: i.recommendation }))}
-                logoUrl={companyLogoUrl}
-              />
+                              data={data}
+                              activeDocument={activeDoc}
+                              crossWarnings={validation.warnings.map((i) => ({ code: i.code, message: i.message, field: i.field, recommendation: i.recommendation }))}
+                            />
             </div>
     </div>
   );
@@ -234,7 +231,7 @@ function getDefault(doc: DocumentType): ShipmentData {
       grandTotal: 0, currency: 'USD',
     },
     carrierSpecific: {},
-    output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF', includeLogo: true },
+    output: { paperSize: 'LETTER', orientation: 'PORTRAIT', language: 'EN', includeSignature: false, outputFormat: 'PDF' },
   };
 }
 

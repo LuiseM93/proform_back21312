@@ -15,34 +15,34 @@ export { generateEDI } from '../edi/ediGenerators';
 
 export type ReactPDFDocument = React.ReactElement;
 
-function getDocumentComponent(data: ShipmentData, logoUrl?: string | null) {
+function getDocumentComponent(data: ShipmentData) {
   switch (data.documentType) {
-    case 'PROFORMA': return <ProformaDocument data={data as ProformaData} logoUrl={logoUrl} />;
-    case 'CI_FEDEX': return <CiFedexDocument data={data as CiFedexData} logoUrl={logoUrl} />;
-    case 'CI_UPS': return <CiUpsDocument data={data as CiUpsData} logoUrl={logoUrl} />;
-    case 'CI_DHL': return <CiDhlDocument data={data as CiDhlData} logoUrl={logoUrl} />;
-    case 'PACKING_LIST': return <PackingListDocument data={data as PackingListData} logoUrl={logoUrl} />;
-    case 'BUNDLE_CIPL': return <BundleDocument data={data as BundleData} logoUrl={logoUrl} />;
+    case 'PROFORMA': return <ProformaDocument data={data as ProformaData} />;
+    case 'CI_FEDEX': return <CiFedexDocument data={data as CiFedexData} />;
+    case 'CI_UPS': return <CiUpsDocument data={data as CiUpsData} />;
+    case 'CI_DHL': return <CiDhlDocument data={data as CiDhlData} />;
+    case 'PACKING_LIST': return <PackingListDocument data={data as PackingListData} />;
+    case 'BUNDLE_CIPL': return <BundleDocument data={data as BundleData} />;
     default: throw new Error(`Unsupported document type: ${data.documentType}`);
   }
 }
 
-export async function generatePDF(data: ShipmentData, logoUrl?: string | null): Promise<Blob> {
+export async function generatePDF(data: ShipmentData): Promise<Blob> {
   const roundedData = { ...data, totals: { ...data.totals, subtotal: Math.round(data.totals.subtotal * 100) / 100 } };
-  const doc = getDocumentComponent(roundedData, logoUrl);
+  const doc = getDocumentComponent(roundedData);
   return pdf(doc).toBlob();
 }
 
-export async function generatePDFBlobUrl(data: ShipmentData, logoUrl?: string | null): Promise<string> {
-  const blob = await generatePDF(data, logoUrl);
+export async function generatePDFBlobUrl(data: ShipmentData): Promise<string> {
+  const blob = await generatePDF(data);
   return URL.createObjectURL(blob);
 }
 
-export function generateShipmentBundle(data: ShipmentData, logoUrl?: string | null): {
+export function generateShipmentBundle(data: ShipmentData): {
   mainDocument: ReactPDFDocument;
   secondaryDocuments: ReactPDFDocument[];
 } {
-  const mainDocument = getDocumentComponent(data, logoUrl);
+  const mainDocument = getDocumentComponent(data);
   const secondaryDocuments: ReactPDFDocument[] = [];
 
   // UPS: USMCA cert separado embebido en CiUpsDocument (ya lo maneja)
@@ -53,7 +53,7 @@ export function generateShipmentBundle(data: ShipmentData, logoUrl?: string | nu
     // Si hay datos de packing list, generar PL como secundario
     const hasPL = data.carrierSpecific.packingList?.plNumber;
     if (hasPL) {
-      secondaryDocuments.push(<PackingListDocument data={data as PackingListData} logoUrl={logoUrl} />);
+      secondaryDocuments.push(<PackingListDocument data={data as PackingListData} />);
     }
   }
 

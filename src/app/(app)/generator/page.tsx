@@ -7,7 +7,6 @@ export default async function GeneratorPage() {
   const limits = planLimits(plan);
   const used = ctx?.usage?.documents_generated || 0;
   const remaining = limits.docsPerMonth === Infinity ? null : Math.max(limits.docsPerMonth - used, 0);
-  const logoUrl = ctx?.company?.logo_url || null;
 
   return (
     <GeneratorFormV2
@@ -16,7 +15,6 @@ export default async function GeneratorPage() {
       planCarrierReady={limits.carrierReady}
       remainingDocs={remaining}
       plan={plan}
-      companyLogoUrl={logoUrl}
     />
   );
 }

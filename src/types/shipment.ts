@@ -234,7 +234,6 @@ export interface OutputConfig {
   signatureImageUrl?: string;
   outputFormat: OutputFormat;
   ediFormat?: EdiFormat;
-  includeLogo: boolean;
 }
 
 // ─── ShipmentData (SSOT discriminado) ───────────────────────────────────────

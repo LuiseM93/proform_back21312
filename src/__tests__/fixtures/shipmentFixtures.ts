@@ -79,7 +79,6 @@ const baseOutput = (overrides: Partial<OutputConfig> = {}): OutputConfig => ({
   language: 'EN',
   includeSignature: true,
   outputFormat: 'PDF',
-  includeLogo: true,
   ...overrides,
 });
 

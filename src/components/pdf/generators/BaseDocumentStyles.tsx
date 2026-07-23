@@ -33,41 +33,38 @@ export function createBaseStyles(paperSize: PaperSize, orientation: Orientation)
   const styles = StyleSheet.create({
     page: {
       width: pageWidth, height: pageHeight, padding: margin,
-      fontFamily: 'Helvetica', fontSize: 8, lineHeight: 1.2, color: '#000',
+      fontFamily: 'Helvetica', fontSize: 9, lineHeight: 1.35, color: '#000',
     },
     header: {
       flexDirection: 'row', justifyContent: 'space-between',
-      marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#000', paddingBottom: 6,
+      marginBottom: 14, borderBottomWidth: 1, borderBottomColor: '#000', paddingBottom: 8,
     },
-    title: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
-    subtitle: { fontSize: 10, textAlign: 'center', marginBottom: 8 },
-    section: { marginBottom: 10 },
+    title: { fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginBottom: 6 },
+    subtitle: { fontSize: 10, textAlign: 'center', marginBottom: 10 },
+    section: { marginBottom: 14 },
     sectionTitle: {
       fontSize: 9, fontWeight: 'bold', textTransform: 'uppercase',
-      marginBottom: 4, borderBottomWidth: 0.5, borderBottomColor: '#999',
+      marginBottom: 6, borderBottomWidth: 0.5, borderBottomColor: '#999',
     },
-    partyBlock: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+    partyBlock: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
     partyColumn: { width: '48%' },
-    partyLabel: { fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', color: '#666' },
-    partyValue: { fontSize: 8, marginBottom: 1 },
+    partyLabel: { fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase', color: '#666', marginBottom: 2 },
+    partyValue: { fontSize: 8, marginBottom: 2 },
     flexRow: { flexDirection: 'row', flexWrap: 'wrap' },
-    table: { width: '100%', borderWidth: 0.5, borderColor: '#000', marginTop: 4 },
+    table: { width: '100%', borderWidth: 0.5, borderColor: '#000', marginTop: 6 },
     tableHeader: {
       flexDirection: 'row', backgroundColor: '#f0f0f0',
       borderBottomWidth: 1, borderBottomColor: '#000',
     },
-    tableRow: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#ccc', minHeight: 20, flexWrap: 'wrap' },
-    tableCell: { padding: 3, fontSize: 7 },
-    tableCellHeader: { padding: 3, fontSize: 7, fontWeight: 'bold', textTransform: 'uppercase' },
+    tableRow: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#ccc', minHeight: 22, flexWrap: 'wrap' },
+    tableCell: { padding: 4, fontSize: 7.5 },
+    tableCellHeader: { padding: 4, fontSize: 7.5, fontWeight: 'bold', textTransform: 'uppercase' },
     totalsRow: { flexDirection: 'row', backgroundColor: '#f9f9f9', borderTopWidth: 1, borderTopColor: '#000' },
     signatureBlock: { marginTop: 20, flexDirection: 'row', justifyContent: 'space-between' },
-    signatureLine: { width: '30%', borderTopWidth: 0.5, borderTopColor: '#000', paddingTop: 4, textAlign: 'center', fontSize: 7 },
+    signatureLine: { width: '30%', borderTopWidth: 0.5, borderTopColor: '#000', paddingTop: 6, textAlign: 'center', fontSize: 7.5 },
     errorHighlight: { backgroundColor: '#fff3cd', borderWidth: 1, borderColor: '#ffc107' },
     errorCritical: { backgroundColor: '#f8d7da', borderWidth: 1, borderColor: '#dc3545' },
-    disclaimer: { fontSize: 7, lineHeight: 1.3, color: '#666' },
-    // Logo styles
-    logoContainer: { position: 'absolute', top: 8, right: 8, width: 80, height: 40 },
-    logo: { width: '100%', height: '100%', resizeMode: 'contain' },
+    disclaimer: { fontSize: 7.5, lineHeight: 1.4, color: '#666' },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -106,5 +103,17 @@ export function renderPartyBlock(party: Party, label: string) {
     phone: party?.phone ? `Tel: ${party.phone}` : '',
     email: party?.email || '',
     relationship: party?.relationship ? `(${party.relationship})` : '',
+    eori: party?.eori ? `EORI: ${party.eori}` : '',
   };
+}
+
+// Render party address lines properly for INFORME compliance
+export function renderPartyAddress(party: Party) {
+  if (!party?.address) return ['—'];
+  return [
+    party.address.street || '—',
+    party.address.street2 || '',
+    `${party.address.city || '—'}, ${party.address.stateProvince || '—'} ${party.address.postalCode || '—'}`,
+    party.address.countryName || '—',
+  ].filter(Boolean);
 }
