@@ -20,6 +20,19 @@ import { generatePDF, downloadPDF, generateEDI } from '@/components/pdf/generato
 
 const STEPS = ['Document Type', 'Parties', 'Lines', 'Carrier', 'Output & Preview'] as const;
 
+// GA4 gtag type declaration
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+function gtag(...args: unknown[]) {
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag(...args);
+  }
+}
+
 export function GeneratorFormV2({
   planWatermark = false, planAllTypes = true, planCarrierReady = true,
   remainingDocs = null, plan = 'starter',
@@ -45,6 +58,7 @@ export function GeneratorFormV2({
   );
 
   const handleGenerate = useCallback(async () => {
+        gtag('event', 'generate_click', { document_type: activeDoc, carrier });
         const result = ShipmentSchema.safeParse(data);
         if (!result.success) {
           console.error('Validation failed:', result.error.flatten());
@@ -60,6 +74,7 @@ export function GeneratorFormV2({
             const blob = await generatePDF(data);
             const filename = `${activeDoc}_${data.issueDate}.pdf`;
             downloadPDF(blob, filename);
+            gtag('event', 'download_pdf', { document_type: activeDoc, carrier });
           }
           if (data.output.outputFormat === 'EDI_JSON' || data.output.outputFormat === 'BOTH') {
             const edi = generateEDI(data);
@@ -73,7 +88,7 @@ export function GeneratorFormV2({
         console.error('Generation error:', err);
         alert('Generation error: ' + (err as Error).message);
       }
-    }, [data, validation, activeDoc]);
+    }, [data, validation, activeDoc, carrier]);
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 16 }}>

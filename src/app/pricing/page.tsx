@@ -1,44 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { PublicNav, PublicFooter } from "@/components/public-nav";
+import React, { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import Link from "next/link";
+import { PublicNav, PublicFooter } from "@/components/public-nav";
 
-const PLANS = {
-  pro: 49,
-  proSuffix: "/mes",
-  biz: 149,
-  bizSuffix: "/mes",
-  proAnnual: 470,
-  bizAnnual: 1430,
-  proMonthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!,
-  proYearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID!,
-  bizMonthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_BIZ_MONTHLY_PRICE_ID!,
-  bizYearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_BIZ_YEARLY_PRICE_ID!,
+const PRICING_PLANS = {
+  starter: { pro: 49, proSuffix: "/mo", biz: 149, bizSuffix: "/mo", annual: false },
+  annual: { pro: 49, proSuffix: "/mo", biz: 149, bizSuffix: "/mo", annual: true },
 };
+
+// GA4 gtag type declaration
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+function gtag(...args: unknown[]) {
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag(...args);
+  }
+}
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [plan, setPlan] = useState<typeof PRICING_PLANS.starter>(PRICING_PLANS.starter);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [loadingBtn, setLoadingBtn] = useState<string | null>(null);
-  const plan = {
-            pro: PLANS.pro,
-            biz: PLANS.biz,
-            proSuffix: PLANS.proSuffix,
-            bizSuffix: PLANS.bizSuffix,
-            proAnnual: PLANS.proAnnual,
-            bizAnnual: PLANS.bizAnnual,
-            proMonthlyPriceId: PLANS.proMonthlyPriceId,
-            proYearlyPriceId: PLANS.proYearlyPriceId,
-            bizMonthlyPriceId: PLANS.bizMonthlyPriceId,
-            bizYearlyPriceId: PLANS.bizYearlyPriceId,
-          };
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-  }, []);
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data }) => setUser(data.user ? { id: data.user.id, email: data.user.email! } : null));
+    }, []);
+
+  // GA4: pricing_view on mount
+  useEffect(() => {
+    gtag("event", "pricing_view", { billing_cycle: annual ? "annual" : "monthly" });
+  }, [annual]);
 
   async function handleUpgrade(targetPlan: "professional" | "business", interval: "month" | "year") {
     if (!user) {
@@ -53,8 +52,10 @@ export default function PricingPage() {
         body: JSON.stringify({ plan: targetPlan, interval }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert(data.error || "Something went wrong.");
+      if (data.url) {
+        gtag("event", "upgrade_click", { plan: targetPlan, interval, user_id: user.id });
+        window.location.href = data.url;
+      } else alert(data.error || "Something went wrong.");
     } catch {
       alert("Connection error. Please try again.");
     }
@@ -90,66 +91,54 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
-          {/* Starter */}
-          <div className="border border-outline-variant p-8 flex flex-col rounded bg-surface h-full">
+        <section className="grid md:grid-cols-2 gap-8 mb-16 max-w-5xl mx-auto" aria-label="Plan comparison">
+          {/* Professional */}
+          <article className="border border-outline-variant p-8 flex flex-col rounded bg-surface h-full">
             <div className="mb-4">
-              <h3 className="font-headline-sm mb-1">Starter</h3>
-              <div className="font-headline-md mb-2">$0<span className="font-body-md text-on-surface-variant">/mo</span></div>
-              <p className="font-body-md text-on-surface-variant h-12">Perfect for individuals starting with global trade.</p>
+              <h3 className="font-headline-sm mb-1">Professional</h3>
+              <div className="font-headline-md mb-2">
+                ${plan.pro}<span className="font-body-md text-on-surface-variant">{plan.proSuffix}</span>
+                {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $470 yearly</div>}
+              </div>
+              <p className="font-body-md text-on-surface-variant h-12">For growing businesses needing carrier integration.</p>
             </div>
             <ul className="flex-grow space-y-3 mb-8">
-              <li className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md">3 docs/month</span></li>
-              <li className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md">Watermarked PDFs</span></li>
-              <li className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md">Proforma invoices only</span></li>
-              <li className="flex items-start gap-2 text-outline"><span className="material-symbols-outlined text-sm">close</span><span className="font-body-md">No carrier-ready PDFs</span></li>
-              <li className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md">Community support</span></li>
-            </ul>
-            <button disabled={loadingBtn !== null} onClick={() => handleUpgrade("professional", "month")} className="w-full text-center border border-primary text-primary font-label-md py-3 rounded hover:bg-surface-container-low transition-colors disabled:opacity-50">
-              {user ? "Get Started Free" : "Sign Up Free"}
-            </button>
-          </div>
-
-          {/* Professional */}
-          <div className="border-2 border-primary p-8 flex flex-col rounded bg-surface relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:-translate-y-2">
-            <div className="absolute top-0 right-0 bg-primary text-on-primary px-3 py-1 font-label-md text-xs font-bold rounded-bl">Popular</div>
-            <div className="mb-4">
-                          <h3 className="font-headline-sm mb-1">Professional</h3>
-                          <div className="font-headline-md mb-2">
-                            ${plan.pro}<span className="font-body-md text-on-surface-variant">{plan.proSuffix}</span>
-                            {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $470 yearly</div>}
-                          </div>
-                          <p className="font-body-md text-on-surface-variant h-12">For growing businesses needing carrier integration.</p>
-                        </div>
-            <ul className="flex-grow space-y-3 mb-8">
-              {["Unlimited docs", "No watermark", "All document types", "Carrier-ready PDFs (FedEx/UPS/DHL)", "5 currencies", "Email support"].map(f => (
+              {["Unlimited docs", "No watermark", "All document types", "Carrier-ready PDFs (FedEx/UPS/DHL)", "5 currencies", "Email support"].map((f) => (
                 <li key={f} className="flex items-start gap-2"><span className="material-symbols-outlined text-primary text-sm">check</span><span className="font-body-md font-medium">{f}</span></li>
               ))}
             </ul>
-            <button onClick={() => handleUpgrade("professional", annual ? "year" : "month")} disabled={loadingBtn === `professional-${annual ? "year" : "month"}`} className="w-full text-center bg-primary text-on-primary font-label-md py-3 rounded hover:opacity-90 transition-opacity disabled:opacity-50">
+            <button
+              onClick={() => handleUpgrade("professional", annual ? "year" : "month")}
+              disabled={loadingBtn === `professional-${annual ? "year" : "month"}`}
+              className="w-full text-center bg-primary text-on-primary font-label-md py-3 rounded hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
               {loadingBtn === `professional-${annual ? "year" : "month"}` ? "Redirecting..." : (user ? "Get Professional" : "Start Free Trial")}
             </button>
-          </div>
+          </article>
 
           {/* Business */}
-          <div className="border border-outline-variant p-8 flex flex-col rounded bg-surface h-full">
+          <article className="border border-outline-variant p-8 flex flex-col rounded bg-surface h-full">
             <div className="mb-4">
-                          <h3 className="font-headline-sm mb-1">Business</h3>
-                          <div className="font-headline-md mb-2">
-                            ${plan.biz}<span className="font-body-md text-on-surface-variant">{plan.bizSuffix}</span>
-                            {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $1,430 yearly</div>}
-                          </div>
-                          <p className="font-body-md text-on-surface-variant h-12">Advanced features for high-volume operations.</p>
-                        </div>
+              <h3 className="font-headline-sm mb-1">Business</h3>
+              <div className="font-headline-md mb-2">
+                ${plan.biz}<span className="font-body-md text-on-surface-variant">{plan.bizSuffix}</span>
+                {annual && <div className="text-xs text-on-surface-variant mt-1 font-body-md font-normal">Billed $1,430 yearly</div>}
+              </div>
+              <p className="font-body-md text-on-surface-variant h-12">Advanced features for high-volume operations.</p>
+            </div>
             <ul className="flex-grow space-y-3 mb-8">
-              {["All Pro features", "Unlimited templates", "20+ currencies"].map(f => (
+              {["All Pro features", "Unlimited templates", "20+ currencies"].map((f) => (
                 <li key={f} className="flex items-start gap-2"><span className="material-symbols-outlined text-outline text-sm">check</span><span className="font-body-md font-medium">{f}</span></li>
               ))}
             </ul>
-            <button onClick={() => handleUpgrade("business", annual ? "year" : "month")} disabled={loadingBtn === `business-${annual ? "year" : "month"}`} className="w-full text-center border border-primary text-primary font-label-md py-3 rounded hover:bg-surface-container-low transition-colors disabled:opacity-50">
+            <button
+              onClick={() => handleUpgrade("business", annual ? "year" : "month")}
+              disabled={loadingBtn === `business-${annual ? "year" : "month"}`}
+              className="w-full text-center border border-primary text-primary font-label-md py-3 rounded hover:bg-surface-container-low transition-colors disabled:opacity-50"
+            >
               {loadingBtn === `business-${annual ? "year" : "month"}` ? "Redirecting..." : (user ? "Get Business" : "Start Free Trial")}
             </button>
-          </div>
+          </article>
         </section>
 
         <p className="text-center font-label-md text-on-surface-variant mb-16">&nbsp;</p>

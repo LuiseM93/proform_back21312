@@ -7,6 +7,7 @@ import { sendMagicLink } from "@/app/auth/actions";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
+  const [marketing, setMarketing] = useState(false);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ function LoginForm() {
       return;
     }
     setStatus("sending");
-    const result = await sendMagicLink(email, redirectPath);
+    const result = await sendMagicLink(email, redirectPath, marketing);
     if (result.error) {
       setStatus("error");
       setErrorMsg(result.error);
@@ -74,6 +75,15 @@ function LoginForm() {
               </p>
             )}
           </div>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={marketing}
+              onChange={(e) => setMarketing(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="font-body-md text-on-surface-variant">Send me tips about export documentation and ProformaFlow updates.</span>
+          </label>
           <button
             type="submit"
             disabled={status === "sending" || status === "sent"}

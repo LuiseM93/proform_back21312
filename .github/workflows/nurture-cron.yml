@@ -1,0 +1,17 @@
+name: Nurture Email Cron
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # 12:00 UTC daily (6am Mexico, 7am EST)
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  send-nurture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call Nurture Cron Endpoint
+        run: |
+          curl -X GET "https://proformaflow.app/api/cron/nurture" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --fail --silent --show-error

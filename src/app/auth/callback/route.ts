@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const redirectPath = searchParams.get("redirect") || "/dashboard";
+  const marketingOptIn = searchParams.get("marketing") === "1";
 
   if (code) {
     const supabase = await createClient();
@@ -15,7 +16,6 @@ export async function GET(request: NextRequest) {
     if (!error && sessionData?.user) {
       const user = sessionData.user;
 
-      // Check if this is a new signup (profile created in the last 30 seconds)
       const admin = createAdminClient();
       if (!admin) {
         return NextResponse.redirect(`${origin}${redirectPath}`);
@@ -30,7 +30,15 @@ export async function GET(request: NextRequest) {
         profile?.created_at &&
         Date.now() - new Date(profile.created_at).getTime() < 60_000;
 
-      // Fire-and-forget welcome email for new signups
+      // Set marketing preference ONLY on new signup and ONLY if checkbox was checked
+      if (isNewSignup && marketingOptIn) {
+        await admin.from("notification_preferences").upsert(
+          { user_id: user.id, marketing_updates: true, document_downloaded: true, document_sent: true, weekly_summary: false },
+          { onConflict: "user_id" }
+        );
+      }
+
+      // Fire-and-forget welcome email for new signups (always, regardless of marketing)
       if (isNewSignup && user.email) {
         sendWelcomeEmail(user.email, profile?.full_name || "").catch(() => {});
       }
