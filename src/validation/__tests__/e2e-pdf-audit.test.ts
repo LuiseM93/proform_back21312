@@ -14,7 +14,7 @@ describe('E2E: PDF Generation Audit', () => {
   TYPES.forEach((docType) => {
     it(`${docType}: generates valid PDF blob with %PDF header`, async () => {
       const data = makeFixture(docType);
-      const blob = await generatePDF(data, null);
+      const blob = await generatePDF(data);
 
       expect(blob).toBeDefined();
       expect(blob).toBeInstanceOf(Blob);
